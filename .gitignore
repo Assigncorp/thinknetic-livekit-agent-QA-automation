@@ -1,0 +1,34 @@
+# node
+node_modules/
+ui/node_modules/
+*.tsbuildinfo
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# secrets & local config
+.env
+.env.local
+*.local.json
+
+# test output
+reports/**
+!reports/.gitkeep
+ui/test-results/
+ui/playwright-report/
+ui/blob-report/
+**/traces/
+**/*.webm
+**/*.zip
+allure-results/
+allure-report/
+
+# audio captured during voice runs
+voice/recordings/
+
+# os
+.DS_Store
