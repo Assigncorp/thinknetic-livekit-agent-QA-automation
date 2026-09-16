@@ -13,33 +13,49 @@ import type { Page, Locator } from '@playwright/test';
  *   2. Stable text second.
  *   3. Structural CSS only as a last resort, and always commented.
  *
- * VERIFIED   - confirmed present on etnyre-dev as of 2026-09-16.
+ * VERIFIED   - confirmed against etnyre-dev on 2026-09-16.
  * UNVERIFIED - written from expected markup; confirm on first run and fix here.
  */
 export const sel = {
   productPage: {
-    /** VERIFIED - opens the voice agent. */
+    /** VERIFIED - opens the agent session (voice + text). */
     talkToMe: (p: Page): Locator => p.getByRole('button', { name: /talk to me/i }),
     /** VERIFIED - lightbox trigger on the hero image. */
     expandPhoto: (p: Page): Locator => p.getByRole('button', { name: /expand photo/i }),
     /** VERIFIED - gallery thumbnails render as "View <filename>" buttons. */
-    galleryThumbs: (p: Page): Locator => p.getByRole('button', { name: /^View .+\.(png|jpe?g|webp)$/i }),
+    galleryThumbs: (p: Page): Locator =>
+      p.getByRole('button', { name: /^View .+\.(png|jpe?g|webp)$/i }),
+    /** VERIFIED - header status pill, present before a session is opened. */
+    assistantOnline: (p: Page): Locator => p.getByText(/assistant online/i),
     heading: (p: Page): Locator => p.getByRole('heading').first(),
-    logo: (p: Page): Locator => p.getByRole('img', { name: /etnyre/i }).first(),
   },
 
-  voiceWidget: {
-    /** UNVERIFIED - confirm the real accessible names on first run. */
-    panel: (p: Page): Locator => p.getByRole('dialog'),
-    endCall: (p: Page): Locator => p.getByRole('button', { name: /end|hang ?up|stop|close/i }),
-    muteToggle: (p: Page): Locator => p.getByRole('button', { name: /mute|unmute|microphone/i }),
-    statusText: (p: Page): Locator => p.getByText(/connecting|connected|listening|speaking/i),
-  },
-
+  /**
+   * VERIFIED 2026-09-16 - the session panel. Same panel serves voice and text;
+   * these are the text-mode controls.
+   */
   chatWidget: {
-    /** UNVERIFIED - fill in once chat mode is enabled on dev. */
-    input: (p: Page): Locator => p.getByRole('textbox'),
-    send: (p: Page): Locator => p.getByRole('button', { name: /send/i }),
-    messages: (p: Page): Locator => p.getByRole('log'),
+    /** Placeholder uses a real ellipsis character, so match loosely. */
+    input: (p: Page): Locator => p.getByRole('textbox', { name: /type your question/i })
+      .or(p.locator('input[placeholder^="Type your question"]'))
+      .first(),
+    send: (p: Page): Locator => p.getByRole('button', { name: /^send$/i }),
+    mute: (p: Page): Locator => p.getByRole('button', { name: /^mute$/i }),
+    end: (p: Page): Locator => p.getByRole('button', { name: /^end$/i }),
+    /**
+     * Session state text. "Listening — go ahead" is the connected state;
+     * "Connecting…" precedes it.
+     */
+    connecting: (p: Page): Locator => p.getByText(/connecting/i),
+    listening: (p: Page): Locator => p.getByText(/listening/i),
+  },
+
+  /**
+   * Voice-specific controls beyond the shared panel.
+   * UNVERIFIED - phase 2. Mute/End above are the verified ones.
+   */
+  voiceWidget: {
+    panel: (p: Page): Locator => p.getByRole('dialog'),
+    statusText: (p: Page): Locator => p.getByText(/connecting|listening|speaking/i),
   },
 } as const;

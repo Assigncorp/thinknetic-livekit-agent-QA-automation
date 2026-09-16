@@ -1,33 +1,40 @@
 import { expect, type Page } from '@playwright/test';
 import { sel } from '../selectors.js';
+import { testbed } from '../config/testbed.js';
+import { BasePage } from './BasePage.js';
 
 /**
- * Voice agent panel opened by "Talk to me".
+ * The same session panel as ChatWidget, viewed from the voice side.
  *
- * PHASE 1 SCOPE: connection lifecycle and UI state only - can the user open a
+ * PHASE 1 SCOPE: connection lifecycle and UI state only - can a user open a
  * session, does it reach a connected state, does it tear down cleanly.
- * Audio content and turn-taking assertions live in the `voice/` package,
- * which drives LiveKit directly instead of through the browser.
+ * Audio content, turn-taking and barge-in live in the `voice/` package, which
+ * drives LiveKit directly instead of through the browser.
  */
-export class VoiceWidget {
-  constructor(private readonly page: Page) {}
-
-  async expectOpen(timeoutMs = 15_000): Promise<void> {
-    await expect(sel.voiceWidget.panel(this.page)).toBeVisible({ timeout: timeoutMs });
+export class VoiceWidget extends BasePage {
+  constructor(page: Page) {
+    super(page);
   }
 
-  /** Time from click to the widget reporting a connected/listening state. */
-  async waitForConnected(timeoutMs = 20_000): Promise<number> {
+  async expectOpen(): Promise<void> {
+    await expect(sel.chatWidget.end(this.page)).toBeVisible({
+      timeout: testbed.budgets.sessionConnectMs,
+    });
+  }
+
+  /** Time from open to the panel reporting a connected/listening state. */
+  async waitForConnected(timeoutMs = testbed.budgets.sessionConnectMs): Promise<number> {
     const started = Date.now();
-    await expect(sel.voiceWidget.statusText(this.page)).toContainText(
-      /connected|listening|speaking/i,
-      { timeout: timeoutMs },
-    );
+    await expect(sel.chatWidget.listening(this.page)).toBeVisible({ timeout: timeoutMs });
     return Date.now() - started;
   }
 
+  async mute(): Promise<void> {
+    await sel.chatWidget.mute(this.page).click();
+  }
+
   async end(): Promise<void> {
-    const btn = sel.voiceWidget.endCall(this.page);
+    const btn = sel.chatWidget.end(this.page);
     if (await btn.isVisible().catch(() => false)) await btn.click();
   }
 

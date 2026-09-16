@@ -1,0 +1,138 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for the agent test bed. Everything the suites need to locate a resource, pick a serial, choose a scenario or judge a reply is declared here. Rename a KB file? Change it in one place: knowledgeBases[].file. Secrets and the target URL live in .env, never here.",
+  "_regenerate": "After editing resources or this file, run: make resources   (tools/build_resources.py rewrites resources/generated/*)",
+  "resources": {
+    "root": "resources",
+    "kbDir": "resources/kb",
+    "serialWorkbook": "resources/serials/hopper-classification.xlsx",
+    "generatedDir": "resources/generated"
+  },
+  "serialSource": {
+    "_comment": "Sheets in the workbook that classify a Parent Part Number (the 'serial number' the agent asks for) as VARIABLE or FIXED hopper. The sheet a serial lives on also tells us the controller family.",
+    "sheets": [
+      {
+        "name": "RC28 Classified",
+        "family": "RC28",
+        "serialColumn": "Parent Part Number",
+        "descriptionColumn": "Parent Description",
+        "hopperTypeColumn": "Hopper Type"
+      },
+      {
+        "name": "RC36 Classified",
+        "family": "RC36",
+        "serialColumn": "Parent Part Number",
+        "descriptionColumn": "Parent Description",
+        "hopperTypeColumn": "Hopper Type"
+      }
+    ],
+    "hopperTypeValues": {
+      "variable": "VARIABLE",
+      "fixed": "FIXED"
+    }
+  },
+  "knowledgeBases": [
+    {
+      "id": "vhrs28",
+      "file": "vhrs28.md",
+      "machine": "Variable Width Hopper ChipSpreader VHRS28",
+      "controller": "RC28",
+      "hopperType": "VARIABLE",
+      "anchorSerial": "K7170",
+      "enabled": true
+    },
+    {
+      "id": "vhrs36",
+      "file": "vhrs36.md",
+      "machine": "Variable Hopper ChipSpreader VHRS36",
+      "controller": "RC36",
+      "hopperType": "VARIABLE",
+      "anchorSerial": "K6757",
+      "enabled": true
+    },
+    {
+      "id": "fhrc28",
+      "file": "fhrc28.md",
+      "machine": "Fixed Hopper ChipSpreader FHRC28",
+      "controller": "RC28",
+      "hopperType": "FIXED",
+      "anchorSerial": "K7174",
+      "enabled": true
+    },
+    {
+      "id": "fhrc36",
+      "file": "fhrc36.md",
+      "machine": "Fixed Hopper ChipSpreader FHRC36",
+      "controller": "RC36",
+      "hopperType": "FIXED",
+      "anchorSerial": "K6758",
+      "enabled": true
+    },
+    {
+      "id": "general",
+      "file": "troubleshooting-general.md",
+      "machine": "Chipspreader (general troubleshooting, M-218-08R)",
+      "controller": null,
+      "hopperType": null,
+      "anchorSerial": null,
+      "enabled": true,
+      "_comment": "Shared pool. Not reachable by serial lookup - used for general questions valid for any machine."
+    }
+  ],
+  "scenarioExtraction": {
+    "_comment": "How tools/build_resources.py turns a KB markdown file into a scenario pool.",
+    "faqPattern": "^\\*\\*Q:\\s*(?P<question>.+?)\\*\\*\\s*$",
+    "howToPattern": "^###\\s*Q:\\s*(?P<question>.+?)\\s*$",
+    "minQuestionLength": 15,
+    "maxScenariosPerKb": 0,
+    "_maxNote": "0 = no cap. Set a number to trim the generated pool.",
+    "problemPattern": "^##\\s*Problem\\s*\\d+\\s*[\u2014-]\\s*(?P<question>.+?)\\s*$",
+    "problemSymptomPattern": "^\\*\\*Symptoms:\\*\\*\\s*(?P<symptom>.+?)\\s*$",
+    "_patternNote": "Three shapes appear across the KBs: '**Q: ...**' FAQ pairs, '### Q: ...' how-to entries, and '## Problem N \u2014 ...' entries in the general troubleshooting guide (whose caller prompt comes from its **Symptoms:** line)."
+  },
+  "scenarioSelection": {
+    "_comment": "How a test run picks its scenario. Rotation matters: the agent remembers previous sessions per serial, so reusing one serial changes its own behaviour over time.",
+    "mode": "random",
+    "_modeOptions": "random | fixed | roundRobin",
+    "seed": null,
+    "_seedNote": "null = new pick each run. Set an integer to reproduce a specific failing run exactly.",
+    "fixedScenarioId": null,
+    "rotateSerials": true,
+    "serialsPerKb": 25,
+    "_serialsPerKbNote": "How many serials to keep per KB in the generated index. Rotation draws from these.",
+    "excludeSerials": []
+  },
+  "chatFlow": {
+    "_comment": "The verified conversation contract, observed on etnyre-dev 2026-09-16. Phrases are matched case-insensitively as regex fragments - keep them short and structural, never full sentences.",
+    "greetingAsksForSerial": [
+      "serial number"
+    ],
+    "readBackConfirmation": [
+      "read that back",
+      "is that right",
+      "did i get that right"
+    ],
+    "confirmationReply": "Yes, that is correct.",
+    "agentIdlePrompts": [
+      "are you still there",
+      "still here whenever you're ready"
+    ],
+    "_idleNote": "The agent injects these on its own. The transcript reader ignores them so they never break an assertion."
+  },
+  "budgets": {
+    "_comment": "Milliseconds. Placeholders pending a week of dev baselines - see docs/architecture.md.",
+    "sessionConnectMs": 20000,
+    "greetingMs": 25000,
+    "serialAcknowledgedMs": 25000,
+    "answerMs": 45000,
+    "apiResponseMs": 3000
+  },
+  "assertions": {
+    "_comment": "Phase 1 is deterministic only: a reply arrives, it is non-empty, it lands inside budget. Wording is never asserted.",
+    "requireNonEmptyReply": true,
+    "minReplyChars": 20,
+    "checkExpectedAnchors": false,
+    "_anchorsNote": "Scenarios carry expectAnchors extracted from the KB answer. Flip this to true when you want content checks - expect false failures on valid paraphrases.",
+    "failOnWrongControllerFamily": false,
+    "_familyNote": "Flip to true to fail when an RC-36 serial gets an answer naming RC-28, or vice versa."
+  }
+}

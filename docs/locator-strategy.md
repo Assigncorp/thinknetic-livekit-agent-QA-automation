@@ -39,4 +39,5 @@ the fragility in this suite. Worth asking for, but the suite does not depend on 
 |---|---|---|
 | `talkToMe` | copy change ("Talk to me" to "Ask the agent") | regex, and it fails loudly in smoke |
 | `galleryThumbs` | matches on filename pattern in the aria-label | count assertion only, never index-based |
-| `voiceWidget.*` | UNVERIFIED - guessed roles | confirm on first live run, fix in one place |
+| `chatWidget.*` | VERIFIED 2026-09-16 - aria-labels Send/Mute/End, placeholder "Type your question…" | regex match; the placeholder uses a real ellipsis character |
+| transcript bubbles | no roles, no ids, hashed MUI classes | read via `ChatWidget.transcript()`, which infers the speaker from layout alignment - see docs/chat-flow.md |

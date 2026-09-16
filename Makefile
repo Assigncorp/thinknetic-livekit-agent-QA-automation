@@ -1,24 +1,29 @@
 # Front door for both toolchains. Run everything from the repo root.
 SHELL := /bin/bash
 
-.PHONY: help check install install-ui install-api smoke ui api voice negative test report clean
+.PHONY: help check install install-ui install-api install-tools resources \
+        smoke catalog ui chat negative api voice test report clean
 
 help:
 	@echo "make check       - verify the local toolchain and .env"
-	@echo "make install     - install UI (pnpm/npm + chromium) and API (uv) dependencies"
+	@echo "make install     - install UI (npm + chromium), API and tools dependencies"
+	@echo "make resources   - rebuild resources/generated from config + KB files + workbook"
+	@echo ""
+	@echo "make catalog     - scenario catalogue checks (no browser, no agent calls, <1s)"
+	@echo "make api         - public endpoint suite + catalogue"
 	@echo "make smoke       - fast page-load + critical-element checks"
-	@echo "make ui          - full Playwright functional suite"
-	@echo "make negative    - negative / fail-closed suite only"
-	@echo "make api         - Python API suite against the public endpoints"
-	@echo "make voice       - LiveKit voice suite (phase 3, currently skipped)"
-	@echo "make test        - api + ui"
+	@echo "make negative    - negative / fail-closed suite"
+	@echo "make ui          - full browser suite EXCEPT tests that open a real session"
+	@echo "make chat        - the real agent chat flow (opens live sessions)"
+	@echo "make test        - api + ui  (no live sessions)"
+	@echo ""
 	@echo "make report      - open the last Playwright HTML report"
 	@echo "make clean       - remove test output"
 
 check:
 	@./scripts/check-env.sh
 
-install: install-ui install-api
+install: install-ui install-api install-tools
 
 install-ui:
 	cd ui && (command -v pnpm >/dev/null && pnpm install || npm install)
@@ -27,14 +32,30 @@ install-ui:
 install-api:
 	cd api && uv sync
 
+install-tools:
+	cd tools && uv sync
+
+# Rebuild serial-index.json and scenarios.json from config/testbed.config.json.
+# Run after renaming a KB file, adding a machine, or updating the workbook.
+resources:
+	cd tools && uv run python build_resources.py
+
+catalog:
+	cd api && uv run pytest tests/test_scenario_catalog.py -q
+
 smoke:
 	cd ui && npx playwright test tests/smoke
 
-ui:
-	cd ui && npx playwright test
-
 negative:
 	cd ui && npx playwright test tests/negative
+
+# Everything that does not open a real agent session.
+ui:
+	cd ui && npx playwright test --grep-invert @live
+
+# The real thing: opens sessions against the dev deployment.
+chat:
+	cd ui && npx playwright test --grep @chat
 
 api:
 	cd api && uv run pytest -v

@@ -3,9 +3,10 @@
 Black-box QA automation for the Thinknetic-powered Etnyre product support agent.
 Runs locally against the deployed dev environment. **No application code is
 modified, forked, mocked or instrumented** — the deployment is treated as an
-opaque system under test, exactly as a user or an external client sees it.
+opaque system under test, exactly as a real caller sees it.
 
 **Target:** `https://etnyre-dev.thinknetic.app/e/products/chip-spreader`
+**Mode:** text (chat) — audio is phase 2.
 
 ---
 
@@ -15,10 +16,38 @@ opaque system under test, exactly as a user or an external client sees it.
 cp .env.example .env         # defaults already point at dev
 ./scripts/check-env.sh       # tells you what's missing before you waste time
 make install                 # node deps + chromium + python deps
-make smoke                   # ~15s sanity run
+make catalog                 # <1s, no browser — proves the test data is sound
+make smoke                   # ~15s
+make chat                    # the real thing: opens live agent sessions
 ```
 
 Requires **Node 20+**, **Python 3.11+**, and **[uv](https://docs.astral.sh/uv/)**.
+
+---
+
+## One file configures everything
+
+**`config/testbed.config.json`** is the single source of truth. Which KB files exist,
+where the serial list lives, how a serial routes to a knowledge base, how a scenario is
+picked, what the agent's conversation contract is, every latency budget, and how
+strictly a reply is judged — all declared there. No test file needs editing to change
+any of it.
+
+```jsonc
+"knowledgeBases": [
+  { "id": "vhrs28", "file": "vhrs28.md", "controller": "RC28",
+    "hopperType": "VARIABLE", "anchorSerial": "K7170", "enabled": true }
+]
+```
+
+Renamed a KB? Change `file`. Added a fifth machine? Add an entry — the serial index
+routes to it automatically. Retiring one? `"enabled": false`. Then:
+
+```bash
+make resources     # rebuilds resources/generated/*
+```
+
+`.env` holds only the target URL and secrets. Everything else is in the config.
 
 ---
 
@@ -27,56 +56,79 @@ Requires **Node 20+**, **Python 3.11+**, and **[uv](https://docs.astral.sh/uv/)*
 ```
 thinknetic-livekit-agent-QA-automation/
 │
-├── README.md                   ← you are here
+├── config/testbed.config.json  ★ SINGLE SOURCE OF TRUTH — read this first
+├── .env.example                target URL and secrets only
 ├── Makefile                    one front door for both toolchains
-├── .env.example                copy to .env; shared by ui/ and api/
+│
+├── resources/                  everything the test bed reads; no code
+│   ├── kb/                     vhrs28, vhrs36, fhrc28, fhrc36, troubleshooting-general
+│   ├── serials/                hopper-classification.xlsx (the serial list)
+│   ├── generated/              serial-index.json + scenarios.json  (make resources)
+│   └── README.md               how renaming and routing work
+│
+├── tools/build_resources.py    workbook + KB markdown → generated JSON
 │
 ├── ui/                         BROWSER SUITE — Playwright + TypeScript   [ACTIVE]
-│   ├── playwright.config.ts    reporters, budgets, fake-media launch args
 │   ├── src/
-│   │   ├── config/env.ts       base URL, routes, API paths — no process.env elsewhere
-│   │   ├── constants/          timeouts and performance budgets, all in one place
-│   │   ├── selectors.ts        ★ EVERY locator lives here. See locator-strategy.md
-│   │   ├── types/              typed API payloads
-│   │   ├── pages/              page objects — BasePage, ProductPage, VoiceWidget, ChatWidget
-│   │   ├── fixtures/test.ts    custom Playwright fixtures (page objects, console, sockets)
-│   │   └── utils/              logger, shared test-data loader
+│   │   ├── config/             env.ts (routes/API) + testbed.ts (config + pickers)
+│   │   ├── constants/          timeouts and budgets
+│   │   ├── selectors.ts        ★ EVERY locator lives here
+│   │   ├── types/              API payload + test-bed types
+│   │   ├── pages/              BasePage, ProductPage, VoiceWidget, ChatWidget
+│   │   ├── fixtures/test.ts    page objects, console errors, socket capture
+│   │   └── utils/              logger, test-data loader
 │   └── tests/
 │       ├── smoke/              must pass before anything else is worth running
-│       ├── functional/         core behaviour + agent session lifecycle
+│       ├── functional/         page content + session lifecycle
 │       ├── negative/           bad routes, fail-closed behaviour
-│       └── chat/               chat mode                                [SKIPPED]
+│       └── chat/               ★ the real caller workflow, end to end
 │
 ├── api/                        API SUITE — pytest + httpx                [ACTIVE]
-│   ├── conftest.py             fixtures: client, slugs, schema
-│   ├── src/
-│   │   ├── clients/            ProductClient — all URL construction
-│   │   ├── schemas/            JSON Schema contract for the product payload
-│   │   └── utils/              shared test-data loader
-│   └── tests/                  endpoint contract, error handling, runtime config
+│   ├── src/{clients,schemas,utils}
+│   └── tests/                  endpoint contract, JSON schema, runtime config,
+│                               and the scenario catalogue (no agent calls)
 │
-├── voice/                      VOICE SUITE — LiveKit Python SDK          [PHASE 3]
-│   ├── README.md               why it bypasses the browser, and what goes in it
-│   ├── fixtures/               reference caller audio (16 kHz mono WAV)
-│   └── tests/                  scaffolded, skipped until credentials are wired
-│
-├── testdata/                   language-neutral fixtures, shared by all suites
-│   ├── products.json           valid + invalid product/org combinations
-│   └── prompts/
-│       ├── functional-queries.json   questions the agent should answer
-│       └── negative-queries.json     inputs it should refuse or escalate
-│
-├── scripts/
-│   ├── check-env.sh            verify toolchain before installing
-│   ├── setup.sh                one-shot setup, safe to re-run
-│   └── run.sh                  ./scripts/run.sh [smoke|ui|api|live|no-live]
-│
-├── docs/                       architecture, test plan, how to add a test,
-│                               locator strategy, troubleshooting
-│
-├── .github/workflows/ci.yml    api job → ui job, artefacts uploaded
-└── reports/                    all output lands here (gitignored)
+├── voice/                      VOICE SUITE — LiveKit Python SDK          [PHASE 2]
+├── scripts/                    check-env, setup, run
+├── docs/                       architecture, chat-flow, test-plan, how-to-add-a-test,
+│                               locator-strategy, troubleshooting
+├── .github/workflows/ci.yml    catalogue → api → ui
+└── reports/                    all output (gitignored)
 ```
+
+---
+
+## The two scenario suites
+
+### 1. Catalogue suite — no calls, under a second
+
+`make catalog` (56 checks). Validates the data the expensive suite depends on: every
+declared KB file exists, serial routing is unambiguous, every anchor serial survives
+regeneration, no serial routes to two KBs, every scenario is traceable to a line in its
+source file, budgets are ordered sensibly, the rotation pool is big enough to be worth
+rotating.
+
+When a KB is renamed or the workbook changes, **this** goes red and names the cause —
+instead of a 45-second chat test failing with "the agent did not reply".
+
+### 2. Chat flow suite — real sessions
+
+`make chat`. Drives the verified caller workflow:
+
+| # | Step |
+|---|---|
+| 1 | click **Talk to me**, panel reaches `Listening — go ahead` |
+| 2 | agent greets and asks for the serial number |
+| 3 | send a serial drawn from the rotation pool |
+| 4 | agent reads it back digit by digit — **confirmation is required before it will take a question** |
+| 5 | confirm |
+| 6 | ask a question drawn at random from that machine's KB |
+| 7 | assert a non-empty answer inside budget |
+| 8 | end the session |
+
+221 scenarios across the five KBs, 100 serials across the four machine families.
+Full detail, including the three agent behaviours that shape the design:
+[`docs/chat-flow.md`](docs/chat-flow.md).
 
 ---
 
@@ -84,86 +136,38 @@ thinknetic-livekit-agent-QA-automation/
 
 | Command | What it does |
 |---|---|
-| `make install` | Install everything (node, chromium, python) |
-| `make smoke` | Fast sanity: page loads, hydrates, entry point present |
-| `make api` | Public endpoint contract, schema, error handling |
-| `make ui` | Full browser functional suite |
-| `make test` | `api` then `ui` |
+| `make catalog` | Scenario catalogue — no browser, no calls, <1s |
+| `make api` | Public endpoint suite + catalogue |
+| `make smoke` | Page loads, hydrates, entry point present |
+| `make negative` | Bad routes, fail-closed behaviour |
+| `make ui` | Full browser suite **except** live sessions |
+| `make chat` | The real agent chat flow (opens live sessions) |
+| `make resources` | Rebuild `resources/generated/*` after a config or KB change |
+| `make test` | `api` then `ui` — no live sessions |
 | `make report` | Open the last Playwright HTML report |
-| `make clean` | Wipe test output |
-
-Filtering:
 
 ```bash
 cd ui
-npx playwright test --grep @smoke              # smoke only
-npx playwright test --grep-invert @live        # skip tests that open a real agent session
-npx playwright test --headed --grep @live      # watch the session tests run
+npx playwright test --grep @chat          # live chat only
+npx playwright test --grep-invert @live   # everything that touches no session
 ```
-
----
-
-## How the layers fit together
-
-```
-   ui/     what a user can see and do          slow, broad, closest to reality
-   api/    what the client is served           fast, precise, cheapest signal
-   voice/  what the agent actually says        phase 3
-```
-
-Cheapest signal first: CI runs the API suite before the browser suite, because a
-broken payload makes every downstream browser assertion meaningless — and it
-takes seconds rather than minutes to discover.
-
-**Two languages, on purpose.** Playwright's TypeScript API has the best
-auto-waiting and trace viewer for a React SPA whose agent widget mounts
-asynchronously. LiveKit's usable test-harness client is Python, and the Python
-audio stack (`webrtcvad`, `faster-whisper`, `soundfile`) has no real Node
-equivalent. The Makefile and a shared root `.env` keep the seam out of daily use.
-
----
-
-## What is covered today
-
-| Layer | Covered | Not yet |
-|---|---|---|
-| Page | load, hydration against the public API, console errors, gallery, lightbox, unknown-slug | visual regression, a11y, mobile |
-| Session | entry point opens a panel, reaches connected state, realtime socket opens, teardown | audio content, turn-taking, barge-in |
-| API | status, required fields, JSON schema, `has_assistant`, 404 contract, latency, `/env.js` | authenticated endpoints, fuzzing |
-| Chat | — | everything (widget not live on dev) |
-
-Full matrix with IDs and risk ranking: [`docs/test-plan.md`](docs/test-plan.md).
-
-**All assertions are deterministic** — status codes, element presence, socket
-establishment, latency budgets. Nothing here scores the *wording* of an LLM
-reply. That is deliberate: asserting on generated wording produces a suite that
-is red every morning and that nobody trusts. Semantic scoring is a later phase
-and should be threshold-based and reported separately, so a borderline score
-never blocks a release on its own.
-
----
-
-## The one thing to know before editing
-
-The app under test ships **zero `data-testid` attributes**, and we cannot add
-them. Every locator is therefore role- or text-based, and they **all live in
-`ui/src/selectors.ts`**. A selector string in a test file is a bug in the test
-file. Full reasoning and the brittleness register: [`docs/locator-strategy.md`](docs/locator-strategy.md).
 
 ---
 
 ## Known gaps — read before trusting a green run
 
-1. **`sel.voiceWidget.*` locators are UNVERIFIED.** They were written from
-   expected markup, not observed markup, because confirming them means opening a
-   real agent session on the dev environment. Expect `SES-01`/`SES-02` to fail on
-   the first run; the fix is one file.
-2. **The 15s time-to-connected budget is a placeholder**, not a measurement.
-   Collect a week of dev baselines and reset it to roughly p95.
-3. **The highest-impact risk — the agent giving wrong technical guidance — is
-   the least covered.** Phasing decision, documented in `docs/test-plan.md`.
-4. **Authenticated flows** will hit the known better-auth cookie naming and
-   URL-encoding quirk when phase 2 starts.
+1. **The agent remembers previous sessions per serial.** After confirming a serial it
+   may open with *"Last time, you asked me to…"*. The suite rotates serials and never
+   asserts on that turn's wording, but the history still accumulates. A reset mechanism
+   from the devs would make this fully repeatable.
+2. **The agent injects unprompted turns** ("Are you still there?"). Filtered out by
+   `chatFlow.agentIdlePrompts` before any assertion.
+3. **The transcript has no roles or test ids** — speaker is inferred from layout
+   alignment. See `docs/chat-flow.md` for why, and what would replace it.
+4. **Budgets are placeholders**, not measurements. Collect a week of dev baselines and
+   reset to ~p95.
+5. **Content correctness is not asserted.** `checkExpectedAnchors` and
+   `failOnWrongControllerFamily` ship switched off. The second is the higher-value one.
 
 ---
 
@@ -176,7 +180,9 @@ file. Full reasoning and the brittleness register: [`docs/locator-strategy.md`](
 | Runtime config | `/env.js` — environment switching without a rebuild |
 | Public API | `GET /api/v1/public/organizations/{org}/products/{slug}` → 200, no auth |
 | Error contract | unknown product **and** unknown org → `404 {message, error, statusCode}` |
-| Agent flag | `has_assistant` in the payload drives the "Talk to me" entry point |
+| Agent flag | `has_assistant` drives the "Talk to me" entry point |
+| Session panel | text input, `Send` / `Mute` / `End`, status `Listening — go ahead` |
+| Agent persona | "Jason with Etnyre Customer Support"; asks for serial, reads it back |
 | Test hooks | none |
 
 ---
@@ -185,8 +191,10 @@ file. Full reasoning and the brittleness register: [`docs/locator-strategy.md`](
 
 | Document | Read it when |
 |---|---|
+| [docs/chat-flow.md](docs/chat-flow.md) | You are working on the agent conversation suite |
+| [resources/README.md](resources/README.md) | You are renaming, adding or routing a KB |
 | [docs/architecture.md](docs/architecture.md) | You want to know why the suite is shaped this way |
-| [docs/test-plan.md](docs/test-plan.md) | You need the coverage matrix or the risk ranking |
+| [docs/test-plan.md](docs/test-plan.md) | You need the coverage matrix or risk ranking |
 | [docs/how-to-add-a-test.md](docs/how-to-add-a-test.md) | You are writing your first test here |
-| [docs/locator-strategy.md](docs/locator-strategy.md) | A selector broke, or you are adding one |
+| [docs/locator-strategy.md](docs/locator-strategy.md) | A selector broke |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Something failed and you want the likely cause |
