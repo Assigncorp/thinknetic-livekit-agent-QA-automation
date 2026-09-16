@@ -1,12 +1,17 @@
 import { expect, type Page, type Response } from '@playwright/test';
 import { sel } from '../selectors.js';
 import { api, routes } from '../config/env.js';
+import { TIMEOUT } from '../constants/timeouts.js';
+import type { ProductPayload } from '../types/product.js';
+import { BasePage } from './BasePage.js';
 
 /**
  * The public product support page - entry point for both voice and chat modes.
  */
-export class ProductPage {
-  constructor(private readonly page: Page) {}
+export class ProductPage extends BasePage {
+  constructor(page: Page) {
+    super(page);
+  }
 
   /**
    * Navigate and wait for the SPA to hydrate from its public product API,
@@ -17,17 +22,23 @@ export class ProductPage {
     const [apiResponse] = await Promise.all([
       this.page.waitForResponse(
         (r) => r.url().includes(api.publicProduct(slug)) && r.request().method() === 'GET',
+        { timeout: TIMEOUT.navigation },
       ),
-      this.page.goto(routes.product(slug), { waitUntil: 'domcontentloaded' }),
+      this.goto(routes.product(slug)),
     ]);
-    await expect(sel.productPage.talkToMe(this.page)).toBeVisible();
+    await expect(sel.productPage.talkToMe(this.page)).toBeVisible({ timeout: TIMEOUT.element });
     return apiResponse;
   }
 
-  async productPayload(slug?: string): Promise<unknown> {
+  /** Opens a page without requiring the agent entry point - for negative cases. */
+  async openRaw(orgSlug: string, productSlug: string): Promise<void> {
+    await this.goto(`/${orgSlug}/products/${productSlug}`);
+  }
+
+  async productPayload(slug?: string): Promise<ProductPayload> {
     const res = await this.page.request.get(api.publicProduct(slug));
     expect(res.ok(), `public product API returned ${res.status()}`).toBeTruthy();
-    return res.json();
+    return (await res.json()) as ProductPayload;
   }
 
   async startVoiceSession(): Promise<void> {

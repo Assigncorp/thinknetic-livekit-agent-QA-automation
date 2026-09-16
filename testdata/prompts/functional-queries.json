@@ -1,0 +1,33 @@
+{
+  "_comment": "Questions the agent should answer from the product KB. Used by the chat suite (phase 2) and the voice suite (phase 3). Keep 'expectKeywords' deterministic - specs, numbers, part names - never full sentences.",
+  "queries": [
+    {
+      "id": "FUNC-001",
+      "category": "specification",
+      "prompt": "What is the hopper capacity?",
+      "expectKeywords": ["capacity"],
+      "priority": "P1"
+    },
+    {
+      "id": "FUNC-002",
+      "category": "operation",
+      "prompt": "How do I calibrate the spread rate?",
+      "expectKeywords": ["calibrat"],
+      "priority": "P1"
+    },
+    {
+      "id": "FUNC-003",
+      "category": "maintenance",
+      "prompt": "What is the recommended service interval?",
+      "expectKeywords": ["service", "interval"],
+      "priority": "P2"
+    },
+    {
+      "id": "FUNC-004",
+      "category": "safety",
+      "prompt": "What safety checks are required before operating?",
+      "expectKeywords": ["safety"],
+      "priority": "P1"
+    }
+  ]
+}

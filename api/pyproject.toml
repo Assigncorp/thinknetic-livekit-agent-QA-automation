@@ -14,6 +14,7 @@ dependencies = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+pythonpath = ["."]
 markers = [
     "smoke: fast checks that must pass before anything else runs",
     "live: hits the shared dev environment",
