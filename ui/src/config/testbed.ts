@@ -23,8 +23,70 @@ function readJson<T>(relativePath: string): T {
   }
 }
 
-/** The single source of truth. Everything configurable lives in this one file. */
-export const testbed = readJson<TestbedConfig>('config/testbed.config.json');
+/** Which config file describes the product under test. One env var per product. */
+export const TESTBED_CONFIG = process.env.TESTBED_CONFIG ?? 'config/testbed.config.json';
+
+const num = (raw: string | undefined, fallback: number): number => {
+  const parsed = Number(raw);
+  return raw !== undefined && Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const bool = (raw: string | undefined, fallback: boolean): boolean =>
+  raw === undefined ? fallback : /^(1|true|yes|on)$/i.test(raw);
+
+/**
+ * The single source of truth for the product under test.
+ *
+ * The file itself is chosen by TESTBED_CONFIG, and the handful of knobs worth
+ * changing between runs - budgets, assertion strictness, scenario selection -
+ * can be overridden from `.env` without editing it. Everything structural
+ * (knowledge bases, serial routing, the conversation contract) stays in the
+ * file, because that genuinely differs per product.
+ */
+const file = readJson<TestbedConfig>(TESTBED_CONFIG);
+
+export const testbed: TestbedConfig = {
+  ...file,
+  scenarioSelection: {
+    ...file.scenarioSelection,
+    seed: process.env.SCENARIO_SEED ? num(process.env.SCENARIO_SEED, 0) : file.scenarioSelection.seed,
+    fixedScenarioId: process.env.SCENARIO_ID ?? file.scenarioSelection.fixedScenarioId,
+    mode: process.env.SCENARIO_ID ? 'fixed' : file.scenarioSelection.mode,
+    rotateSerials: bool(process.env.ROTATE_SERIALS, file.scenarioSelection.rotateSerials),
+  },
+  chatFlow: {
+    ...file.chatFlow,
+    muteMicOnStart: bool(process.env.MUTE_MIC_ON_START, file.chatFlow.muteMicOnStart),
+    turnQuietMs: num(process.env.TURN_QUIET_MS, file.chatFlow.turnQuietMs),
+    maxTurns: num(process.env.MAX_TURNS, file.chatFlow.maxTurns),
+    maxClarifications: num(process.env.MAX_CLARIFICATIONS, file.chatFlow.maxClarifications),
+  },
+  budgets: {
+    ...file.budgets,
+    sessionConnectMs: num(process.env.BUDGET_SESSION_CONNECT_MS, file.budgets.sessionConnectMs),
+    greetingMs: num(process.env.BUDGET_GREETING_MS, file.budgets.greetingMs),
+    serialAcknowledgedMs: num(process.env.BUDGET_SERIAL_MS, file.budgets.serialAcknowledgedMs),
+    answerMs: num(process.env.BUDGET_ANSWER_MS, file.budgets.answerMs),
+    wrapUpMs: num(process.env.BUDGET_WRAP_UP_MS, file.budgets.wrapUpMs),
+    apiResponseMs: num(process.env.BUDGET_API_MS, file.budgets.apiResponseMs),
+  },
+  assertions: {
+    ...file.assertions,
+    checkExpectedAnchors: bool(
+      process.env.CHECK_EXPECTED_ANCHORS,
+      file.assertions.checkExpectedAnchors,
+    ),
+    failOnWrongControllerFamily: bool(
+      process.env.FAIL_ON_WRONG_CONTROLLER_FAMILY,
+      file.assertions.failOnWrongControllerFamily,
+    ),
+    minReplyChars: num(process.env.MIN_REPLY_CHARS, file.assertions.minReplyChars),
+    requireFeedbackRequest: bool(
+      process.env.REQUIRE_FEEDBACK_REQUEST,
+      file.assertions.requireFeedbackRequest,
+    ),
+  },
+};
 
 const serialIndex = readJson<{ serials: SerialEntry[] }>(
   `${testbed.resources.generatedDir}/serial-index.json`,
@@ -74,6 +136,16 @@ const pick = <T>(items: T[], rng: () => number): T => {
 };
 
 /**
+ * A score to give the agent if it ever asks the caller to rate the call.
+ * Fresh per run, or reproducible when scenarioSelection.seed is set.
+ */
+export function feedbackScore(): number {
+  const { min, max } = testbed.chatFlow.feedbackScale;
+  const rng = makeRng(testbed.scenarioSelection.seed);
+  return min + Math.floor(rng() * (max - min + 1));
+}
+
+/**
  * Resolves one runnable chat case: a scenario, and a serial that routes the
  * agent to that scenario's knowledge base.
  *
@@ -97,7 +169,20 @@ export function resolveChatCase(kbId?: string): ChatCase {
   if (pool.length === 0) {
     throw new Error(`No scenarios generated for "${kb.id}". Run \`make resources\`.`);
   }
-  return buildCase(pick(pool, rng), rng);
+
+  // Only a scenario carrying KB anchors can actually verify an answer against
+  // the knowledge base. Drawing an unanchored one with content checking on
+  // would skip the check silently and still report green.
+  const eligible = testbed.assertions.checkExpectedAnchors
+    ? pool.filter((s) => s.expectAnchors.length > 0)
+    : pool;
+  if (eligible.length === 0) {
+    throw new Error(
+      `assertions.checkExpectedAnchors is on, but no "${kb.id}" scenario carries anchors, ` +
+        `so nothing could be verified. Run \`make resources\`, or switch the flag off.`,
+    );
+  }
+  return buildCase(pick(eligible, rng), rng);
 }
 
 function buildCase(scenario: Scenario, rng: () => number): ChatCase {

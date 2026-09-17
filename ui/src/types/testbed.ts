@@ -29,6 +29,16 @@ export interface Scenario {
   sourceLine: number;
 }
 
+/**
+ * One thing the agent can ask for, and what to say back.
+ * `reply` may contain {{serial}} / {{question}}; null means send nothing.
+ */
+export interface ChatIntent {
+  id: string;
+  match: string[];
+  reply: string | null;
+}
+
 export interface TestbedConfig {
   resources: { root: string; kbDir: string; serialWorkbook: string; generatedDir: string };
   knowledgeBases: KnowledgeBase[];
@@ -41,20 +51,31 @@ export interface TestbedConfig {
     excludeSerials: string[];
   };
   chatFlow: {
-    greetingAsksForSerial: string[];
-    readBackConfirmation: string[];
-    confirmationReply: string;
     agentIdlePrompts: string[];
+    intents: ChatIntent[];
+    /** Mute the caller's mic once the session connects; it opens live. */
+    muteMicOnStart: boolean;
+    /** How long a turn must stop changing before it counts as finished. */
+    turnQuietMs: number;
+    /** Upper bound on agent turns in one call. */
+    maxTurns: number;
+    /** How many agent follow-up questions to answer before giving up. */
+    maxClarifications: number;
+    clarificationReply: string;
+    feedbackScale: { min: number; max: number };
   };
   budgets: {
     sessionConnectMs: number;
     greetingMs: number;
     serialAcknowledgedMs: number;
     answerMs: number;
+    wrapUpMs: number;
     apiResponseMs: number;
   };
   assertions: {
     requireNonEmptyReply: boolean;
+    /** The agent must ask the caller to rate the call before it ends. */
+    requireFeedbackRequest: boolean;
     minReplyChars: number;
     checkExpectedAnchors: boolean;
     failOnWrongControllerFamily: boolean;

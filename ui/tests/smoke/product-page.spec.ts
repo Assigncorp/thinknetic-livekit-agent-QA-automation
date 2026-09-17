@@ -1,5 +1,6 @@
 import { test, expect } from '../../src/fixtures/test.js';
 import { sel } from '../../src/selectors.js';
+import { env, productTitlePattern, routes } from '../../src/config/env.js';
 
 /**
  * Smoke: the page loads, hydrates and exposes its entry point.
@@ -10,7 +11,7 @@ test.describe('@smoke product support page', () => {
     const apiResponse = await productPage.open();
 
     expect(apiResponse.status(), 'public product API status').toBe(200);
-    await expect(page).toHaveTitle(/chip spreader/i);
+    await expect(page).toHaveTitle(productTitlePattern());
     await expect(sel.productPage.talkToMe(page)).toBeEnabled();
   });
 
@@ -25,7 +26,7 @@ test.describe('@smoke product support page', () => {
   });
 
   test('unknown product slug does not render an agent entry point', async ({ page }) => {
-    await page.goto('/e/products/definitely-not-a-real-product', { waitUntil: 'domcontentloaded' });
+    await page.goto(routes.product(env.unknownProductSlug), { waitUntil: 'domcontentloaded' });
     await expect(sel.productPage.talkToMe(page)).toHaveCount(0);
   });
 });

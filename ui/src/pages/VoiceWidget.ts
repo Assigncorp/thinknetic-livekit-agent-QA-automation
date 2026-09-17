@@ -29,8 +29,30 @@ export class VoiceWidget extends BasePage {
     return Date.now() - started;
   }
 
+  /**
+   * Mutes the caller's microphone and proves it took effect.
+   *
+   * A session opens with the mic LIVE. The control is disabled while
+   * connecting, then reads "Mute" - it is offering to mute, so audio is
+   * already going up. Clicking it blindly, as this used to, could fire before
+   * the control was usable and leave the mic hot with nothing to show for it.
+   *
+   * The button has no text; its accessible name is the action it offers, so
+   * "Unmute" appearing is the app confirming the mic is off.
+   */
   async mute(): Promise<void> {
-    await sel.chatWidget.mute(this.page).click();
+    const mute = sel.chatWidget.mute(this.page);
+    await expect(
+      mute,
+      'the microphone control never became usable, so the mic may still be live',
+    ).toBeEnabled({ timeout: testbed.budgets.sessionConnectMs });
+
+    await mute.click();
+
+    await expect(
+      sel.chatWidget.unmute(this.page),
+      'microphone did not mute - the control is still offering "Mute"',
+    ).toBeVisible({ timeout: 10_000 });
   }
 
   async end(): Promise<void> {

@@ -102,36 +102,114 @@
     "excludeSerials": []
   },
   "chatFlow": {
-    "_comment": "The verified conversation contract, observed on etnyre-dev 2026-09-16. Phrases are matched case-insensitively as regex fragments - keep them short and structural, never full sentences.",
-    "greetingAsksForSerial": [
-      "serial number"
-    ],
-    "readBackConfirmation": [
-      "read that back",
-      "is that right",
-      "did i get that right"
-    ],
-    "confirmationReply": "Yes, that is correct.",
+    "_comment": "The conversation contract, verified on etnyre-dev. Phrases are matched case-insensitively as regex fragments - keep them short and structural, never full sentences.",
     "agentIdlePrompts": [
       "are you still there",
       "still here whenever you're ready"
     ],
-    "_idleNote": "The agent injects these on its own. The transcript reader ignores them so they never break an assertion."
+    "_idleNote": "The agent injects these on its own. The transcript reader ignores them so they never break an assertion.",
+    "_intentsNote": "The suite does not send a fixed script. It waits for each agent turn to FINISH streaming, reads it, matches it against this list top to bottom, and sends that intent's reply. So whatever the agent asks for - including re-asking for a serial it dropped, or asking a clarifying question instead of answering - gets the right response. {{serial}} and {{question}} are substituted per test case. A null reply means: expect nothing from us, just carry on reading.",
+    "intents": [
+      {
+        "id": "readsBackSerial",
+        "_note": "Must precede asksForSerial: the read-back sometimes repeats the phrase 'serial number' too.",
+        "match": ["read that back", "is that right", "did i get that right"],
+        "reply": "Yes, that is correct."
+      },
+      {
+        "id": "asksForSerial",
+        "_note": "The opening greeting, and any later re-ask after the agent loses the serial.",
+        "match": ["serial number", "read it out for me"],
+        "reply": "{{serial}}"
+      },
+      {
+        "id": "readyForQuestion",
+        "_note": "Serial accepted. Also covers the session-memory opener ('would you like to carry on from where we left off?').",
+        "match": ["what can i help you with", "pulled up", "how can i help", "carry on from where"],
+        "reply": "{{question}}"
+      },
+      {
+        "id": "offersToText",
+        "_note": "Verified 2026-09-17: rather than typing the steps, the agent offers to SMS them - 'What's the best number to text that to?'. Left unanswered, the KB facts never reach the transcript and content checking cannot pass. This asks it to answer in the chat instead.",
+        "match": ["best number to text", "text that to", "text you the", "send you the full", "text them to you"],
+        "reply": "Please don't text it. Give me the full steps here in this chat instead."
+      },
+      {
+        "id": "declinesTransfer",
+        "_note": "The agent offers to hand the caller to a human. Declining keeps the call in our hands and gets it to its natural close - which is where a rating would be asked for, if it ever were. Phrases are deliberately narrow: the greeting says 'Jason with Etnyre Customer Support' and answers often say 'call Etnyre service at 888-586-1899', and neither is an offer to transfer.",
+        "match": ["connect you", "transfer you", "put you through", "speak to a representative", "speak with a representative", "have a technician", "escalate this"],
+        "reply": "No, that's it for today."
+      },
+      {
+        "id": "stepwiseWalkthrough",
+        "_note": "Verified 2026-09-17: the agent is a guided troubleshooting assistant, not a Q&A bot. It delivers a procedure one step at a time - 'Step one: shut off the machine. Let me know when you've done that and I'll walk you through the next step.' The facts worth checking (pressures, pin numbers) are several steps in, so the caller has to work through them.",
+        "match": ["let me know when", "next step", "once you've done", "once you have done", "ready to continue", "have you completed", "tell me when"],
+        "reply": "Done. What is the next step?"
+      },
+      {
+        "id": "clarifying",
+        "_note": "The agent frequently answers a question with a question before it will answer properly - either a yes/no check or a request for more detail. Verified 2026-09-17: 'Thanks for letting me know. That Invalid Speed fault can definitely be frustrating - can you tell me a bit more about when this happens?'",
+        "match": [
+          "just to confirm",
+          "are you saying",
+          "did you mean",
+          "yes or no",
+          "tell me a bit more",
+          "can you tell me",
+          "could you tell me",
+          "when does (it|this)",
+          "how often"
+        ],
+        "reply": "{{clarification}}"
+      },
+      {
+        "id": "asksForFeedback",
+        "_note": "UNVERIFIED - no feedback or rating request has ever been observed on etnyre-dev, across the sessions recorded so far. Declared so that if the agent does start asking, the call is completed properly instead of abandoned mid-question. If it never asks, this never matches and costs nothing. Confirm the real wording before trusting it.",
+        "match": ["rate your experience", "how did i do", "scale of", "leave feedback", "feedback number", "rate this call"],
+        "reply": "{{feedback}}"
+      },
+      {
+        "id": "farewell",
+        "match": ["i'll let you go", "thanks for calling"],
+        "reply": null
+      }
+    ],
+    "muteMicOnStart": true,
+    "_muteMicNote": "A session opens with the microphone LIVE - verified 2026-09-17: the control is disabled while connecting, then reads 'Mute', meaning it is offering to mute because audio is already going up. In text mode a hot mic lets room noise reach the agent and steer the conversation the suite is driving, so every session mutes and verifies it before typing. Turn off only for a product whose panel has no mic control.",
+    "turnQuietMs": 4000,
+    "_turnQuietNote": "How long a turn must stop changing before it counts as finished. The agent is voice-paced and streams with multi-second pauses mid-sentence, so too short a window hands back a fragment ('...would that be') and assertions judge half an answer. Too long just makes every turn slower.",
+    "maxTurns": 16,
+    "_maxTurnsNote": "Upper bound on agent turns in one call. A step-by-step walkthrough is long, so this has to be generous - but bounded, so a conversation that never lands fails instead of running forever.",
+    "maxClarifications": 4,
+    "_maxClarificationsNote": "The agent troubleshoots before it cites the manual - safety preamble, then questions, then steps. This caps how many of its follow-ups we answer before giving up, so a dialogue that never lands fails instead of looping.",
+    "_feedbackNote": "A rating is given ONLY when the agent asks for one, through the asksForFeedback intent. It must never be volunteered: a caller who rates a call unprompted is not realistic, and it would paper over the fact that the agent never asks - which is the defect worth reporting. Every chat run records whether it was asked.",
+    "clarificationReply": "Yes, that is right. It happens during normal operation - please give me the full troubleshooting steps from the manual.",
+    "_clarificationNote": "Answers the agent's follow-up question and pushes it back towards the manual. A bare 'Yes.' often just produces another question.",
+    "feedbackScale": {
+      "_comment": "The score the asksForFeedback intent replies with, drawn fresh per run (or reproducibly when scenarioSelection.seed is set).",
+      "min": 1,
+      "max": 10
+    }
   },
   "budgets": {
     "_comment": "Milliseconds. Placeholders pending a week of dev baselines - see docs/architecture.md.",
+    "_streamingNote": "Turns stream token by token, and a turn is only judged once it has finished streaming. So these measure time to a COMPLETE turn, not time to the first word.",
     "sessionConnectMs": 20000,
     "greetingMs": 25000,
     "serialAcknowledgedMs": 25000,
     "answerMs": 45000,
+    "wrapUpMs": 8000,
+    "_wrapUpNote": "How long to listen for one more turn after the answer - a feedback request, for instance - before ending the call. Deliberately short: this is time spent waiting for something that usually never comes.",
     "apiResponseMs": 3000
   },
   "assertions": {
     "_comment": "Phase 1 is deterministic only: a reply arrives, it is non-empty, it lands inside budget. Wording is never asserted.",
     "requireNonEmptyReply": true,
+    "requireFeedbackRequest": true,
+    "_feedbackRequestNote": "The agent must ask the caller to rate the call before it ends. It never does - that is a product defect, and this assertion fails every run until it is fixed. Deliberately not downgraded to a warning: the bug is real, so the suite says so. Set REQUIRE_FEEDBACK_REQUEST=false to silence it while working on something else.",
     "minReplyChars": 20,
     "checkExpectedAnchors": false,
-    "_anchorsNote": "Scenarios carry expectAnchors extracted from the KB answer. Flip this to true when you want content checks - expect false failures on valid paraphrases.",
+    "_anchorsNote": "OFF because the agent does not answer KB questions directly - verified on etnyre-dev 2026-09-17. Asked 'what are the speed limits for safety faults', it returns a clarifying question, then a safety preamble, then begins explaining, and the manual's numbers arrive later than any bounded conversation reaches. Left on, the check passes or fails depending on which scenario the draw picks, which is a flaky gate and worse than an honest gap. Everything needed is in place - anchors, the spoken-number matcher, and a draw restricted to the 118 of 221 scenarios that carry a checkable fact - so set CHECK_EXPECTED_ANCHORS=true to switch it on once the agent answers inline, or to audit content deliberately.",
     "failOnWrongControllerFamily": false,
     "_familyNote": "Flip to true to fail when an RC-36 serial gets an answer naming RC-28, or vice versa."
   }

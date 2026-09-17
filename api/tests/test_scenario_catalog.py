@@ -54,6 +54,12 @@ def test_serial_routing_is_unambiguous():
         seen[key] = kb["id"]
 
 
+def test_feedback_scale_is_usable():
+    scale = CONFIG["chatFlow"]["feedbackScale"]
+    assert scale["min"] <= scale["max"], f"feedbackScale is inverted: {scale}"
+    assert scale["min"] >= 0, "a negative feedback score makes no sense"
+
+
 def test_budgets_are_ordered_sensibly():
     b = CONFIG["budgets"]
     assert b["sessionConnectMs"] < b["answerMs"], "connecting should not be budgeted slower than a full answer"
@@ -146,6 +152,54 @@ def test_scenarios_carry_source_provenance():
     assert not bad, f"scenarios with no traceable source: {bad[:10]}"
 
 
+ANCHOR_SHAPES = (
+    re.compile(r"^[A-Z]{1,2}\d-PIN\s*\d+$", re.IGNORECASE),
+    re.compile(r"^\d{6,7}$"),
+    re.compile(
+        r"^[\d,]+(?:\.\d+)?\s?(?:PSI|FPM|RPM|ohms?|volts?|VDC|amps?|gallons?)$",
+        re.IGNORECASE,
+    ),
+    re.compile(r"^\d+(?:\.\d+)?\s?°?\s?F$", re.IGNORECASE),
+    re.compile(r"^\d+(?:\.\d+)?\s?(?:inch|inches)$", re.IGNORECASE),
+    re.compile(r'^\d+/\d+\s?(?:inch|inches|")$', re.IGNORECASE),
+)
+
+
+def test_anchors_are_hard_facts_not_ordinary_words():
+    """
+    An anchor must be something a correct answer cannot paraphrase away - a pin
+    reference, a part number, a measurement. Ordinary vocabulary ("switch",
+    "display") appears in almost any plausible reply, so asserting on it would
+    pass whether or not the agent used the right KB: a check that cannot fail.
+    """
+    offenders = [
+        (s["id"], a)
+        for s in testbed.all_scenarios()
+        for a in s.get("expectAnchors", [])
+        if not any(shape.match(a.strip()) for shape in ANCHOR_SHAPES)
+    ]
+    assert not offenders, (
+        "expectAnchors must be hard facts only; these would make the content "
+        f"check unfalsifiable: {offenders[:10]}"
+    )
+
+
+def test_content_checking_has_scenarios_to_verify():
+    """If answer-vs-KB checking is on, every routed KB needs anchored scenarios."""
+    if not CONFIG["assertions"]["checkExpectedAnchors"]:
+        pytest.skip("assertions.checkExpectedAnchors is off")
+
+    bare = [
+        kb["id"]
+        for kb in ROUTED_KBS
+        if not [s for s in testbed.scenarios_for(kb["id"]) if s.get("expectAnchors")]
+    ]
+    assert not bare, (
+        f"checkExpectedAnchors is on but these KBs have no anchored scenario "
+        f"to verify against: {bare}"
+    )
+
+
 @pytest.mark.parametrize("scenario", testbed.sample_scenarios(20), ids=lambda s: s["id"])
 def test_sampled_scenario_text_appears_in_its_source_file(scenario):
     """Guards against a stale generated file after a KB is edited."""
@@ -189,6 +243,37 @@ def test_rotation_pool_is_large_enough_to_be_worth_rotating():
 
 def test_chat_flow_phrases_are_non_empty():
     flow = CONFIG["chatFlow"]
-    for key in ("greetingAsksForSerial", "readBackConfirmation", "agentIdlePrompts"):
-        assert flow[key], f"chatFlow.{key} is empty - the chat suite cannot anchor on anything"
-    assert flow["confirmationReply"].strip(), "chatFlow.confirmationReply is empty"
+    assert flow["agentIdlePrompts"], "chatFlow.agentIdlePrompts is empty"
+    assert flow["intents"], "chatFlow.intents is empty - the chat suite cannot answer anything"
+
+    for intent in flow["intents"]:
+        assert intent.get("id"), f"an intent has no id: {intent}"
+        assert intent.get("match"), f"intent {intent['id']} matches nothing"
+        assert all(p.strip() for p in intent["match"]), f"intent {intent['id']} has a blank phrase"
+
+
+def test_chat_flow_intents_cover_the_conversation():
+    """The driver cannot get through a call without these three."""
+    ids = [i["id"] for i in CONFIG["chatFlow"]["intents"]]
+    for required in ("asksForSerial", "readsBackSerial", "readyForQuestion"):
+        assert required in ids, f"chatFlow.intents is missing {required}; have {ids}"
+
+    assert len(ids) == len(set(ids)), f"duplicate intent ids: {ids}"
+
+    # The read-back repeats the serial and can mention "serial number" itself,
+    # so it has to be matched before the broader asksForSerial rule.
+    assert ids.index("readsBackSerial") < ids.index("asksForSerial"), (
+        "readsBackSerial must come before asksForSerial, or a read-back gets "
+        "answered with the serial again instead of a confirmation"
+    )
+
+
+def test_chat_flow_intent_placeholders_are_known():
+    """A reply may only interpolate values converse() actually supplies."""
+    known = {"serial", "question", "clarification", "feedback"}
+    for intent in CONFIG["chatFlow"]["intents"]:
+        reply = intent.get("reply")
+        if not reply:
+            continue
+        unknown = set(re.findall(r"\{\{(\w+)\}\}", reply)) - known
+        assert not unknown, f"intent {intent['id']} uses unknown placeholders {unknown}"

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Regenerates resources/generated/* from config/testbed.config.json.
+Regenerates a product's generated resources from its test-bed config.
+
+Which config, and therefore which product, comes from TESTBED_CONFIG in the
+repo-root .env (default: config/testbed.config.json) - the same variable the
+browser and API suites read, so all three always describe the same product.
 
 Two outputs, both consumed by the TypeScript and Python suites alike:
 
@@ -19,6 +23,7 @@ Run after changing a KB file, renaming one, or updating the workbook:
 from __future__ import annotations
 
 import json
+import os
 import random
 import re
 import sys
@@ -31,13 +36,29 @@ except ImportError:  # pragma: no cover
     sys.exit("openpyxl is required: run `uv sync` in tools/, or `pip install openpyxl`")
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = ROOT / "config" / "testbed.config.json"
+DEFAULT_CONFIG = "config/testbed.config.json"
+
+
+def _load_env() -> None:
+    """Read TESTBED_CONFIG from the repo-root .env without requiring dotenv."""
+    env_file = ROOT / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
 
 
 def load_config() -> dict[str, Any]:
-    if not CONFIG_PATH.exists():
-        sys.exit(f"config not found: {CONFIG_PATH}")
-    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    _load_env()
+    path = ROOT / os.getenv("TESTBED_CONFIG", DEFAULT_CONFIG)
+    if not path.exists():
+        sys.exit(f"config not found: {path}  (TESTBED_CONFIG in .env)")
+    print(f"Using {path.relative_to(ROOT)}")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 # --------------------------------------------------------------------------
@@ -138,37 +159,49 @@ def build_serial_index(cfg: dict[str, Any]) -> dict[str, Any]:
 # Scenario pool
 # --------------------------------------------------------------------------
 
-STOPWORDS = {
-    "what", "when", "where", "which", "should", "would", "could", "there", "these",
-    "those", "about", "after", "before", "their", "being", "does", "doing", "from",
-    "have", "this", "that", "with", "your", "will", "each", "into", "than", "then",
-    "they", "them", "make", "used", "using", "check", "machine", "caller",
-}
+def anchor_terms(answer: str, limit: int = 6, asked: str = "") -> list[str]:
+    """
+    Facts from the KB's own answer that a correct reply cannot paraphrase away:
+    pin references, part numbers, and measurements with units.
 
+    Deliberately returns nothing rather than padding with ordinary vocabulary.
+    An anchor like "switch" or "display" appears in almost any plausible reply,
+    so asserting on it would pass regardless of whether the agent answered from
+    the right knowledge base - a check that cannot fail is worse than no check,
+    because it reads as coverage. Scenarios with no anchors are simply not
+    content-checked (see assertions.checkExpectedAnchors).
 
-def anchor_terms(answer: str, limit: int = 6) -> list[str]:
-    """Distinctive terms from the KB's own answer - part numbers, measurements, jargon."""
+    Anything already in `asked` is dropped for the same reason: the caller reads
+    the question aloud, so a fact that appears in it proves only that the agent
+    echoed us back. "Machine speed is limited to 400 FPM" must not be evidence
+    that the agent looked up 400 FPM.
+    """
     terms: list[str] = []
 
-    # Part numbers, pin references, measurements: the least paraphrasable things in the text.
-    for pattern in (r"\b[A-Z]{1,2}\d-PIN\s*\d+\b", r"\b\d{6,7}\b", r"\b\d+(?:[.,]\d+)?\s?(?:PSI|FPM|ohms?|volts?|VDC|amps?)\b"):
+    for pattern in (
+        # Pin references and part numbers.
+        r"\b[A-Z]{1,2}\d-PIN\s*\d+\b",
+        r"\b\d{6,7}\b",
+        # Measurements with a unit. Every one of these is a number the manual
+        # commits to, which a correct answer has to get right.
+        r"\b[\d,]+(?:\.\d+)?\s?(?:PSI|FPM|RPM|ohms?|volts?|VDC|amps?|gallons?)\b",
+        r"\b\d+(?:\.\d+)?\s?°?\s?F\b",
+        r"\b\d+(?:\.\d+)?\s?(?:inch|inches)\b",
+        # Clearances are always written as a fraction WITH a unit - a bare
+        # "20/21" is a figure reference, not a specification.
+        r"\b\d+/\d+\s?(?:inch|inches|\")",
+    ):
         terms.extend(m.group(0) for m in re.finditer(pattern, answer, re.IGNORECASE))
 
-    if len(terms) < limit:
-        words = re.findall(r"\b[A-Za-z][A-Za-z-]{4,}\b", answer)
-        seen: set[str] = set()
-        for w in words:
-            lw = w.lower()
-            if lw in STOPWORDS or lw in seen:
-                continue
-            seen.add(lw)
-            terms.append(w)
-
-    # De-duplicate, preserve order.
+    # De-duplicate, preserve order, and drop anything the question already says.
+    asked_lower = asked.lower()
     out: list[str] = []
     for t in terms:
-        if t.lower() not in {o.lower() for o in out}:
-            out.append(t)
+        if t.lower() in {o.lower() for o in out}:
+            continue
+        if asked_lower and t.lower() in asked_lower:
+            continue
+        out.append(t)
     return out[:limit]
 
 
@@ -242,14 +275,15 @@ def build_scenarios(cfg: dict[str, Any]) -> dict[str, Any]:
                 continue
 
             counter += 1
+            prompt = question.lstrip("Q:").strip()
             scenarios.append(
                 {
                     "id": f"{kb['id'].upper()}-{'FAQ' if faq else ('HOW' if howto else 'PRB')}-{counter:03d}",
                     "kbId": kb["id"],
                     "kind": "faq" if faq else ("howto" if howto else "problem"),
                     "section": section,
-                    "question": question.lstrip("Q:").strip(),
-                    "expectAnchors": anchor_terms(answer),
+                    "question": prompt,
+                    "expectAnchors": anchor_terms(answer, asked=prompt),
                     "sourceLine": idx + 1,
                 }
             )

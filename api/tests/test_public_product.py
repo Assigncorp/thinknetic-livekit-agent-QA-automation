@@ -9,6 +9,9 @@ Contract confirmed against etnyre-dev on 2026-09-16.
 
 import pytest
 
+from src.clients.product_client import ProductClient
+from src.utils import testbed
+
 # Fields the UI depends on. Kept deliberately short - asserting the whole
 # payload turns every product-copy edit into a test failure.
 REQUIRED_FIELDS = {
@@ -62,21 +65,22 @@ def test_product_has_assets(product):
 
 
 @pytest.mark.live
-def test_unknown_product_returns_404(client):
-    r = client.get("/api/v1/public/organizations/e/products/definitely-not-a-real-product")
+def test_unknown_product_returns_404(client, org_slug, unknown_product_slug):
+    r = client.get(ProductClient.product_path(org_slug, unknown_product_slug))
     assert r.status_code == 404
     assert set(r.json()) >= {"message", "statusCode"}
 
 
 @pytest.mark.live
-def test_unknown_organization_returns_404(client):
-    r = client.get("/api/v1/public/organizations/zz-not-an-org/products/chip-spreader")
+def test_unknown_organization_returns_404(client, unknown_org_slug, product_slug):
+    r = client.get(ProductClient.product_path(unknown_org_slug, product_slug))
     assert r.status_code == 404
 
 
 @pytest.mark.live
 def test_response_time_within_budget(client, product_path):
     r = client.get(product_path)
-    # Observed ~0.4s on dev. Budget set well above that; tighten once you have
-    # a baseline spread rather than a single sample.
-    assert r.elapsed.total_seconds() < 3.0, f"took {r.elapsed.total_seconds():.2f}s"
+    budget = testbed.config()["budgets"]["apiResponseMs"] / 1000
+    assert r.elapsed.total_seconds() < budget, (
+        f"took {r.elapsed.total_seconds():.2f}s, budget {budget:.2f}s"
+    )

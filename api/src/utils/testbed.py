@@ -1,25 +1,45 @@
 """
-Loader for config/testbed.config.json and resources/generated/*.
+Loader for the test-bed config and resources/generated/*.
 
 Same data the TypeScript suite reads, so a scenario that passes catalogue
-validation here is the same scenario the browser suite will run.
+validation here is the same scenario the browser suite will run - including
+which config file that is, so both halves always describe the same product.
+
+Point TESTBED_CONFIG at another file to test a different product.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import random
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
 ROOT = Path(__file__).resolve().parents[3]
-CONFIG_PATH = ROOT / "config" / "testbed.config.json"
+
+# .env lives at the repo root so both toolchains read the same values.
+load_dotenv(ROOT / ".env")
+
+DEFAULT_CONFIG = "config/testbed.config.json"
+
+
+def config_path() -> Path:
+    return ROOT / os.getenv("TESTBED_CONFIG", DEFAULT_CONFIG)
 
 
 @lru_cache(maxsize=1)
 def config() -> dict[str, Any]:
-    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    path = config_path()
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path} does not exist. TESTBED_CONFIG is "
+            f"{os.getenv('TESTBED_CONFIG', DEFAULT_CONFIG)!r} - check .env"
+        )
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _generated(name: str) -> dict[str, Any]:

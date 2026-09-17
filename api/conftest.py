@@ -17,6 +17,10 @@ BASE_URL = os.getenv("BASE_URL", "https://etnyre-dev.thinknetic.app")
 ORG_SLUG = os.getenv("ORG_SLUG", "e")
 PRODUCT_SLUG = os.getenv("PRODUCT_SLUG", "chip-spreader")
 
+# Slugs that must NOT exist, for the fail-closed checks.
+UNKNOWN_ORG_SLUG = os.getenv("UNKNOWN_ORG_SLUG", "zz-not-an-org")
+UNKNOWN_PRODUCT_SLUG = os.getenv("UNKNOWN_PRODUCT_SLUG", "definitely-not-a-real-product")
+
 
 @pytest.fixture(scope="session")
 def base_url() -> str:
@@ -42,6 +46,16 @@ def org_slug() -> str:
 @pytest.fixture(scope="session")
 def product_slug() -> str:
     return PRODUCT_SLUG
+
+
+@pytest.fixture(scope="session")
+def unknown_org_slug() -> str:
+    return UNKNOWN_ORG_SLUG
+
+
+@pytest.fixture(scope="session")
+def unknown_product_slug() -> str:
+    return UNKNOWN_PRODUCT_SLUG
 
 
 @pytest.fixture(scope="session")

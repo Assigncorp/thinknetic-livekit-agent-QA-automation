@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "test": "playwright test",
-    "test:smoke": "playwright test tests/smoke",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:negative": "playwright test --grep @negative",
+    "test:chat": "playwright test --grep @chat",
     "test:headed": "playwright test --headed",
     "test:debug": "PWDEBUG=1 playwright test",
     "report": "playwright show-report",

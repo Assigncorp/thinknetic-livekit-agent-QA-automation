@@ -7,7 +7,7 @@ import { testData } from '../../src/utils/testdata.js';
  * entry point on screen - that would let a user start a session against a
  * product with no knowledge base behind it.
  */
-test.describe('invalid routes', () => {
+test.describe('@negative invalid routes', () => {
   for (const invalid of testData.invalidProducts().filter((p) => p.slug !== '')) {
     test(`no agent entry point for /${invalid.org}/products/${invalid.slug}`, async ({
       page,

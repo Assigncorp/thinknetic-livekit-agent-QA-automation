@@ -2,19 +2,21 @@
 SHELL := /bin/bash
 
 .PHONY: help check install install-ui install-api install-tools resources \
-        smoke catalog ui chat demo negative api voice test report clean
+        smoke regression negative catalog ui chat demo api voice test report clean
 
 help:
 	@echo "make check       - verify the local toolchain and .env"
 	@echo "make install     - install UI (npm + chromium), API and tools dependencies"
 	@echo "make resources   - rebuild resources/generated from config + KB files + workbook"
 	@echo ""
+	@echo "Test categories (see docs/test-plan.md):"
 	@echo "make catalog     - scenario catalogue checks (no browser, no agent calls, <1s)"
 	@echo "make api         - public endpoint suite + catalogue"
-	@echo "make smoke       - fast page-load + critical-element checks"
-	@echo "make negative    - negative / fail-closed suite"
+	@echo "make smoke       - @smoke      fast page-load + critical-element checks"
+	@echo "make regression  - @regression product content + session lifecycle"
+	@echo "make negative    - @negative   bad routes / fail-closed behaviour"
+	@echo "make chat        - @chat       the real agent chat flow (opens live sessions)"
 	@echo "make ui          - full browser suite EXCEPT tests that open a real session"
-	@echo "make chat        - the real agent chat flow (opens live sessions)"
 	@echo "make demo        - ONE live chat session, visible browser, ~90s"
 	@echo "make test        - api + ui  (no live sessions)"
 	@echo ""
@@ -45,10 +47,13 @@ catalog:
 	cd api && uv run pytest tests/test_scenario_catalog.py -q
 
 smoke:
-	cd ui && npx playwright test tests/smoke
+	cd ui && npx playwright test --grep @smoke
+
+regression:
+	cd ui && npx playwright test --grep @regression
 
 negative:
-	cd ui && npx playwright test tests/negative
+	cd ui && npx playwright test --grep @negative
 
 # Everything that does not open a real agent session.
 ui:

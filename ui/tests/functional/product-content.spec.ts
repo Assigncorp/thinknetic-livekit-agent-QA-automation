@@ -13,7 +13,7 @@ type ProductPayload = {
  * Using the API as the oracle keeps these assertions honest without hardcoding
  * copy that marketing will change next week.
  */
-test.describe('product content', () => {
+test.describe('@regression product content', () => {
   test('page shows the product name from the API', async ({ page, productPage }) => {
     await productPage.open();
     const payload = (await productPage.productPayload()) as ProductPayload;

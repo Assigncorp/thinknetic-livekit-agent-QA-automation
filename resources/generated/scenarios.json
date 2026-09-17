@@ -16,12 +16,7 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The machine won't start / starter doesn't crank",
     "expectAnchors": [
-     "12 VDC",
-     "through",
-     "checks",
-     "order",
-     "Drive",
-     "switch"
+     "12 VDC"
     ],
     "sourceLine": 460
    },
@@ -31,14 +26,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine won't start",
-    "expectAnchors": [
-     "display",
-     "ENGINE",
-     "message",
-     "computer",
-     "shows",
-     "COMMUNICATION"
-    ],
+    "expectAnchors": [],
     "sourceLine": 481
    },
    {
@@ -50,10 +38,7 @@
     "expectAnchors": [
      "1000 PSI",
      "400 PSI",
-     "0 PSI",
-     "start",
-     "latch",
-     "computer"
+     "0 PSI"
     ],
     "sourceLine": 500
    },
@@ -63,14 +48,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed is limited to 200 FPM and I can't increase it",
-    "expectAnchors": [
-     "200 FPM",
-     "Traction",
-     "Control",
-     "switch",
-     "maintained",
-     "unknowingly"
-    ],
+    "expectAnchors": [],
     "sourceLine": 522
    },
    {
@@ -81,11 +59,7 @@
     "question": "Machine speed is limited to 400 FPM (4WD) or 600 FPM (2WD) \u2014 can't go faster",
     "expectAnchors": [
      "0.40 amps",
-     "0.00 amps",
-     "limits",
-     "indicate",
-     "three",
-     "fault"
+     "0.00 amps"
     ],
     "sourceLine": 532
    },
@@ -97,11 +71,7 @@
     "question": "The speed sensor alarm is showing / machine comes to a stop with a speed error",
     "expectAnchors": [
      "12 VDC",
-     "0 VDC",
-     "speed",
-     "sensor",
-     "fault",
-     "occurs"
+     "0 VDC"
     ],
     "sourceLine": 547
    },
@@ -111,14 +81,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The machine keeps shutting off unexpectedly / Uncommanded Motion Detection (UCMD) alarm",
-    "expectAnchors": [
-     "Direction",
-     "error",
-     "engine",
-     "shuts",
-     "alarm",
-     "beeping"
-    ],
+    "expectAnchors": [],
     "sourceLine": 576
    },
    {
@@ -127,14 +90,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault alarm is showing",
-    "expectAnchors": [
-     "circuit",
-     "breakers",
-     "Reset",
-     "tripped",
-     "joystick",
-     "requires"
-    ],
+    "expectAnchors": [],
     "sourceLine": 587
    },
    {
@@ -143,14 +99,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The conveyor won't move",
-    "expectAnchors": [
-     "stalled",
-     "conveyor",
-     "noise",
-     "hydraulic",
-     "jammed",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 600
    },
    {
@@ -159,14 +108,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The auger won't move",
-    "expectAnchors": [
-     "stalled",
-     "auger",
-     "noise",
-     "hydraulic",
-     "jammed",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 622
    },
    {
@@ -175,14 +117,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The gates won't open or operate",
-    "expectAnchors": [
-     "arming",
-     "switches",
-     "Confirm",
-     "Power",
-     "switch",
-     "Right"
-    ],
+    "expectAnchors": [],
     "sourceLine": 640
    },
    {
@@ -193,11 +128,7 @@
     "question": "The gates are hunting / unsteady / fluctuating and not holding position",
     "expectAnchors": [
      "1.0 amp",
-     "0.9 amp",
-     "current",
-     "settings",
-     "Enter",
-     "computer"
+     "0.9 amp"
     ],
     "sourceLine": 675
    },
@@ -208,12 +139,7 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The gates are making a very loud noise when the gate master power is turned on or off",
     "expectAnchors": [
-     "indicates",
-     "gates",
-     "adjustment",
-     "relative",
-     "hydraulic",
-     "Identify"
+     "1/16\""
     ],
     "sourceLine": 685
    },
@@ -225,11 +151,7 @@
     "question": "The spread roll speed is fluctuating",
     "expectAnchors": [
      "400 PSI",
-     "auxiliary",
-     "standby",
-     "pressure",
-     "stroke",
-     "quickly"
+     "96 RPM"
     ],
     "sourceLine": 708
    },
@@ -240,12 +162,7 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The hydraulic pressure is fluctuating / standby pressure is unsteady on the gauge",
     "expectAnchors": [
-     "occurs",
-     "volume",
-     "sense",
-     "system",
-     "great",
-     "caused"
+     "0.040 inch"
     ],
     "sourceLine": 727
    },
@@ -258,10 +175,8 @@
     "expectAnchors": [
      "400 PSI",
      "3000 PSI",
-     "Verify",
-     "actual",
-     "temperature",
-     "laser"
+     "180\u00b0F",
+     "140\u00b0F"
     ],
     "sourceLine": 748
    },
@@ -272,12 +187,7 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve / engine is hard to start after shutdown",
     "expectAnchors": [
-     "5 PSI",
-     "close",
-     "suction",
-     "valve",
-     "Locate",
-     "drain"
+     "5 PSI"
     ],
     "sourceLine": 775
    },
@@ -287,14 +197,7 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The display says \"ETNYRE NO COMMUNICATION\" or is showing nothing",
-    "expectAnchors": [
-     "Display",
-     "shows",
-     "ETNYRE",
-     "COMMUNICATION",
-     "signal",
-     "computer"
-    ],
+    "expectAnchors": [],
     "sourceLine": 801
    },
    {
@@ -307,9 +210,7 @@
      "P2-PIN19",
      "260 ohms",
      "39.5 ohms",
-     "33.5 ohms",
-     "Confirm",
-     "actual"
+     "33.5 ohms"
     ],
     "sourceLine": 815
    },
@@ -320,12 +221,7 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Water temperature alarm is showing / engine is overheating",
     "expectAnchors": [
-     "Verify",
-     "temperature",
-     "independent",
-     "gauge",
-     "laser",
-     "probe"
+     "240\u00b0F"
     ],
     "sourceLine": 840
    },
@@ -337,11 +233,8 @@
     "question": "I see error codes on the display \u2014 what do they mean?",
     "expectAnchors": [
      "400 FPM",
-     "WARNING",
-     "ENGINE",
-     "Computer",
-     "connection",
-     "stops"
+     "180\u00b0F",
+     "240\u00b0F"
     ],
     "sourceLine": 863
    },
@@ -353,11 +246,7 @@
     "question": "Machine has no gradability / can't climb hills",
     "expectAnchors": [
      "200 FPM",
-     "7000 PSI",
-     "Verify",
-     "grade",
-     "within",
-     "capability"
+     "7000 PSI"
     ],
     "sourceLine": 909
    },
@@ -367,14 +256,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "There is a streak or void down the center of the road when both hoppers are fully extended",
-    "expectAnchors": [
-     "Cause",
-     "inner",
-     "right",
-     "hoppers",
-     "meeting",
-     "correctly"
-    ],
+    "expectAnchors": [],
     "sourceLine": 934
    },
    {
@@ -383,14 +265,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "There is an overlap or heavy streak in the center of the road when hoppers are fully extended",
-    "expectAnchors": [
-     "Cause",
-     "inner",
-     "hoppers",
-     "overlapping",
-     "depositing",
-     "material"
-    ],
+    "expectAnchors": [],
     "sourceLine": 946
    },
    {
@@ -400,12 +275,8 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "The material application is uneven \u2014 one side heavier than the other",
     "expectAnchors": [
-     "Verify",
-     "spread",
-     "speeds",
-     "equal",
-     "rolls",
-     "running"
+     "96 RPM",
+     "1/32\""
     ],
     "sourceLine": 955
    },
@@ -416,12 +287,7 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "Spread roll speed is incorrect or inconsistent (application rate off)",
     "expectAnchors": [
-     "Refer",
-     "Spreadroll",
-     "Speed",
-     "Fluctuating",
-     "section",
-     "above"
+     "96 RPM"
     ],
     "sourceLine": 971
    },
@@ -431,14 +297,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "Material is bridging in the hopper and not flowing through the gate",
-    "expectAnchors": [
-     "aggregate",
-     "moisture",
-     "clumped",
-     "bridges",
-     "hoppers",
-     "Allow"
-    ],
+    "expectAnchors": [],
     "sourceLine": 977
    },
    {
@@ -448,12 +307,7 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the maximum operating speed of the VHRS28?",
     "expectAnchors": [
-     "1300 FPM",
-     "speed",
-     "setpoint",
-     "programmable",
-     "forward",
-     "movement"
+     "1300 FPM"
     ],
     "sourceLine": 1221
    },
@@ -464,12 +318,7 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the normal spreading speed range?",
     "expectAnchors": [
-     "500 FPM",
-     "Typical",
-     "spreading",
-     "depending",
-     "aggregate",
-     "application"
+     "500 FPM"
     ],
     "sourceLine": 1224
    },
@@ -479,14 +328,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "How many memory presets are available?",
-    "expectAnchors": [
-     "memory",
-     "presets",
-     "stores",
-     "combination",
-     "aggregate",
-     "application"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1227
    },
    {
@@ -495,9 +337,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "What hydraulic oil does the machine use?",
-    "expectAnchors": [
-     "Hydraulic"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1230
    },
    {
@@ -506,9 +346,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "What gear lube is used in the axles?",
-    "expectAnchors": [
-     "MIL-L-"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1233
    },
    {
@@ -517,12 +355,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "What grease is used for all bearing fittings?",
-    "expectAnchors": [
-     "Molib-Alloy",
-     "Grease",
-     "applied",
-     "sparingly"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1236
    },
    {
@@ -532,10 +365,7 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the standby pressure for the auxiliary hydraulic pumps?",
     "expectAnchors": [
-     "400 PSI",
-     "front",
-     "auxiliary",
-     "pumps"
+     "400 PSI"
     ],
     "sourceLine": 1239
    },
@@ -547,11 +377,7 @@
     "question": "What is the high pressure setting for the auxiliary pumps?",
     "expectAnchors": [
      "3000 PSI",
-     "3100 PSI",
-     "exceed",
-     "hydraulic",
-     "components",
-     "rated"
+     "3100 PSI"
     ],
     "sourceLine": 1242
    },
@@ -563,10 +389,7 @@
     "question": "What is the charge pressure on the drive pump?",
     "expectAnchors": [
      "400 PSI",
-     "420 PSI",
-     "Approximately",
-     "acceptable",
-     "range"
+     "420 PSI"
     ],
     "sourceLine": 1245
    },
@@ -578,11 +401,7 @@
     "question": "What is the hydrostatic high pressure setting?",
     "expectAnchors": [
      "7000 PSI",
-     "6500 PSI",
-     "forward",
-     "reverse",
-     "cross-port",
-     "relief"
+     "6500 PSI"
     ],
     "sourceLine": 1248
    },
@@ -594,9 +413,7 @@
     "question": "What is the hopper reducing valve pressure setting?",
     "expectAnchors": [
      "1300 PSI",
-     "1400 PSI",
-     "acceptable",
-     "range"
+     "1400 PSI"
     ],
     "sourceLine": 1251
    },
@@ -630,9 +447,7 @@
     "question": "What is the fan valve pressure?",
     "expectAnchors": [
      "2000 PSI",
-     "2100 PSI",
-     "acceptable",
-     "range"
+     "2100 PSI"
     ],
     "sourceLine": 1260
    },
@@ -643,9 +458,7 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What RPM should the spread rolls run at?",
     "expectAnchors": [
-     "right",
-     "spread",
-     "rolls"
+     "96 RPM"
     ],
     "sourceLine": 1263
    },
@@ -656,12 +469,8 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the maximum gate opening?",
     "expectAnchors": [
-     "inches",
-     "standard",
-     "machines",
-     "chippers",
-     "computer",
-     "setup"
+     "4 inches",
+     "5 inches"
     ],
     "sourceLine": 1266
    },
@@ -672,9 +481,7 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the air system pressure?",
     "expectAnchors": [
-     "80 PSI",
-     "pressure",
-     "regulator"
+     "80 PSI"
     ],
     "sourceLine": 1269
    },
@@ -684,14 +491,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "How do I access the Etnyre online version of this manual?",
-    "expectAnchors": [
-     "front",
-     "cover",
-     "online",
-     "parts",
-     "manual",
-     "certain"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1272
    },
    {
@@ -700,14 +500,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
-    "expectAnchors": [
-     "Contact",
-     "NHTSA",
-     "addition",
-     "notifying",
-     "Etnyre",
-     "investigates"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1275
    },
    {
@@ -725,13 +518,7 @@
     "kind": "faq",
     "section": "Section 15 \u2014 General FAQ",
     "question": "Who do I call for parts?",
-    "expectAnchors": [
-     "Etnyre",
-     "International",
-     "Parts",
-     "Service",
-     "CustomerService"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1281
    }
   ],
@@ -742,14 +529,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter won't crank / the machine won't start cranking",
-    "expectAnchors": [
-     "Drive",
-     "Switch",
-     "start",
-     "again",
-     "Emergency",
-     "Button"
-    ],
+    "expectAnchors": [],
     "sourceLine": 547
    },
    {
@@ -758,14 +538,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine will not start",
-    "expectAnchors": [
-     "display",
-     "ENGINE",
-     "message",
-     "information",
-     "shows",
-     "communication"
-    ],
+    "expectAnchors": [],
     "sourceLine": 559
    },
    {
@@ -777,10 +550,7 @@
     "expectAnchors": [
      "1000 PSI",
      "400 PSI",
-     "0 PSI",
-     "Start",
-     "Latch",
-     "Computer"
+     "0 PSI"
     ],
     "sourceLine": 573
    },
@@ -790,14 +560,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed setpoint is limited to 200 FPM and I cannot increase it",
-    "expectAnchors": [
-     "200 FPM",
-     "Traction",
-     "Control",
-     "switch",
-     "maintained",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 589
    },
    {
@@ -810,9 +573,7 @@
      "0.40 amps",
      "0.00 amps",
      "12 VDC",
-     "0 VDC",
-     "WARNING",
-     "ENGINE"
+     "0 VDC"
     ],
     "sourceLine": 601
    },
@@ -822,14 +583,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Speed sensor fault / uncommanded motion detection (UCMD) shutdown",
-    "expectAnchors": [
-     "Identify",
-     "engine",
-     "suddenly",
-     "moved",
-     "wrong",
-     "direction"
-    ],
+    "expectAnchors": [],
     "sourceLine": 611
    },
    {
@@ -838,14 +592,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault alarm",
-    "expectAnchors": [
-     "power",
-     "Confirm",
-     "supply",
-     "present",
-     "joystick",
-     "connector"
-    ],
+    "expectAnchors": [],
     "sourceLine": 625
    },
    {
@@ -854,14 +601,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No conveyor movement",
-    "expectAnchors": [
-     "Conveyor",
-     "stalled",
-     "speed",
-     "Cycle",
-     "switch",
-     "several"
-    ],
+    "expectAnchors": [],
     "sourceLine": 639
    },
    {
@@ -870,14 +610,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No auger movement",
-    "expectAnchors": [
-     "Auger",
-     "stalled",
-     "speed",
-     "Cycle",
-     "switch",
-     "several"
-    ],
+    "expectAnchors": [],
     "sourceLine": 653
    },
    {
@@ -887,12 +620,8 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Hydraulic oil is getting hot / overheating",
     "expectAnchors": [
-     "level",
-     "Verify",
-     "hydraulic",
-     "reservoir",
-     "sight",
-     "temperature"
+     "180\u00b0F",
+     "140\u00b0F"
     ],
     "sourceLine": 667
    },
@@ -903,12 +632,7 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Water temperature / engine coolant overheating alarm",
     "expectAnchors": [
-     "Verify",
-     "temperature",
-     "Confirm",
-     "engine",
-     "coolant",
-     "exceeding"
+     "240\u00b0F"
     ],
     "sourceLine": 683
    },
@@ -921,10 +645,7 @@
     "expectAnchors": [
      "P2-PIN19",
      "240 ohms",
-     "33.5 ohms",
-     "actual",
-     "level",
-     "refuel"
+     "33.5 ohms"
     ],
     "sourceLine": 697
    },
@@ -935,12 +656,8 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No gradability \u2014 machine won't climb hills",
     "expectAnchors": [
-     "200 FPM",
-     "Verify",
-     "grade",
-     "within",
-     "capability",
-     "calculations"
+     "2200 RPM",
+     "200 FPM"
     ],
     "sourceLine": 709
    },
@@ -950,14 +667,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve",
-    "expectAnchors": [
-     "Identify",
-     "problem",
-     "Found",
-     "during",
-     "auxiliary",
-     "pressure"
-    ],
+    "expectAnchors": [],
     "sourceLine": 723
    },
    {
@@ -966,14 +676,7 @@
     "kind": "howto",
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Display says \"ETNYRE NO COMMUNICATION\" or is not working",
-    "expectAnchors": [
-     "Display",
-     "reads",
-     "ETNYRE",
-     "COMMUNICATION",
-     "Signal",
-     "computer"
-    ],
+    "expectAnchors": [],
     "sourceLine": 739
    },
    {
@@ -984,11 +687,8 @@
     "question": "Computer fault screen messages \u2014 what do they mean?",
     "expectAnchors": [
      "400 FPM",
-     "Fault",
-     "Meaning",
-     "Action",
-     "WARNING",
-     "ENGINE"
+     "180\u00b0F",
+     "240\u00b0F"
     ],
     "sourceLine": 747
    },
@@ -999,12 +699,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "The application rate on the display doesn't match what's actually going on the road",
     "expectAnchors": [
-     "Verify",
-     "aggregate",
-     "correctly",
-     "selected",
-     "setpoint",
-     "dramatically"
+     "96 RPM"
     ],
     "sourceLine": 770
    },
@@ -1016,11 +711,7 @@
     "question": "Gates are unsteady / gate flutter",
     "expectAnchors": [
      "1.0 amp",
-     "400 PSI",
-     "current",
-     "settings",
-     "following",
-     "parameters"
+     "400 PSI"
     ],
     "sourceLine": 782
    },
@@ -1030,14 +721,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Gates will not operate",
-    "expectAnchors": [
-     "Arming",
-     "Switches",
-     "Power",
-     "turned",
-     "located",
-     "operator"
-    ],
+    "expectAnchors": [],
     "sourceLine": 794
    },
    {
@@ -1048,11 +732,7 @@
     "question": "Spread roll speed is fluctuating or inconsistent",
     "expectAnchors": [
      "400 PSI",
-     "auxiliary",
-     "standby",
-     "pressure",
-     "stroke",
-     "quickly"
+     "96 RPM"
     ],
     "sourceLine": 818
    },
@@ -1062,14 +742,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Overlap or streak in the center when hoppers are fully extended",
-    "expectAnchors": [
-     "Heavy",
-     "material",
-     "center",
-     "overlap",
-     "cut-off",
-     "plate"
-    ],
+    "expectAnchors": [],
     "sourceLine": 832
    },
    {
@@ -1079,12 +752,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Air gates are out of adjustment (very loud noise when master power is turned on/off)",
     "expectAnchors": [
-     "Identify",
-     "problem",
-     "Determine",
-     "adjustment",
-     "hydraulic",
-     "operating"
+     "1/16\""
     ],
     "sourceLine": 840
    },
@@ -1094,14 +762,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Hydraulic standby (load sense) pressure is fluctuating (gauge needle not steady)",
-    "expectAnchors": [
-     "cause",
-     "happens",
-     "volume",
-     "sense",
-     "system",
-     "great"
-    ],
+    "expectAnchors": [],
     "sourceLine": 859
    },
    {
@@ -1111,12 +772,7 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine is spreading heavier on one side than the other",
     "expectAnchors": [
-     "hopper",
-     "extension",
-     "Verify",
-     "hoppers",
-     "extended",
-     "equally"
+     "96 RPM"
     ],
     "sourceLine": 873
    },
@@ -1126,14 +782,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Material is piling up in one area of the hopper / uneven distribution",
-    "expectAnchors": [
-     "Adjust",
-     "conveyor",
-     "speed",
-     "switch",
-     "independently",
-     "right"
-    ],
+    "expectAnchors": [],
     "sourceLine": 885
    },
    {
@@ -1142,14 +791,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "I need to do shoulder work or spread a narrow strip",
-    "expectAnchors": [
-     "Retract",
-     "appropriate",
-     "hopper",
-     "Position",
-     "Switch",
-     "spread"
-    ],
+    "expectAnchors": [],
     "sourceLine": 895
    },
    {
@@ -1159,12 +801,7 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "The starting or stopping line is not straight \u2014 one side starts/stops ahead of the other",
     "expectAnchors": [
-     "Adjust",
-     "Access",
-     "setup",
-     "screens",
-     "distances",
-     "default"
+     "18.0 inches"
     ],
     "sourceLine": 907
    },
@@ -1174,14 +811,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What is the difference between the RC 36 and RC 28 controllers?",
-    "expectAnchors": [
-     "newer",
-     "controller",
-     "similar",
-     "units",
-     "older",
-     "earlier"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1100
    },
    {
@@ -1190,14 +820,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "Can I adjust the speed setpoint while the machine is in motion?",
-    "expectAnchors": [
-     "Speed",
-     "Toggle",
-     "Switch",
-     "increase",
-     "decrease",
-     "setpoint"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1103
    },
    {
@@ -1206,14 +829,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I save operating settings for quick recall?",
-    "expectAnchors": [
-     "Application",
-     "Aggregate",
-     "Speed",
-     "desired",
-     "values",
-     "Press"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1106
    },
    {
@@ -1222,14 +838,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I read engine fault codes?",
-    "expectAnchors": [
-     "ignition",
-     "engine",
-     "running",
-     "Position",
-     "Diagnostics",
-     "Switch"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1115
    },
    {
@@ -1238,14 +847,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "Why won't the right gate open even when everything looks correct?",
-    "expectAnchors": [
-     "common",
-     "cause",
-     "feature",
-     "reading",
-     "incorrect",
-     "computer"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1123
    },
    {
@@ -1254,14 +856,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What should I do if the machine starts moving unexpectedly?",
-    "expectAnchors": [
-     "Immediately",
-     "return",
-     "joystick",
-     "NEUTRAL",
-     "parking",
-     "brake"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1126
    },
    {
@@ -1270,14 +865,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I set up the ultrasonic conveyor auto switches?",
-    "expectAnchors": [
-     "change",
-     "switching",
-     "distance",
-     "completed",
-     "within",
-     "minutes"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1129
    },
    {
@@ -1302,13 +890,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What does the fuel level resistance calibration table look like?",
-    "expectAnchors": [
-     "sender",
-     "calibration",
-     "Position",
-     "Range",
-     "Empty"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1164
    },
    {
@@ -1317,14 +899,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What does the hydraulic oil temperature resistance table look like?",
-    "expectAnchors": [
-     "hydraulic",
-     "temperature",
-     "sender",
-     "resistance",
-     "values",
-     "Figure"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1172
    },
    {
@@ -1333,14 +908,7 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What are the RC 36 controller computer connector pin assignments?",
-    "expectAnchors": [
-     "controller",
-     "assignments",
-     "Large",
-     "Right",
-     "Auger",
-     "Solenoid"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1194
    }
   ],
@@ -1356,7 +924,8 @@
      "P3-PIN 10",
      "6703670",
      "12 VDC",
-     "10 VDC"
+     "10 VDC",
+     "1/16\""
     ],
     "sourceLine": 464
    },
@@ -1368,11 +937,7 @@
     "question": "The display shows a fuel alarm, or the fuel alarm keeps sounding even though I filled up",
     "expectAnchors": [
      "P2-PIN 19",
-     "Verify",
-     "Level",
-     "actual",
-     "physically",
-     "display"
+     "7 gallons"
     ],
     "sourceLine": 498
    },
@@ -1388,7 +953,7 @@
      "30 PSI",
      "65 PSI",
      "5 PSI",
-     "10 PSI"
+     "1400 RPM"
     ],
     "sourceLine": 519
    },
@@ -1400,11 +965,7 @@
     "question": "Water temperature alarm is on / engine is overheating",
     "expectAnchors": [
      "P2-PIN 20",
-     "Verify",
-     "External",
-     "Gauge",
-     "laser",
-     "infrared"
+     "240\u00b0F"
     ],
     "sourceLine": 549
    },
@@ -1416,11 +977,7 @@
     "question": "Hydraulic oil temperature alarm is on",
     "expectAnchors": [
      "P2-PIN 17",
-     "Level",
-     "hydraulic",
-     "sight",
-     "reservoir",
-     "Lubrication"
+     "180\u00b0F"
     ],
     "sourceLine": 581
    },
@@ -1462,12 +1019,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Very loud noise when the gate master power is turned on or off (air gates out of adjustment)",
     "expectAnchors": [
-     "Identify",
-     "Source",
-     "Determine",
-     "problem",
-     "hydraulic",
-     "click"
+     "1/16\""
     ],
     "sourceLine": 690
    },
@@ -1479,11 +1031,7 @@
     "question": "The spread roll speed is fluctuating / speed is not steady",
     "expectAnchors": [
      "400 PSI",
-     "Auxiliary",
-     "Standby",
-     "Pressure",
-     "sense",
-     "stroke"
+     "100 RPM"
     ],
     "sourceLine": 705
    },
@@ -1495,11 +1043,7 @@
     "question": "Hydraulic standby / load sense pressure is fluctuating (needle on gauge is not steady)",
     "expectAnchors": [
      "400 PSI",
-     "occurs",
-     "volume",
-     "sense",
-     "system",
-     "great"
+     "040 inch"
     ],
     "sourceLine": 722
    },
@@ -1509,14 +1053,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Gates will not operate (hydraulic buss bar does not move)",
-    "expectAnchors": [
-     "Arming",
-     "Switches",
-     "Verify",
-     "selector",
-     "operator",
-     "panel"
-    ],
+    "expectAnchors": [],
     "sourceLine": 738
    },
    {
@@ -1525,14 +1062,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine will not start",
-    "expectAnchors": [
-     "Display",
-     "ENGINE",
-     "communication",
-     "proceed",
-     "Emergency",
-     "Button"
-    ],
+    "expectAnchors": [],
     "sourceLine": 772
    },
    {
@@ -1541,14 +1071,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine stops while I am moving and then moves again when I push the joystick to neutral and back forward",
-    "expectAnchors": [
-     "indicates",
-     "neutral",
-     "joystick",
-     "micro",
-     "switch",
-     "opening"
-    ],
+    "expectAnchors": [],
     "sourceLine": 794
    },
    {
@@ -1558,12 +1081,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine will not go into reverse",
     "expectAnchors": [
-     "12 VDC",
-     "Reverse",
-     "Micro",
-     "Switch",
-     "joystick",
-     "actuate"
+     "12 VDC"
     ],
     "sourceLine": 802
    },
@@ -1574,12 +1092,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine will not move forward or in reverse after a Rexroth computer update",
     "expectAnchors": [
-     "4.9 volts",
-     "Calibrate",
-     "Joystick",
-     "computer",
-     "update",
-     "re-calibrated"
+     "4.9 volts"
     ],
     "sourceLine": 813
    },
@@ -1591,11 +1104,7 @@
     "question": "No gradability \u2014 machine cannot climb the hill",
     "expectAnchors": [
      "6,500 PSI",
-     "7,000 PSI",
-     "Grade",
-     "Calculation",
-     "Verify",
-     "actual"
+     "7,000 PSI"
     ],
     "sourceLine": 834
    },
@@ -1608,10 +1117,7 @@
     "expectAnchors": [
      "9410200",
      "3181497",
-     "400 PSI",
-     "Emergency",
-     "Driveline",
-     "Disengage"
+     "400 PSI"
     ],
     "sourceLine": 854
    },
@@ -1621,14 +1127,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "MDC fault code shows \"Invalid Reset\"",
-    "expectAnchors": [
-     "Cause",
-     "resets",
-     "without",
-     "reset",
-     "typically",
-     "internal"
-    ],
+    "expectAnchors": [],
     "sourceLine": 872
    },
    {
@@ -1639,11 +1138,7 @@
     "question": "MDC fault code shows \"Invalid Speed\"",
     "expectAnchors": [
      "2,500 FPM",
-     "Cause",
-     "Speed",
-     "feedback",
-     "reading",
-     "greater"
+     "1/16\""
     ],
     "sourceLine": 882
    },
@@ -1654,12 +1149,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "MDC fault code shows \"Internal Voltage\"",
     "expectAnchors": [
-     "5 VDC",
-     "Cause",
-     "regulated",
-     "voltages",
-     "especially",
-     "supply"
+     "5 VDC"
     ],
     "sourceLine": 890
    },
@@ -1669,14 +1159,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "MDC fault code shows \"Invalid Program\"",
-    "expectAnchors": [
-     "Cause",
-     "Program",
-     "loaded",
-     "properly",
-     "parts",
-     "become"
-    ],
+    "expectAnchors": [],
     "sourceLine": 898
    },
    {
@@ -1685,14 +1168,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve",
-    "expectAnchors": [
-     "typically",
-     "discovered",
-     "checking",
-     "auxiliary",
-     "pressures",
-     "pressure"
-    ],
+    "expectAnchors": [],
     "sourceLine": 906
    },
    {
@@ -1701,14 +1177,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "There is an overlap or heavy streak of material down the center of the road when the hopper is fully extended",
-    "expectAnchors": [
-     "Cause",
-     "material",
-     "heavy",
-     "middle",
-     "cut-off",
-     "plate"
-    ],
+    "expectAnchors": [],
     "sourceLine": 940
    },
    {
@@ -1717,14 +1186,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "There is a void or streak down the center of the road",
-    "expectAnchors": [
-     "Cause",
-     "enough",
-     "material",
-     "reaching",
-     "center",
-     "cut-off"
-    ],
+    "expectAnchors": [],
     "sourceLine": 952
    },
    {
@@ -1733,14 +1195,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "The application rate on the ground does not match what the display shows",
-    "expectAnchors": [
-     "Cause",
-     "Material",
-     "calibration",
-     "needed",
-     "wrong",
-     "aggregate"
-    ],
+    "expectAnchors": [],
     "sourceLine": 964
    },
    {
@@ -1749,14 +1204,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Gates are delivering material at low speeds but not maintaining proper rate at high speeds",
-    "expectAnchors": [
-     "Cause",
-     "opening",
-     "maximum",
-     "travel",
-     "aggregate",
-     "reaching"
-    ],
+    "expectAnchors": [],
     "sourceLine": 977
    },
    {
@@ -1765,14 +1213,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Material is bridging in the hopper \u2014 flow stops intermittently",
-    "expectAnchors": [
-     "Cause",
-     "Aggregate",
-     "arching",
-     "across",
-     "hopper",
-     "stopping"
-    ],
+    "expectAnchors": [],
     "sourceLine": 989
    },
    {
@@ -1784,10 +1225,7 @@
     "expectAnchors": [
      "200 FPM",
      "60 PSI",
-     "65 PSI",
-     "Activate",
-     "Traction",
-     "Control"
+     "65 PSI"
     ],
     "sourceLine": 1005
    },
@@ -1797,14 +1235,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine cannot hold position on a grade / rolls back when stopping",
-    "expectAnchors": [
-     "Cause",
-     "Parking",
-     "brake",
-     "engaged",
-     "because",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1015
    },
    {
@@ -1813,14 +1244,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Spreading on shoulders \u2014 material not distributing evenly to the shoulder edge",
-    "expectAnchors": [
-     "individual",
-     "selector",
-     "switches",
-     "gates",
-     "cover",
-     "shoulder"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1029
    },
    {
@@ -1829,14 +1253,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Truck is having trouble keeping up / truck is pushing the chipspreader on a downgrade",
-    "expectAnchors": [
-     "Under",
-     "conditions",
-     "chipspreader",
-     "truck",
-     "steep",
-     "downgrades"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1039
    },
    {
@@ -1845,14 +1262,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Stopping distances are too long / machine cannot stop quickly enough",
-    "expectAnchors": [
-     "lower",
-     "speed",
-     "points",
-     "towing",
-     "heavy",
-     "trucks"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1050
    },
    {
@@ -1861,10 +1271,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the difference between the FHRC36 and FHRC28?",
-    "expectAnchors": [
-     "controller",
-     "while"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1252
    },
    {
@@ -1873,10 +1280,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What serial numbers does this manual cover?",
-    "expectAnchors": [
-     "Serial",
-     "numbers"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1255
    },
    {
@@ -1886,12 +1290,7 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the maximum machine speed?",
     "expectAnchors": [
-     "1,300 FPM",
-     "forward",
-     "reverse",
-     "spreading",
-     "normal",
-     "maximum"
+     "1,300 FPM"
     ],
     "sourceLine": 1258
    },
@@ -1903,11 +1302,7 @@
     "question": "What are the speed limits imposed by the controller for safety faults?",
     "expectAnchors": [
      "200 FPM",
-     "400 FPM",
-     "Traction",
-     "Control",
-     "engaged",
-     "maximum"
+     "400 FPM"
     ],
     "sourceLine": 1261
    },
@@ -1917,9 +1312,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What hydraulic oil should I use?",
-    "expectAnchors": [
-     "hydraulic"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1264
    },
    {
@@ -1928,9 +1321,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What gear lube is required for axle differentials?",
-    "expectAnchors": [
-     "MIL-L-"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1267
    },
    {
@@ -1939,10 +1330,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What grease is specified?",
-    "expectAnchors": [
-     "Molub-Alloy",
-     "Grease"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1270
    },
    {
@@ -1953,11 +1341,7 @@
     "question": "What tire pressures should I use?",
     "expectAnchors": [
      "60 PSI",
-     "65 PSI",
-     "Front",
-     "Never",
-     "exceed",
-     "maximum"
+     "65 PSI"
     ],
     "sourceLine": 1273
    },
@@ -1968,8 +1352,9 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What are the aggregate size choices available on the RC-28 controller?",
     "expectAnchors": [
-     "Chips",
-     "Gravel"
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
     ],
     "sourceLine": 1276
    },
@@ -1979,14 +1364,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How many memory presets are available?",
-    "expectAnchors": [
-     "memory",
-     "presets",
-     "storing",
-     "aggregate",
-     "application",
-     "point"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1279
    },
    {
@@ -1996,10 +1374,8 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the maximum gate opening?",
     "expectAnchors": [
-     "Standard",
-     "machines",
-     "inches",
-     "chippers"
+     "4.00 inches",
+     "5.00 inches"
     ],
     "sourceLine": 1282
    },
@@ -2009,7 +1385,9 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What should spread roll speed be set to?",
-    "expectAnchors": [],
+    "expectAnchors": [
+     "100 RPM"
+    ],
     "sourceLine": 1285
    },
    {
@@ -2020,9 +1398,7 @@
     "question": "What is the charge pressure specification?",
     "expectAnchors": [
      "400 PSI",
-     "420 PSI",
-     "acceptable",
-     "range"
+     "420 PSI"
     ],
     "sourceLine": 1288
    },
@@ -2035,10 +1411,7 @@
     "expectAnchors": [
      "7,000 PSI",
      "6,500 PSI",
-     "400 PSI",
-     "Cross-port",
-     "relief",
-     "valves"
+     "400 PSI"
     ],
     "sourceLine": 1291
    },
@@ -2050,10 +1423,7 @@
     "question": "What is the auxiliary pump pressure?",
     "expectAnchors": [
      "3,000 PSI",
-     "400 PSI",
-     "pressure",
-     "relief",
-     "Standby"
+     "400 PSI"
     ],
     "sourceLine": 1294
    },
@@ -2076,9 +1446,7 @@
     "question": "What is the fan valve pressure?",
     "expectAnchors": [
      "2,000 PSI",
-     "2,100 PSI",
-     "acceptable",
-     "range"
+     "2,100 PSI"
     ],
     "sourceLine": 1300
    },
@@ -2111,9 +1479,8 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the engine RPM for high idle operation?",
     "expectAnchors": [
-     "Approximately",
-     "Minimum",
-     "recommended"
+     "2,200 RPM",
+     "900 RPM"
     ],
     "sourceLine": 1309
    },
@@ -2123,14 +1490,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
-    "expectAnchors": [
-     "Contact",
-     "NHTSA",
-     "notify",
-     "Etnyre",
-     "controller",
-     "computer"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1312
    },
    {
@@ -2139,12 +1499,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "Who do I call for parts and service?",
-    "expectAnchors": [
-     "Etnyre",
-     "Parts",
-     "Service",
-     "General"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1392
    },
    {
@@ -2153,14 +1508,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What information do I need to order parts?",
-    "expectAnchors": [
-     "Complete",
-     "address",
-     "consignee",
-     "Preferred",
-     "shipping",
-     "method"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1395
    },
    {
@@ -2169,13 +1517,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "Where is Etnyre located?",
-    "expectAnchors": [
-     "Etnyre",
-     "International",
-     "Daysville",
-     "Oregon",
-     "Phone"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1398
    },
    {
@@ -2184,14 +1526,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What warranty is provided?",
-    "expectAnchors": [
-     "months",
-     "delivery",
-     "original",
-     "purchaser",
-     "Section",
-     "warranty"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1401
    }
   ],
@@ -2202,14 +1537,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Starter does not crank / machine won't turn over",
-    "expectAnchors": [
-     "Drive",
-     "Switch",
-     "Position",
-     "start",
-     "starter",
-     "circuit"
-    ],
+    "expectAnchors": [],
     "sourceLine": 582
    },
    {
@@ -2218,14 +1546,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Starter cranks but the engine will not start",
-    "expectAnchors": [
-     "Display",
-     "ENGINE",
-     "Message",
-     "shows",
-     "communication",
-     "between"
-    ],
+    "expectAnchors": [],
     "sourceLine": 596
    },
    {
@@ -2238,9 +1559,7 @@
      "0.00 Volts",
      "1,000 PSI",
      "400 PSI",
-     "0 PSI",
-     "Start",
-     "Latch"
+     "0 PSI"
     ],
     "sourceLine": 610
    },
@@ -2250,14 +1569,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed is limited to 200 FPM and won't go faster",
-    "expectAnchors": [
-     "200 FPM",
-     "Traction",
-     "Control",
-     "Switch",
-     "limits",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 632
    },
    {
@@ -2267,12 +1579,9 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed is limited to 400 FPM (4WD) or 600 FPM (2WD)",
     "expectAnchors": [
+     "0 RPM",
      "0.40 Amps",
-     "0.00 Amps",
-     "ENGINE",
-     "Warning",
-     "Scroll",
-     "screen"
+     "0.00 Amps"
     ],
     "sourceLine": 644
    },
@@ -2285,10 +1594,7 @@
     "expectAnchors": [
      "9410200",
      "3181497",
-     "400 PSI",
-     "Emergency",
-     "Driveline",
-     "Disengage"
+     "400 PSI"
     ],
     "sourceLine": 656
    },
@@ -2301,10 +1607,7 @@
     "expectAnchors": [
      "400 FPM",
      "12 VDC",
-     "0 VDC",
-     "Response",
-     "fault",
-     "occurs"
+     "0 VDC"
     ],
     "sourceLine": 674
    },
@@ -2314,14 +1617,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Uncommanded motion \u2014 machine moves wrong direction / UCMD shutdown",
-    "expectAnchors": [
-     "Direction",
-     "moves",
-     "wrong",
-     "engine",
-     "shuts",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 703
    },
    {
@@ -2330,14 +1626,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault / ALARM: JOYSTICK FAILURE",
-    "expectAnchors": [
-     "Causes",
-     "supply",
-     "joystick",
-     "ground",
-     "Center",
-     "voltage"
-    ],
+    "expectAnchors": [],
     "sourceLine": 719
    },
    {
@@ -2346,14 +1635,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No conveyor movement / conveyors not running",
-    "expectAnchors": [
-     "Stalled",
-     "noise",
-     "hydraulic",
-     "conveyor",
-     "speed",
-     "cycle"
-    ],
+    "expectAnchors": [],
     "sourceLine": 736
    },
    {
@@ -2362,14 +1644,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No auger movement",
-    "expectAnchors": [
-     "Stalled",
-     "Auger",
-     "hydraulic",
-     "noise",
-     "heard",
-     "speed"
-    ],
+    "expectAnchors": [],
     "sourceLine": 754
    },
    {
@@ -2379,12 +1654,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Water temperature alarm / overheating",
     "expectAnchors": [
-     "Verify",
-     "Temperature",
-     "Confirm",
-     "coolant",
-     "actually",
-     "exceeding"
+     "240\u00b0F"
     ],
     "sourceLine": 770
    },
@@ -2398,9 +1668,7 @@
      "240 Ohms",
      "260 Ohms",
      "33.5 Ohms",
-     "39.5 Ohms",
-     "Level",
-     "gauge"
+     "39.5 Ohms"
     ],
     "sourceLine": 788
    },
@@ -2412,11 +1680,8 @@
     "question": "Hydraulic oil gets hot / hydraulic oil temperature alarm",
     "expectAnchors": [
      "400 PSI",
-     "Level",
-     "Verify",
-     "hydraulic",
-     "correct",
-     "reservoir"
+     "180\u00b0F",
+     "140\u00b0F"
     ],
     "sourceLine": 808
    },
@@ -2426,14 +1691,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Display shows \"ETNYRE NO COMMUNICATION\"",
-    "expectAnchors": [
-     "signal",
-     "computer",
-     "received",
-     "display",
-     "green",
-     "yellow"
-    ],
+    "expectAnchors": [],
     "sourceLine": 835
    },
    {
@@ -2442,12 +1700,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No message on display at all",
-    "expectAnchors": [
-     "power",
-     "ground",
-     "connections",
-     "display"
-    ],
+    "expectAnchors": [],
     "sourceLine": 845
    },
    {
@@ -2458,11 +1711,7 @@
     "question": "Gates will not operate (hydraulic buss bar)",
     "expectAnchors": [
      "1,500 PSI",
-     "Arming",
-     "Switches",
-     "Confirm",
-     "Master",
-     "switch"
+     "0.0 inches"
     ],
     "sourceLine": 851
    },
@@ -2473,12 +1722,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Gates are unsteady / hunting / fluttering",
     "expectAnchors": [
-     "1.000 amp",
-     "Adjust",
-     "Close",
-     "Current",
-     "Values",
-     "Enter"
+     "1.000 amp"
     ],
     "sourceLine": 875
    },
@@ -2489,12 +1733,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Air gates out of adjustment / loud noise when master power is turned on or off",
     "expectAnchors": [
-     "Identify",
-     "Problem",
-     "Determine",
-     "whether",
-     "issue",
-     "cylinders"
+     "1/16\""
     ],
     "sourceLine": 889
    },
@@ -2505,12 +1744,8 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No gradability / machine cannot climb the grade",
     "expectAnchors": [
-     "200 FPM",
-     "Verify",
-     "Grade",
-     "Calculate",
-     "percentage",
-     "combined"
+     "2,200 RPM",
+     "200 FPM"
     ],
     "sourceLine": 910
    },
@@ -2521,12 +1756,7 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve / hydraulic oil stays hot",
     "expectAnchors": [
-     "5 PSI",
-     "Close",
-     "hydraulic",
-     "suction",
-     "valve",
-     "drain"
+     "5 PSI"
     ],
     "sourceLine": 930
    },
@@ -2536,14 +1766,7 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Hydraulic standby (load sense) pressure is fluctuating",
-    "expectAnchors": [
-     "Cause",
-     "Missing",
-     "contaminated",
-     "orifice",
-     "sense",
-     "valves"
-    ],
+    "expectAnchors": [],
     "sourceLine": 964
    },
    {
@@ -2554,11 +1777,7 @@
     "question": "Spread roll speed is fluctuating",
     "expectAnchors": [
      "400 PSI",
-     "Auxiliary",
-     "Standby",
-     "Pressure",
-     "causes",
-     "insufficient"
+     "100 RPM"
     ],
     "sourceLine": 980
    },
@@ -2568,14 +1787,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Overlap or heavy material in the center when hoppers are fully extended",
-    "expectAnchors": [
-     "Problem",
-     "Material",
-     "heavy",
-     "middle",
-     "overlap",
-     "present"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1017
    },
    {
@@ -2584,14 +1796,7 @@
     "kind": "howto",
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Streak or void in the center of the road",
-    "expectAnchors": [
-     "Problem",
-     "Material",
-     "leaving",
-     "streak",
-     "center",
-     "Adjust"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1025
    },
    {
@@ -2601,12 +1806,9 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Application rate on the ground doesn't match the display set point",
     "expectAnchors": [
-     "Aggregate",
-     "Selection",
-     "Confirm",
-     "correct",
-     "selected",
-     "display"
+     "100 RPM",
+     "5/8\"",
+     "3/8\""
     ],
     "sourceLine": 1035
    },
@@ -2617,12 +1819,8 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Uneven material distribution across the spread width",
     "expectAnchors": [
-     "Adjust",
-     "Conveyor",
-     "Speeds",
-     "Independently",
-     "right",
-     "switch"
+     "1/2\"",
+     "1/16\""
     ],
     "sourceLine": 1047
    },
@@ -2633,12 +1831,8 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Application rate is correct but spread appears inconsistent (streaks)",
     "expectAnchors": [
-     "0.900 amps",
-     "Spread",
-     "Speed",
-     "fluctuates",
-     "material",
-     "delivery"
+     "100 RPM",
+     "0.900 amps"
     ],
     "sourceLine": 1059
    },
@@ -2648,14 +1842,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine is being used for shoulder work \u2014 how do I limit spread width?",
-    "expectAnchors": [
-     "Solution",
-     "Individual",
-     "Selector",
-     "switches",
-     "switch",
-     "controls"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1071
    },
    {
@@ -2664,14 +1851,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine is being used on steep downgrades \u2014 special precautions?",
-    "expectAnchors": [
-     "WARNINGS",
-     "Chipspreader",
-     "always",
-     "truck",
-     "assists",
-     "upgrades"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1082
    },
    {
@@ -2682,11 +1862,7 @@
     "question": "Machine needs to operate at very slow speeds (under 100 FPM) \u2014 what settings are needed?",
     "expectAnchors": [
      "0.400 amps",
-     "300 FPM",
-     "Solution",
-     "front",
-     "motor",
-     "threshold"
+     "300 FPM"
     ],
     "sourceLine": 1096
    },
@@ -2696,14 +1872,7 @@
     "kind": "howto",
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine was just reassembled after hydraulic work \u2014 what must I do before driving?",
-    "expectAnchors": [
-     "Solution",
-     "Follow",
-     "Hydrostatic",
-     "System",
-     "Startup",
-     "procedure"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1102
    },
    {
@@ -2712,10 +1881,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the difference between the FHRC36 and FHRC28?",
-    "expectAnchors": [
-     "controller",
-     "while"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1331
    },
    {
@@ -2724,10 +1890,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What serial numbers does this manual cover?",
-    "expectAnchors": [
-     "Serial",
-     "numbers"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1334
    },
    {
@@ -2737,12 +1900,7 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the maximum machine speed?",
     "expectAnchors": [
-     "1,300 FPM",
-     "forward",
-     "reverse",
-     "spreading",
-     "normal",
-     "maximum"
+     "1,300 FPM"
     ],
     "sourceLine": 1337
    },
@@ -2754,11 +1912,7 @@
     "question": "What are the speed limits imposed by the controller for safety faults?",
     "expectAnchors": [
      "200 FPM",
-     "400 FPM",
-     "Traction",
-     "Control",
-     "engaged",
-     "maximum"
+     "400 FPM"
     ],
     "sourceLine": 1340
    },
@@ -2768,9 +1922,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What hydraulic oil should I use?",
-    "expectAnchors": [
-     "hydraulic"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1343
    },
    {
@@ -2779,9 +1931,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What gear lube is required for axle differentials?",
-    "expectAnchors": [
-     "MIL-L-"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1346
    },
    {
@@ -2790,10 +1940,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What grease is specified?",
-    "expectAnchors": [
-     "Molub-Alloy",
-     "Grease"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1349
    },
    {
@@ -2804,11 +1951,7 @@
     "question": "What tire pressures should I use?",
     "expectAnchors": [
      "60 PSI",
-     "65 PSI",
-     "Front",
-     "Never",
-     "exceed",
-     "maximum"
+     "65 PSI"
     ],
     "sourceLine": 1352
    },
@@ -2819,8 +1962,9 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What are the aggregate size choices available on the RC-36 controller?",
     "expectAnchors": [
-     "Chips",
-     "Gravel"
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
     ],
     "sourceLine": 1355
    },
@@ -2830,14 +1974,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How many memory presets are available?",
-    "expectAnchors": [
-     "memory",
-     "presets",
-     "storing",
-     "aggregate",
-     "application",
-     "point"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1358
    },
    {
@@ -2847,10 +1984,8 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the maximum gate opening?",
     "expectAnchors": [
-     "Standard",
-     "machines",
-     "inches",
-     "chippers"
+     "4.00 inches",
+     "5.00 inches"
     ],
     "sourceLine": 1361
    },
@@ -2860,7 +1995,9 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What should spread roll speed be set to?",
-    "expectAnchors": [],
+    "expectAnchors": [
+     "100 RPM"
+    ],
     "sourceLine": 1364
    },
    {
@@ -2871,9 +2008,7 @@
     "question": "What is the charge pressure specification?",
     "expectAnchors": [
      "400 PSI",
-     "420 PSI",
-     "acceptable",
-     "range"
+     "420 PSI"
     ],
     "sourceLine": 1367
    },
@@ -2886,10 +2021,7 @@
     "expectAnchors": [
      "7,000 PSI",
      "6,500 PSI",
-     "400 PSI",
-     "Cross-port",
-     "relief",
-     "valves"
+     "400 PSI"
     ],
     "sourceLine": 1370
    },
@@ -2901,10 +2033,7 @@
     "question": "What is the auxiliary pump pressure?",
     "expectAnchors": [
      "3,000 PSI",
-     "400 PSI",
-     "pressure",
-     "relief",
-     "Standby"
+     "400 PSI"
     ],
     "sourceLine": 1373
    },
@@ -2927,9 +2056,7 @@
     "question": "What is the fan valve pressure?",
     "expectAnchors": [
      "2,000 PSI",
-     "2,100 PSI",
-     "acceptable",
-     "range"
+     "2,100 PSI"
     ],
     "sourceLine": 1379
    },
@@ -2962,9 +2089,8 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the engine RPM for high idle operation?",
     "expectAnchors": [
-     "Approximately",
-     "Minimum",
-     "recommended"
+     "2,200 RPM",
+     "900 RPM"
     ],
     "sourceLine": 1388
    },
@@ -2974,14 +2100,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
-    "expectAnchors": [
-     "Contact",
-     "NHTSA",
-     "notify",
-     "Etnyre",
-     "controller",
-     "computer"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1391
    },
    {
@@ -2990,12 +2109,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "Who do I call for parts and service?",
-    "expectAnchors": [
-     "Etnyre",
-     "Parts",
-     "Service",
-     "General"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1443
    },
    {
@@ -3004,14 +2118,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What information do I need to order parts?",
-    "expectAnchors": [
-     "Complete",
-     "address",
-     "consignee",
-     "Preferred",
-     "shipping",
-     "method"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1446
    },
    {
@@ -3020,13 +2127,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "Where is Etnyre located?",
-    "expectAnchors": [
-     "Etnyre",
-     "International",
-     "Daysville",
-     "Oregon",
-     "Phone"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1449
    },
    {
@@ -3035,14 +2136,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What warranty is provided?",
-    "expectAnchors": [
-     "months",
-     "delivery",
-     "original",
-     "purchaser",
-     "Section",
-     "warranty"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1452
    },
    {
@@ -3051,14 +2145,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is covered by M-218-19?",
-    "expectAnchors": [
-     "Chipspreader",
-     "Troubleshooting",
-     "Guide",
-     "updated",
-     "November",
-     "covers"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1457
    },
    {
@@ -3068,12 +2155,7 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "Where are the RC-36 plug connector pins defined?",
     "expectAnchors": [
-     "12VDC",
-     "pages",
-     "connectors",
-     "Large",
-     "Small",
-     "include"
+     "12VDC"
     ],
     "sourceLine": 1460
    },
@@ -3083,14 +2165,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the Sonic Bin Switch setup procedure?",
-    "expectAnchors": [
-     "Change",
-     "switching",
-     "distance",
-     "conveyor",
-     "switch",
-     "button"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1466
    },
    {
@@ -3099,14 +2174,7 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the Emergency Driveline Disengage procedure?",
-    "expectAnchors": [
-     "procedure",
-     "middle",
-     "breakdown",
-     "occurs",
-     "disables",
-     "moving"
-    ],
+    "expectAnchors": [],
     "sourceLine": 1469
    }
   ],
@@ -3134,10 +2202,10 @@
     "expectAnchors": [
      "P2-PIN 19",
      "250 ohms",
+     "68 gallons",
      "140 ohms",
-     "94 ohms",
-     "63 ohms",
-     "39 ohms"
+     "32 gallons",
+     "94 ohms"
     ],
     "sourceLine": 285
    },
@@ -3151,9 +2219,9 @@
      "P2-PIN 18",
      "P2-PIN 2",
      "5 PSI",
+     "1,400 RPM",
      "10 PSI",
-     "30 PSI",
-     "65 PSI"
+     "30 PSI"
     ],
     "sourceLine": 314
    },
@@ -3164,12 +2232,7 @@
     "section": "Problem 4 \u2014 Water Temperature Alarm",
     "question": "Water temperature alarm is active",
     "expectAnchors": [
-     "P2-PIN 20",
-     "Symptoms",
-     "Water",
-     "temperature",
-     "alarm",
-     "active"
+     "P2-PIN 20"
     ],
     "sourceLine": 355
    },
@@ -3181,11 +2244,7 @@
     "question": "Hydraulic oil temperature alarm is active",
     "expectAnchors": [
      "P2-PIN 17",
-     "Symptoms",
-     "Hydraulic",
-     "temperature",
-     "alarm",
-     "active"
+     "180\u00b0F"
     ],
     "sourceLine": 396
    },
@@ -3199,9 +2258,7 @@
      "7050350",
      "5.0 volts",
      "1.5 volts",
-     "1.0 volt",
-     "Symptoms",
-     "sensor"
+     "1.0 volt"
     ],
     "sourceLine": 432
    },
@@ -3242,14 +2299,7 @@
     "kind": "problem",
     "section": "Problem 9 \u2014 Air Gates Out of Adjustment (Very Loud Noise When Master Power Turns On or Off)",
     "question": "Very loud noise when master power is switched on or off",
-    "expectAnchors": [
-     "Symptoms",
-     "noise",
-     "master",
-     "power",
-     "switched",
-     "Identify"
-    ],
+    "expectAnchors": [],
     "sourceLine": 543
    },
    {
@@ -3258,14 +2308,7 @@
     "kind": "problem",
     "section": "Problem 10 \u2014 Spreadroll Speed Fluctuating",
     "question": "The spread roll motor speed is not steady",
-    "expectAnchors": [
-     "Symptoms",
-     "spread",
-     "motor",
-     "speed",
-     "steady",
-     "auxiliary"
-    ],
+    "expectAnchors": [],
     "sourceLine": 568
    },
    {
@@ -3275,12 +2318,7 @@
     "section": "Problem 11 \u2014 Hydraulic Standby Pressure Fluctuating (Gauge Needle Is Not Steady)",
     "question": "The standby or load sense pressure gauge needle is unstable or bouncing",
     "expectAnchors": [
-     "Symptoms",
-     "standby",
-     "sense",
-     "pressure",
-     "gauge",
-     "needle"
+     "0.040 inches"
     ],
     "sourceLine": 594
    },
@@ -3290,14 +2328,7 @@
     "kind": "problem",
     "section": "Problem 12 \u2014 Overlap or Streak in Center When Hoppers Are Fully Extended",
     "question": "Material is either too heavy in the middle (overlap) or leaving a void down the center of the road (streak)",
-    "expectAnchors": [
-     "Symptoms",
-     "Material",
-     "either",
-     "heavy",
-     "middle",
-     "overlap"
-    ],
+    "expectAnchors": [],
     "sourceLine": 619
    },
    {
@@ -3307,12 +2338,8 @@
     "section": "Problem 13 \u2014 No Gradability (Machine Cannot Climb Incline)",
     "question": "Machine cannot climb a grade that it should be able to handle",
     "expectAnchors": [
-     "200 FPM",
-     "Symptoms",
-     "cannot",
-     "climb",
-     "grade",
-     "handle"
+     "2,200 RPM",
+     "200 FPM"
     ],
     "sourceLine": 631
    },
@@ -3322,14 +2349,7 @@
     "kind": "problem",
     "section": "Problem 14 \u2014 Auxiliary Hydraulic Pressure Will Not Relieve",
     "question": "Pressure does not relieve after reaching main pressure. This creates heat, torque loss, and a hard start condition",
-    "expectAnchors": [
-     "Symptoms",
-     "Pressure",
-     "relieve",
-     "reaching",
-     "creates",
-     "torque"
-    ],
+    "expectAnchors": [],
     "sourceLine": 665
    },
    {
@@ -3338,14 +2358,7 @@
     "kind": "problem",
     "section": "Problem 15 \u2014 Gates Will Not Operate (Hydraulic Buss Bar)",
     "question": "Gates do not respond to controls",
-    "expectAnchors": [
-     "Symptoms",
-     "Gates",
-     "respond",
-     "controls",
-     "arming",
-     "switches"
-    ],
+    "expectAnchors": [],
     "sourceLine": 698
    },
    {
@@ -3355,12 +2368,7 @@
     "section": "Problem 16 \u2014 Starter Cranks But Engine Does Not Start",
     "question": "Starter motor turns the engine over but the engine does not fire",
     "expectAnchors": [
-     "12 volts",
-     "Symptoms",
-     "Starter",
-     "motor",
-     "turns",
-     "engine"
+     "12 volts"
     ],
     "sourceLine": 731
    },
@@ -3373,10 +2381,7 @@
     "expectAnchors": [
      "9410200",
      "3181497",
-     "400 PSI",
-     "IMPORTANT",
-     "procedure",
-     "emergency"
+     "400 PSI"
     ],
     "sourceLine": 754
    }

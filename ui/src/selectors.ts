@@ -28,6 +28,12 @@ export const sel = {
     /** VERIFIED - header status pill, present before a session is opened. */
     assistantOnline: (p: Page): Locator => p.getByText(/assistant online/i),
     heading: (p: Page): Locator => p.getByRole('heading').first(),
+    /**
+     * VERIFIED 2026-09-17 - ending a session does not bring back "Talk to
+     * me"; the panel shows "Call ended" and this CTA instead, until the page
+     * is reloaded.
+     */
+    startAgain: (p: Page): Locator => p.getByRole('button', { name: /start again/i }),
   },
 
   /**
@@ -40,7 +46,20 @@ export const sel = {
       .or(p.locator('input[placeholder^="Type your question"]'))
       .first(),
     send: (p: Page): Locator => p.getByRole('button', { name: /^send$/i }),
+    /**
+     * VERIFIED 2026-09-17 - the mic control is an icon button with no text, so
+     * its accessible name comes from aria-label, and that label is the ACTION
+     * it offers rather than the current state:
+     *
+     *   connecting  -> "Unmute", disabled
+     *   connected   -> "Mute",   enabled   <- mic is LIVE
+     *   after click -> "Unmute", enabled   <- mic is muted
+     *
+     * So `mute` only matches while audio is going up, and `unmute` matching is
+     * the app confirming the mic is off.
+     */
     mute: (p: Page): Locator => p.getByRole('button', { name: /^mute$/i }),
+    unmute: (p: Page): Locator => p.getByRole('button', { name: /^unmute$/i }),
     end: (p: Page): Locator => p.getByRole('button', { name: /^end$/i }),
     /**
      * Session state text. "Listening — go ahead" is the connected state;
