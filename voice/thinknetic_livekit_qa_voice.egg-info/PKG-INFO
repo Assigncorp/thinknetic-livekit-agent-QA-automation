@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: thinknetic-livekit-qa-voice
+Version: 0.1.0
+Summary: LiveKit voice-agent tests (phase 3)
+Requires-Python: >=3.11
+Requires-Dist: pytest>=8.3
+Requires-Dist: pytest-asyncio>=0.24
+Requires-Dist: python-dotenv>=1.0
+Provides-Extra: live
+Requires-Dist: livekit>=0.17; extra == "live"
+Requires-Dist: livekit-api>=0.8; extra == "live"
+Requires-Dist: numpy>=2.1; extra == "live"
+Requires-Dist: soundfile>=0.12; extra == "live"
+Requires-Dist: webrtcvad>=2.0.10; extra == "live"
+Requires-Dist: faster-whisper>=1.0; extra == "live"

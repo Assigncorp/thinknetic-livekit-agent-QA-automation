@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 
 .PHONY: help check install install-ui install-api install-tools resources \
-        smoke catalog ui chat negative api voice test report clean
+        smoke catalog ui chat demo negative api voice test report clean
 
 help:
 	@echo "make check       - verify the local toolchain and .env"
@@ -15,6 +15,7 @@ help:
 	@echo "make negative    - negative / fail-closed suite"
 	@echo "make ui          - full browser suite EXCEPT tests that open a real session"
 	@echo "make chat        - the real agent chat flow (opens live sessions)"
+	@echo "make demo        - ONE live chat session, visible browser, ~90s"
 	@echo "make test        - api + ui  (no live sessions)"
 	@echo ""
 	@echo "make report      - open the last Playwright HTML report"
@@ -56,6 +57,11 @@ ui:
 # The real thing: opens sessions against the dev deployment.
 chat:
 	cd ui && npx playwright test --grep @chat
+
+# DEMO: one live chat session, visible browser, one worker, readable output.
+# The full positive path only - roughly 60-90 seconds.
+demo:
+	cd ui && npx playwright test -g "full positive workflow" --headed --workers 1 --reporter=list
 
 api:
 	cd api && uv run pytest -v

@@ -27,7 +27,25 @@ test.describe.configure({ mode: 'serial' });
 const greetingAsksForSerial = anyOf(testbed.chatFlow.greetingAsksForSerial);
 const readBack = anyOf(testbed.chatFlow.readBackConfirmation);
 
+/**
+ * A conversation is several LLM turns long, so it needs far longer than the
+ * global per-test timeout in playwright.config.ts (which is sized for page
+ * interactions). Derive it from the budgets rather than hardcoding a number:
+ * raise a budget in the config and this follows automatically.
+ */
+const CHAT_TIMEOUT_MS = Math.round(
+  (testbed.budgets.sessionConnectMs +
+    testbed.budgets.greetingMs +
+    testbed.budgets.serialAcknowledgedMs * 2 +
+    testbed.budgets.answerMs) *
+    1.5,
+);
+
 test.describe('@live @chat agent chat flow', () => {
+  test.beforeEach(({}, testInfo) => {
+    testInfo.setTimeout(CHAT_TIMEOUT_MS);
+  });
+
   test('full positive workflow: open, identify machine, ask, answer, end', async ({
     page,
     productPage,
