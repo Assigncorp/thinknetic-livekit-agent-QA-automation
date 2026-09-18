@@ -1,0 +1,62 @@
+name: QA automation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Which suite to run
+        type: choice
+        options: [smoke, api, ui, all]
+        default: smoke
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BASE_URL: https://etnyre-dev.thinknetic.app
+  ORG_SLUG: e
+  PRODUCT_SLUG: chip-spreader
+
+jobs:
+  api:
+    name: API suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+        working-directory: api
+      - run: uv run pytest -v --junitxml=../reports/api-junit.xml
+        working-directory: api
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-results
+          path: reports/api-junit.xml
+
+  ui:
+    name: UI suite
+    runs-on: ubuntu-latest
+    needs: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+        working-directory: ui
+      - run: npx playwright install --with-deps chromium
+        working-directory: ui
+      - name: Run suite
+        working-directory: ui
+        run: npx playwright test ${{ github.event.inputs.suite == 'smoke' && 'tests/smoke' || '' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: reports/playwright-report
+          retention-days: 14

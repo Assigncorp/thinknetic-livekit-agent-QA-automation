@@ -1,0 +1,87 @@
+name: Smoke
+
+# The cheapest signal in the suite: does the product page load, hydrate and
+# offer the agent? ~15s of browser time. If this is red, nothing else is worth
+# running, so it is kept separate from the fuller suites and stays fast.
+#
+# NOTE: these tests drive the real dev deployment, so a red run can mean the
+# environment is down rather than the code being wrong. The uploaded report
+# distinguishes the two.
+
+on:
+  push:
+    # The default branch here is master, not main - a workflow triggered on
+    # `main` would never fire.
+    branches: [master, develop]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The target. Everything else about the test bed lives in TESTBED_CONFIG, so
+  # pointing this workflow at another product is an edit to these five values.
+  BASE_URL: https://etnyre-dev.thinknetic.app
+  ORG_SLUG: e
+  PRODUCT_SLUG: chip-spreader
+  TESTBED_CONFIG: config/testbed.config.json
+  HEADLESS: 'true'
+
+jobs:
+  smoke:
+    name: Smoke (@smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      # --frozen-lockfile so CI installs exactly what is committed and fails
+      # loudly if the lockfile and package.json have drifted apart.
+      - name: Install dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('ui/pnpm-lock.yaml') }}
+
+      # Run every time even on a cache hit: the browser binary is cached, the
+      # OS libraries it needs are not.
+      - name: Install Chromium
+        working-directory: ui
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Type-check
+        working-directory: ui
+        run: pnpm exec tsc --noEmit
+
+      - name: Run smoke suite
+        working-directory: ui
+        run: pnpm exec playwright test --grep @smoke
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report
+          path: |
+            reports/playwright-report
+            reports/ui-results.json
+            reports/ui-artifacts
+          retention-days: 14
+          if-no-files-found: ignore

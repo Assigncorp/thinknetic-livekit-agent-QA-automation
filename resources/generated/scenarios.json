@@ -1,0 +1,2390 @@
+{
+ "_generated": "Do not edit. Regenerate with: make resources",
+ "countsByKb": {
+  "vhrs28": 48,
+  "vhrs36": 38,
+  "fhrc28": 57,
+  "fhrc36": 61,
+  "general": 17
+ },
+ "pools": {
+  "vhrs28": [
+   {
+    "id": "VHRS28-HOW-001",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The machine won't start / starter doesn't crank",
+    "expectAnchors": [
+     "12 VDC"
+    ],
+    "sourceLine": 460
+   },
+   {
+    "id": "VHRS28-HOW-002",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The starter cranks but the engine won't start",
+    "expectAnchors": [],
+    "sourceLine": 481
+   },
+   {
+    "id": "VHRS28-HOW-003",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The machine will not move / won't drive",
+    "expectAnchors": [
+     "1000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "sourceLine": 500
+   },
+   {
+    "id": "VHRS28-HOW-004",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed is limited to 200 FPM and I can't increase it",
+    "expectAnchors": [],
+    "sourceLine": 522
+   },
+   {
+    "id": "VHRS28-HOW-005",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed is limited to 400 FPM (4WD) or 600 FPM (2WD) \u2014 can't go faster",
+    "expectAnchors": [
+     "0.40 amps",
+     "0.00 amps"
+    ],
+    "sourceLine": 532
+   },
+   {
+    "id": "VHRS28-HOW-006",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The speed sensor alarm is showing / machine comes to a stop with a speed error",
+    "expectAnchors": [
+     "12 VDC",
+     "0 VDC"
+    ],
+    "sourceLine": 547
+   },
+   {
+    "id": "VHRS28-HOW-007",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The machine keeps shutting off unexpectedly / Uncommanded Motion Detection (UCMD) alarm",
+    "expectAnchors": [],
+    "sourceLine": 576
+   },
+   {
+    "id": "VHRS28-HOW-008",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Joystick fault alarm is showing",
+    "expectAnchors": [],
+    "sourceLine": 587
+   },
+   {
+    "id": "VHRS28-HOW-009",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The conveyor won't move",
+    "expectAnchors": [],
+    "sourceLine": 600
+   },
+   {
+    "id": "VHRS28-HOW-010",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The auger won't move",
+    "expectAnchors": [],
+    "sourceLine": 622
+   },
+   {
+    "id": "VHRS28-HOW-011",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The gates won't open or operate",
+    "expectAnchors": [],
+    "sourceLine": 640
+   },
+   {
+    "id": "VHRS28-HOW-012",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The gates are hunting / unsteady / fluctuating and not holding position",
+    "expectAnchors": [
+     "1.0 amp",
+     "0.9 amp"
+    ],
+    "sourceLine": 675
+   },
+   {
+    "id": "VHRS28-HOW-013",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The gates are making a very loud noise when the gate master power is turned on or off",
+    "expectAnchors": [
+     "1/16\""
+    ],
+    "sourceLine": 685
+   },
+   {
+    "id": "VHRS28-HOW-014",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The spread roll speed is fluctuating",
+    "expectAnchors": [
+     "400 PSI",
+     "96 RPM"
+    ],
+    "sourceLine": 708
+   },
+   {
+    "id": "VHRS28-HOW-015",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The hydraulic pressure is fluctuating / standby pressure is unsteady on the gauge",
+    "expectAnchors": [
+     "0.040 inch"
+    ],
+    "sourceLine": 727
+   },
+   {
+    "id": "VHRS28-HOW-016",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The hydraulic oil is overheating",
+    "expectAnchors": [
+     "400 PSI",
+     "3000 PSI",
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "sourceLine": 748
+   },
+   {
+    "id": "VHRS28-HOW-017",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Auxiliary hydraulic pressure will not relieve / engine is hard to start after shutdown",
+    "expectAnchors": [
+     "5 PSI"
+    ],
+    "sourceLine": 775
+   },
+   {
+    "id": "VHRS28-HOW-018",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The display says \"ETNYRE NO COMMUNICATION\" or is showing nothing",
+    "expectAnchors": [],
+    "sourceLine": 801
+   },
+   {
+    "id": "VHRS28-HOW-019",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The fuel level alarm keeps going off but the tank isn't empty",
+    "expectAnchors": [
+     "P2-PIN19",
+     "260 ohms",
+     "39.5 ohms",
+     "33.5 ohms"
+    ],
+    "sourceLine": 815
+   },
+   {
+    "id": "VHRS28-HOW-020",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Water temperature alarm is showing / engine is overheating",
+    "expectAnchors": [
+     "240\u00b0F"
+    ],
+    "sourceLine": 840
+   },
+   {
+    "id": "VHRS28-HOW-021",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "I see error codes on the display \u2014 what do they mean?",
+    "expectAnchors": [
+     "400 FPM",
+     "180\u00b0F",
+     "240\u00b0F"
+    ],
+    "sourceLine": 863
+   },
+   {
+    "id": "VHRS28-HOW-022",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine has no gradability / can't climb hills",
+    "expectAnchors": [
+     "200 FPM",
+     "7000 PSI"
+    ],
+    "sourceLine": 909
+   },
+   {
+    "id": "VHRS28-HOW-023",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
+    "question": "There is a streak or void down the center of the road when both hoppers are fully extended",
+    "expectAnchors": [],
+    "sourceLine": 934
+   },
+   {
+    "id": "VHRS28-HOW-024",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
+    "question": "There is an overlap or heavy streak in the center of the road when hoppers are fully extended",
+    "expectAnchors": [],
+    "sourceLine": 946
+   },
+   {
+    "id": "VHRS28-HOW-025",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
+    "question": "The material application is uneven \u2014 one side heavier than the other",
+    "expectAnchors": [
+     "96 RPM",
+     "1/32\""
+    ],
+    "sourceLine": 955
+   },
+   {
+    "id": "VHRS28-HOW-026",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
+    "question": "Spread roll speed is incorrect or inconsistent (application rate off)",
+    "expectAnchors": [
+     "96 RPM"
+    ],
+    "sourceLine": 971
+   },
+   {
+    "id": "VHRS28-HOW-027",
+    "kbId": "vhrs28",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
+    "question": "Material is bridging in the hopper and not flowing through the gate",
+    "expectAnchors": [],
+    "sourceLine": 977
+   },
+   {
+    "id": "VHRS28-FAQ-028",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the maximum operating speed of the VHRS28?",
+    "expectAnchors": [
+     "1300 FPM"
+    ],
+    "sourceLine": 1221
+   },
+   {
+    "id": "VHRS28-FAQ-029",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the normal spreading speed range?",
+    "expectAnchors": [
+     "500 FPM"
+    ],
+    "sourceLine": 1224
+   },
+   {
+    "id": "VHRS28-FAQ-030",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "How many memory presets are available?",
+    "expectAnchors": [],
+    "sourceLine": 1227
+   },
+   {
+    "id": "VHRS28-FAQ-031",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What hydraulic oil does the machine use?",
+    "expectAnchors": [],
+    "sourceLine": 1230
+   },
+   {
+    "id": "VHRS28-FAQ-032",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What gear lube is used in the axles?",
+    "expectAnchors": [],
+    "sourceLine": 1233
+   },
+   {
+    "id": "VHRS28-FAQ-033",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What grease is used for all bearing fittings?",
+    "expectAnchors": [],
+    "sourceLine": 1236
+   },
+   {
+    "id": "VHRS28-FAQ-034",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the standby pressure for the auxiliary hydraulic pumps?",
+    "expectAnchors": [
+     "400 PSI"
+    ],
+    "sourceLine": 1239
+   },
+   {
+    "id": "VHRS28-FAQ-035",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the high pressure setting for the auxiliary pumps?",
+    "expectAnchors": [
+     "3000 PSI",
+     "3100 PSI"
+    ],
+    "sourceLine": 1242
+   },
+   {
+    "id": "VHRS28-FAQ-036",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the charge pressure on the drive pump?",
+    "expectAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "sourceLine": 1245
+   },
+   {
+    "id": "VHRS28-FAQ-037",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the hydrostatic high pressure setting?",
+    "expectAnchors": [
+     "7000 PSI",
+     "6500 PSI"
+    ],
+    "sourceLine": 1248
+   },
+   {
+    "id": "VHRS28-FAQ-038",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the hopper reducing valve pressure setting?",
+    "expectAnchors": [
+     "1300 PSI",
+     "1400 PSI"
+    ],
+    "sourceLine": 1251
+   },
+   {
+    "id": "VHRS28-FAQ-039",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the main relief pressure for the hitch/steering system?",
+    "expectAnchors": [
+     "1200 PSI"
+    ],
+    "sourceLine": 1254
+   },
+   {
+    "id": "VHRS28-FAQ-040",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the pilot pressure for the hitch system?",
+    "expectAnchors": [
+     "250 PSI"
+    ],
+    "sourceLine": 1257
+   },
+   {
+    "id": "VHRS28-FAQ-041",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the fan valve pressure?",
+    "expectAnchors": [
+     "2000 PSI",
+     "2100 PSI"
+    ],
+    "sourceLine": 1260
+   },
+   {
+    "id": "VHRS28-FAQ-042",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What RPM should the spread rolls run at?",
+    "expectAnchors": [
+     "96 RPM"
+    ],
+    "sourceLine": 1263
+   },
+   {
+    "id": "VHRS28-FAQ-043",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the maximum gate opening?",
+    "expectAnchors": [
+     "4 inches",
+     "5 inches"
+    ],
+    "sourceLine": 1266
+   },
+   {
+    "id": "VHRS28-FAQ-044",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the air system pressure?",
+    "expectAnchors": [
+     "80 PSI"
+    ],
+    "sourceLine": 1269
+   },
+   {
+    "id": "VHRS28-FAQ-045",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "How do I access the Etnyre online version of this manual?",
+    "expectAnchors": [],
+    "sourceLine": 1272
+   },
+   {
+    "id": "VHRS28-FAQ-046",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "How do I report a safety defect?",
+    "expectAnchors": [],
+    "sourceLine": 1275
+   },
+   {
+    "id": "VHRS28-FAQ-047",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "What is the machine's serial number range for M-215-16?",
+    "expectAnchors": [],
+    "sourceLine": 1278
+   },
+   {
+    "id": "VHRS28-FAQ-048",
+    "kbId": "vhrs28",
+    "kind": "faq",
+    "section": "Section 15 \u2014 General FAQ",
+    "question": "Who do I call for parts?",
+    "expectAnchors": [],
+    "sourceLine": 1281
+   }
+  ],
+  "vhrs36": [
+   {
+    "id": "VHRS36-HOW-001",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The starter won't crank / the machine won't start cranking",
+    "expectAnchors": [],
+    "sourceLine": 547
+   },
+   {
+    "id": "VHRS36-HOW-002",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The starter cranks but the engine will not start",
+    "expectAnchors": [],
+    "sourceLine": 559
+   },
+   {
+    "id": "VHRS36-HOW-003",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The machine will not move",
+    "expectAnchors": [
+     "1000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "sourceLine": 573
+   },
+   {
+    "id": "VHRS36-HOW-004",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed setpoint is limited to 200 FPM and I cannot increase it",
+    "expectAnchors": [],
+    "sourceLine": 589
+   },
+   {
+    "id": "VHRS36-HOW-005",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed is limited to 400 FPM (4WD) or 600 FPM (2WD) and I cannot go faster",
+    "expectAnchors": [
+     "0.40 amps",
+     "0.00 amps",
+     "12 VDC",
+     "0 VDC"
+    ],
+    "sourceLine": 601
+   },
+   {
+    "id": "VHRS36-HOW-006",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Speed sensor fault / uncommanded motion detection (UCMD) shutdown",
+    "expectAnchors": [],
+    "sourceLine": 611
+   },
+   {
+    "id": "VHRS36-HOW-007",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Joystick fault alarm",
+    "expectAnchors": [],
+    "sourceLine": 625
+   },
+   {
+    "id": "VHRS36-HOW-008",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No conveyor movement",
+    "expectAnchors": [],
+    "sourceLine": 639
+   },
+   {
+    "id": "VHRS36-HOW-009",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No auger movement",
+    "expectAnchors": [],
+    "sourceLine": 653
+   },
+   {
+    "id": "VHRS36-HOW-010",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Hydraulic oil is getting hot / overheating",
+    "expectAnchors": [
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "sourceLine": 667
+   },
+   {
+    "id": "VHRS36-HOW-011",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Water temperature / engine coolant overheating alarm",
+    "expectAnchors": [
+     "240\u00b0F"
+    ],
+    "sourceLine": 683
+   },
+   {
+    "id": "VHRS36-HOW-012",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Fuel sender alarm / low fuel warning",
+    "expectAnchors": [
+     "P2-PIN19",
+     "240 ohms",
+     "33.5 ohms"
+    ],
+    "sourceLine": 697
+   },
+   {
+    "id": "VHRS36-HOW-013",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No gradability \u2014 machine won't climb hills",
+    "expectAnchors": [
+     "2200 RPM",
+     "200 FPM"
+    ],
+    "sourceLine": 709
+   },
+   {
+    "id": "VHRS36-HOW-014",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Auxiliary hydraulic pressure will not relieve",
+    "expectAnchors": [],
+    "sourceLine": 723
+   },
+   {
+    "id": "VHRS36-HOW-015",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Display says \"ETNYRE NO COMMUNICATION\" or is not working",
+    "expectAnchors": [],
+    "sourceLine": 739
+   },
+   {
+    "id": "VHRS36-HOW-016",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Computer fault screen messages \u2014 what do they mean?",
+    "expectAnchors": [
+     "400 FPM",
+     "180\u00b0F",
+     "240\u00b0F"
+    ],
+    "sourceLine": 747
+   },
+   {
+    "id": "VHRS36-HOW-017",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "The application rate on the display doesn't match what's actually going on the road",
+    "expectAnchors": [
+     "96 RPM"
+    ],
+    "sourceLine": 770
+   },
+   {
+    "id": "VHRS36-HOW-018",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Gates are unsteady / gate flutter",
+    "expectAnchors": [
+     "1.0 amp",
+     "400 PSI"
+    ],
+    "sourceLine": 782
+   },
+   {
+    "id": "VHRS36-HOW-019",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Gates will not operate",
+    "expectAnchors": [],
+    "sourceLine": 794
+   },
+   {
+    "id": "VHRS36-HOW-020",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Spread roll speed is fluctuating or inconsistent",
+    "expectAnchors": [
+     "400 PSI",
+     "96 RPM"
+    ],
+    "sourceLine": 818
+   },
+   {
+    "id": "VHRS36-HOW-021",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Overlap or streak in the center when hoppers are fully extended",
+    "expectAnchors": [],
+    "sourceLine": 832
+   },
+   {
+    "id": "VHRS36-HOW-022",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Air gates are out of adjustment (very loud noise when master power is turned on/off)",
+    "expectAnchors": [
+     "1/16\""
+    ],
+    "sourceLine": 840
+   },
+   {
+    "id": "VHRS36-HOW-023",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Hydraulic standby (load sense) pressure is fluctuating (gauge needle not steady)",
+    "expectAnchors": [],
+    "sourceLine": 859
+   },
+   {
+    "id": "VHRS36-HOW-024",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine is spreading heavier on one side than the other",
+    "expectAnchors": [
+     "96 RPM"
+    ],
+    "sourceLine": 873
+   },
+   {
+    "id": "VHRS36-HOW-025",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Material is piling up in one area of the hopper / uneven distribution",
+    "expectAnchors": [],
+    "sourceLine": 885
+   },
+   {
+    "id": "VHRS36-HOW-026",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "I need to do shoulder work or spread a narrow strip",
+    "expectAnchors": [],
+    "sourceLine": 895
+   },
+   {
+    "id": "VHRS36-HOW-027",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "The starting or stopping line is not straight \u2014 one side starts/stops ahead of the other",
+    "expectAnchors": [
+     "18.0 inches"
+    ],
+    "sourceLine": 907
+   },
+   {
+    "id": "VHRS36-HOW-028",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What is the difference between the RC 36 and RC 28 controllers?",
+    "expectAnchors": [],
+    "sourceLine": 1100
+   },
+   {
+    "id": "VHRS36-HOW-029",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "Can I adjust the speed setpoint while the machine is in motion?",
+    "expectAnchors": [],
+    "sourceLine": 1103
+   },
+   {
+    "id": "VHRS36-HOW-030",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "How do I save operating settings for quick recall?",
+    "expectAnchors": [],
+    "sourceLine": 1106
+   },
+   {
+    "id": "VHRS36-HOW-031",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "How do I read engine fault codes?",
+    "expectAnchors": [],
+    "sourceLine": 1115
+   },
+   {
+    "id": "VHRS36-HOW-032",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "Why won't the right gate open even when everything looks correct?",
+    "expectAnchors": [],
+    "sourceLine": 1123
+   },
+   {
+    "id": "VHRS36-HOW-033",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What should I do if the machine starts moving unexpectedly?",
+    "expectAnchors": [],
+    "sourceLine": 1126
+   },
+   {
+    "id": "VHRS36-HOW-034",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "How do I set up the ultrasonic conveyor auto switches?",
+    "expectAnchors": [],
+    "sourceLine": 1129
+   },
+   {
+    "id": "VHRS36-HOW-035",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What are normal operating pressures I should know?",
+    "expectAnchors": [
+     "400 PSI",
+     "7000 PSI",
+     "6500 PSI",
+     "3000 PSI",
+     "1300 PSI",
+     "80 PSI"
+    ],
+    "sourceLine": 1150
+   },
+   {
+    "id": "VHRS36-HOW-036",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What does the fuel level resistance calibration table look like?",
+    "expectAnchors": [],
+    "sourceLine": 1164
+   },
+   {
+    "id": "VHRS36-HOW-037",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What does the hydraulic oil temperature resistance table look like?",
+    "expectAnchors": [],
+    "sourceLine": 1172
+   },
+   {
+    "id": "VHRS36-HOW-038",
+    "kbId": "vhrs36",
+    "kind": "howto",
+    "section": "Section 16 \u2014 General FAQ",
+    "question": "What are the RC 36 controller computer connector pin assignments?",
+    "expectAnchors": [],
+    "sourceLine": 1194
+   }
+  ],
+  "fhrc28": [
+   {
+    "id": "FHRC28-HOW-001",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The display shows a speed sensor error, or the alarm sounds when the joystick is out of neutral but the machine does not move",
+    "expectAnchors": [
+     "P1-PIN 21",
+     "P3-PIN 10",
+     "6703670",
+     "12 VDC",
+     "10 VDC",
+     "1/16\""
+    ],
+    "sourceLine": 464
+   },
+   {
+    "id": "FHRC28-HOW-002",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The display shows a fuel alarm, or the fuel alarm keeps sounding even though I filled up",
+    "expectAnchors": [
+     "P2-PIN 19",
+     "7 gallons"
+    ],
+    "sourceLine": 498
+   },
+   {
+    "id": "FHRC28-HOW-003",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Low oil pressure alarm is on",
+    "expectAnchors": [
+     "P2-PIN 18",
+     "P2-PIN 2",
+     "30 PSI",
+     "65 PSI",
+     "5 PSI",
+     "1400 RPM"
+    ],
+    "sourceLine": 519
+   },
+   {
+    "id": "FHRC28-HOW-004",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Water temperature alarm is on / engine is overheating",
+    "expectAnchors": [
+     "P2-PIN 20",
+     "240\u00b0F"
+    ],
+    "sourceLine": 549
+   },
+   {
+    "id": "FHRC28-HOW-005",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Hydraulic oil temperature alarm is on",
+    "expectAnchors": [
+     "P2-PIN 17",
+     "180\u00b0F"
+    ],
+    "sourceLine": 581
+   },
+   {
+    "id": "FHRC28-HOW-006",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Gate sensor failure alarm on display (left or right gate)",
+    "expectAnchors": [
+     "7050350",
+     "5.0 VDC",
+     "1.5 VDC",
+     "1.0 VDC",
+     "270 OHMS"
+    ],
+    "sourceLine": 617
+   },
+   {
+    "id": "FHRC28-HOW-007",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "One gate opens or closes faster than the other side",
+    "expectAnchors": [
+     "P4-PIN 5",
+     "P4-PIN 6",
+     "P4-PIN 3",
+     "P4-PIN 4",
+     "1.2 amps",
+     "1,500 PSI"
+    ],
+    "sourceLine": 660
+   },
+   {
+    "id": "FHRC28-HOW-008",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Very loud noise when the gate master power is turned on or off (air gates out of adjustment)",
+    "expectAnchors": [
+     "1/16\""
+    ],
+    "sourceLine": 690
+   },
+   {
+    "id": "FHRC28-HOW-009",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The spread roll speed is fluctuating / speed is not steady",
+    "expectAnchors": [
+     "400 PSI",
+     "100 RPM"
+    ],
+    "sourceLine": 705
+   },
+   {
+    "id": "FHRC28-HOW-010",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Hydraulic standby / load sense pressure is fluctuating (needle on gauge is not steady)",
+    "expectAnchors": [
+     "400 PSI",
+     "040 inch"
+    ],
+    "sourceLine": 722
+   },
+   {
+    "id": "FHRC28-HOW-011",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Gates will not operate (hydraulic buss bar does not move)",
+    "expectAnchors": [],
+    "sourceLine": 738
+   },
+   {
+    "id": "FHRC28-HOW-012",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "The starter cranks but the engine will not start",
+    "expectAnchors": [],
+    "sourceLine": 772
+   },
+   {
+    "id": "FHRC28-HOW-013",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine stops while I am moving and then moves again when I push the joystick to neutral and back forward",
+    "expectAnchors": [],
+    "sourceLine": 794
+   },
+   {
+    "id": "FHRC28-HOW-014",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine will not go into reverse",
+    "expectAnchors": [
+     "12 VDC"
+    ],
+    "sourceLine": 802
+   },
+   {
+    "id": "FHRC28-HOW-015",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine will not move forward or in reverse after a Rexroth computer update",
+    "expectAnchors": [
+     "4.9 volts"
+    ],
+    "sourceLine": 813
+   },
+   {
+    "id": "FHRC28-HOW-016",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No gradability \u2014 machine cannot climb the hill",
+    "expectAnchors": [
+     "6,500 PSI",
+     "7,000 PSI"
+    ],
+    "sourceLine": 834
+   },
+   {
+    "id": "FHRC28-HOW-017",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Emergency \u2014 Machine is broken down in the road and cannot move",
+    "expectAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "sourceLine": 854
+   },
+   {
+    "id": "FHRC28-HOW-018",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "MDC fault code shows \"Invalid Reset\"",
+    "expectAnchors": [],
+    "sourceLine": 872
+   },
+   {
+    "id": "FHRC28-HOW-019",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "MDC fault code shows \"Invalid Speed\"",
+    "expectAnchors": [
+     "2,500 FPM",
+     "1/16\""
+    ],
+    "sourceLine": 882
+   },
+   {
+    "id": "FHRC28-HOW-020",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "MDC fault code shows \"Internal Voltage\"",
+    "expectAnchors": [
+     "5 VDC"
+    ],
+    "sourceLine": 890
+   },
+   {
+    "id": "FHRC28-HOW-021",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "MDC fault code shows \"Invalid Program\"",
+    "expectAnchors": [],
+    "sourceLine": 898
+   },
+   {
+    "id": "FHRC28-HOW-022",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Auxiliary hydraulic pressure will not relieve",
+    "expectAnchors": [],
+    "sourceLine": 906
+   },
+   {
+    "id": "FHRC28-HOW-023",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "There is an overlap or heavy streak of material down the center of the road when the hopper is fully extended",
+    "expectAnchors": [],
+    "sourceLine": 940
+   },
+   {
+    "id": "FHRC28-HOW-024",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "There is a void or streak down the center of the road",
+    "expectAnchors": [],
+    "sourceLine": 952
+   },
+   {
+    "id": "FHRC28-HOW-025",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "The application rate on the ground does not match what the display shows",
+    "expectAnchors": [],
+    "sourceLine": 964
+   },
+   {
+    "id": "FHRC28-HOW-026",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Gates are delivering material at low speeds but not maintaining proper rate at high speeds",
+    "expectAnchors": [],
+    "sourceLine": 977
+   },
+   {
+    "id": "FHRC28-HOW-027",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Material is bridging in the hopper \u2014 flow stops intermittently",
+    "expectAnchors": [],
+    "sourceLine": 989
+   },
+   {
+    "id": "FHRC28-HOW-028",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine loses traction on a wet or freshly oiled surface",
+    "expectAnchors": [
+     "200 FPM",
+     "60 PSI",
+     "65 PSI"
+    ],
+    "sourceLine": 1005
+   },
+   {
+    "id": "FHRC28-HOW-029",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine cannot hold position on a grade / rolls back when stopping",
+    "expectAnchors": [],
+    "sourceLine": 1015
+   },
+   {
+    "id": "FHRC28-HOW-030",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Spreading on shoulders \u2014 material not distributing evenly to the shoulder edge",
+    "expectAnchors": [],
+    "sourceLine": 1029
+   },
+   {
+    "id": "FHRC28-HOW-031",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Truck is having trouble keeping up / truck is pushing the chipspreader on a downgrade",
+    "expectAnchors": [],
+    "sourceLine": 1039
+   },
+   {
+    "id": "FHRC28-HOW-032",
+    "kbId": "fhrc28",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Stopping distances are too long / machine cannot stop quickly enough",
+    "expectAnchors": [],
+    "sourceLine": 1050
+   },
+   {
+    "id": "FHRC28-FAQ-033",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the difference between the FHRC36 and FHRC28?",
+    "expectAnchors": [],
+    "sourceLine": 1252
+   },
+   {
+    "id": "FHRC28-FAQ-034",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What serial numbers does this manual cover?",
+    "expectAnchors": [],
+    "sourceLine": 1255
+   },
+   {
+    "id": "FHRC28-FAQ-035",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the maximum machine speed?",
+    "expectAnchors": [
+     "1,300 FPM"
+    ],
+    "sourceLine": 1258
+   },
+   {
+    "id": "FHRC28-FAQ-036",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the speed limits imposed by the controller for safety faults?",
+    "expectAnchors": [
+     "200 FPM",
+     "400 FPM"
+    ],
+    "sourceLine": 1261
+   },
+   {
+    "id": "FHRC28-FAQ-037",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What hydraulic oil should I use?",
+    "expectAnchors": [],
+    "sourceLine": 1264
+   },
+   {
+    "id": "FHRC28-FAQ-038",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What gear lube is required for axle differentials?",
+    "expectAnchors": [],
+    "sourceLine": 1267
+   },
+   {
+    "id": "FHRC28-FAQ-039",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What grease is specified?",
+    "expectAnchors": [],
+    "sourceLine": 1270
+   },
+   {
+    "id": "FHRC28-FAQ-040",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What tire pressures should I use?",
+    "expectAnchors": [
+     "60 PSI",
+     "65 PSI"
+    ],
+    "sourceLine": 1273
+   },
+   {
+    "id": "FHRC28-FAQ-041",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the aggregate size choices available on the RC-28 controller?",
+    "expectAnchors": [
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
+    ],
+    "sourceLine": 1276
+   },
+   {
+    "id": "FHRC28-FAQ-042",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "How many memory presets are available?",
+    "expectAnchors": [],
+    "sourceLine": 1279
+   },
+   {
+    "id": "FHRC28-FAQ-043",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the maximum gate opening?",
+    "expectAnchors": [
+     "4.00 inches",
+     "5.00 inches"
+    ],
+    "sourceLine": 1282
+   },
+   {
+    "id": "FHRC28-FAQ-044",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What should spread roll speed be set to?",
+    "expectAnchors": [
+     "100 RPM"
+    ],
+    "sourceLine": 1285
+   },
+   {
+    "id": "FHRC28-FAQ-045",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the charge pressure specification?",
+    "expectAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "sourceLine": 1288
+   },
+   {
+    "id": "FHRC28-FAQ-046",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the hydrostatic drive pump pressure settings?",
+    "expectAnchors": [
+     "7,000 PSI",
+     "6,500 PSI",
+     "400 PSI"
+    ],
+    "sourceLine": 1291
+   },
+   {
+    "id": "FHRC28-FAQ-047",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the auxiliary pump pressure?",
+    "expectAnchors": [
+     "3,000 PSI",
+     "400 PSI"
+    ],
+    "sourceLine": 1294
+   },
+   {
+    "id": "FHRC28-FAQ-048",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the gate cylinder relief valve settings?",
+    "expectAnchors": [
+     "1,500 PSI"
+    ],
+    "sourceLine": 1297
+   },
+   {
+    "id": "FHRC28-FAQ-049",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the fan valve pressure?",
+    "expectAnchors": [
+     "2,000 PSI",
+     "2,100 PSI"
+    ],
+    "sourceLine": 1300
+   },
+   {
+    "id": "FHRC28-FAQ-050",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the main relief pressure for steering?",
+    "expectAnchors": [
+     "1,200 PSI"
+    ],
+    "sourceLine": 1303
+   },
+   {
+    "id": "FHRC28-FAQ-051",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the pilot pressure for hitch functions?",
+    "expectAnchors": [
+     "250 PSI"
+    ],
+    "sourceLine": 1306
+   },
+   {
+    "id": "FHRC28-FAQ-052",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the engine RPM for high idle operation?",
+    "expectAnchors": [
+     "2,200 RPM",
+     "900 RPM"
+    ],
+    "sourceLine": 1309
+   },
+   {
+    "id": "FHRC28-FAQ-053",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "How do I report a safety defect?",
+    "expectAnchors": [],
+    "sourceLine": 1312
+   },
+   {
+    "id": "FHRC28-FAQ-054",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "Who do I call for parts and service?",
+    "expectAnchors": [],
+    "sourceLine": 1392
+   },
+   {
+    "id": "FHRC28-FAQ-055",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What information do I need to order parts?",
+    "expectAnchors": [],
+    "sourceLine": 1395
+   },
+   {
+    "id": "FHRC28-FAQ-056",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "Where is Etnyre located?",
+    "expectAnchors": [],
+    "sourceLine": 1398
+   },
+   {
+    "id": "FHRC28-FAQ-057",
+    "kbId": "fhrc28",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What warranty is provided?",
+    "expectAnchors": [],
+    "sourceLine": 1401
+   }
+  ],
+  "fhrc36": [
+   {
+    "id": "FHRC36-HOW-001",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Starter does not crank / machine won't turn over",
+    "expectAnchors": [],
+    "sourceLine": 582
+   },
+   {
+    "id": "FHRC36-HOW-002",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Starter cranks but the engine will not start",
+    "expectAnchors": [],
+    "sourceLine": 596
+   },
+   {
+    "id": "FHRC36-HOW-003",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine does not move / will not respond to joystick",
+    "expectAnchors": [
+     "0.00 Volts",
+     "1,000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "sourceLine": 610
+   },
+   {
+    "id": "FHRC36-HOW-004",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed is limited to 200 FPM and won't go faster",
+    "expectAnchors": [],
+    "sourceLine": 632
+   },
+   {
+    "id": "FHRC36-HOW-005",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Machine speed is limited to 400 FPM (4WD) or 600 FPM (2WD)",
+    "expectAnchors": [
+     "0 RPM",
+     "0.40 Amps",
+     "0.00 Amps"
+    ],
+    "sourceLine": 644
+   },
+   {
+    "id": "FHRC36-HOW-006",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Emergency \u2014 Machine is broken down in the road and cannot move",
+    "expectAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "sourceLine": 656
+   },
+   {
+    "id": "FHRC36-HOW-007",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Speed sensor failure alarm / ALARM: SPEED SENSOR FAILURE",
+    "expectAnchors": [
+     "400 FPM",
+     "12 VDC",
+     "0 VDC"
+    ],
+    "sourceLine": 674
+   },
+   {
+    "id": "FHRC36-HOW-008",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Uncommanded motion \u2014 machine moves wrong direction / UCMD shutdown",
+    "expectAnchors": [],
+    "sourceLine": 703
+   },
+   {
+    "id": "FHRC36-HOW-009",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Joystick fault / ALARM: JOYSTICK FAILURE",
+    "expectAnchors": [],
+    "sourceLine": 719
+   },
+   {
+    "id": "FHRC36-HOW-010",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No conveyor movement / conveyors not running",
+    "expectAnchors": [],
+    "sourceLine": 736
+   },
+   {
+    "id": "FHRC36-HOW-011",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No auger movement",
+    "expectAnchors": [],
+    "sourceLine": 754
+   },
+   {
+    "id": "FHRC36-HOW-012",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Water temperature alarm / overheating",
+    "expectAnchors": [
+     "240\u00b0F"
+    ],
+    "sourceLine": 770
+   },
+   {
+    "id": "FHRC36-HOW-013",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Fuel sender alarm / low fuel warning",
+    "expectAnchors": [
+     "240 Ohms",
+     "260 Ohms",
+     "33.5 Ohms",
+     "39.5 Ohms"
+    ],
+    "sourceLine": 788
+   },
+   {
+    "id": "FHRC36-HOW-014",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Hydraulic oil gets hot / hydraulic oil temperature alarm",
+    "expectAnchors": [
+     "400 PSI",
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "sourceLine": 808
+   },
+   {
+    "id": "FHRC36-HOW-015",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Display shows \"ETNYRE NO COMMUNICATION\"",
+    "expectAnchors": [],
+    "sourceLine": 835
+   },
+   {
+    "id": "FHRC36-HOW-016",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No message on display at all",
+    "expectAnchors": [],
+    "sourceLine": 845
+   },
+   {
+    "id": "FHRC36-HOW-017",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Gates will not operate (hydraulic buss bar)",
+    "expectAnchors": [
+     "1,500 PSI",
+     "0.0 inches"
+    ],
+    "sourceLine": 851
+   },
+   {
+    "id": "FHRC36-HOW-018",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Gates are unsteady / hunting / fluttering",
+    "expectAnchors": [
+     "1.000 amp"
+    ],
+    "sourceLine": 875
+   },
+   {
+    "id": "FHRC36-HOW-019",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Air gates out of adjustment / loud noise when master power is turned on or off",
+    "expectAnchors": [
+     "1/16\""
+    ],
+    "sourceLine": 889
+   },
+   {
+    "id": "FHRC36-HOW-020",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "No gradability / machine cannot climb the grade",
+    "expectAnchors": [
+     "2,200 RPM",
+     "200 FPM"
+    ],
+    "sourceLine": 910
+   },
+   {
+    "id": "FHRC36-HOW-021",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Auxiliary hydraulic pressure will not relieve / hydraulic oil stays hot",
+    "expectAnchors": [
+     "5 PSI"
+    ],
+    "sourceLine": 930
+   },
+   {
+    "id": "FHRC36-HOW-022",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Hydraulic standby (load sense) pressure is fluctuating",
+    "expectAnchors": [],
+    "sourceLine": 964
+   },
+   {
+    "id": "FHRC36-HOW-023",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
+    "question": "Spread roll speed is fluctuating",
+    "expectAnchors": [
+     "400 PSI",
+     "100 RPM"
+    ],
+    "sourceLine": 980
+   },
+   {
+    "id": "FHRC36-HOW-024",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Overlap or heavy material in the center when hoppers are fully extended",
+    "expectAnchors": [],
+    "sourceLine": 1017
+   },
+   {
+    "id": "FHRC36-HOW-025",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Streak or void in the center of the road",
+    "expectAnchors": [],
+    "sourceLine": 1025
+   },
+   {
+    "id": "FHRC36-HOW-026",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Application rate on the ground doesn't match the display set point",
+    "expectAnchors": [
+     "100 RPM",
+     "5/8\"",
+     "3/8\""
+    ],
+    "sourceLine": 1035
+   },
+   {
+    "id": "FHRC36-HOW-027",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Uneven material distribution across the spread width",
+    "expectAnchors": [
+     "1/2\"",
+     "1/16\""
+    ],
+    "sourceLine": 1047
+   },
+   {
+    "id": "FHRC36-HOW-028",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
+    "question": "Application rate is correct but spread appears inconsistent (streaks)",
+    "expectAnchors": [
+     "100 RPM",
+     "0.900 amps"
+    ],
+    "sourceLine": 1059
+   },
+   {
+    "id": "FHRC36-HOW-029",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine is being used for shoulder work \u2014 how do I limit spread width?",
+    "expectAnchors": [],
+    "sourceLine": 1071
+   },
+   {
+    "id": "FHRC36-HOW-030",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine is being used on steep downgrades \u2014 special precautions?",
+    "expectAnchors": [],
+    "sourceLine": 1082
+   },
+   {
+    "id": "FHRC36-HOW-031",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine needs to operate at very slow speeds (under 100 FPM) \u2014 what settings are needed?",
+    "expectAnchors": [
+     "0.400 amps",
+     "300 FPM"
+    ],
+    "sourceLine": 1096
+   },
+   {
+    "id": "FHRC36-HOW-032",
+    "kbId": "fhrc36",
+    "kind": "howto",
+    "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
+    "question": "Machine was just reassembled after hydraulic work \u2014 what must I do before driving?",
+    "expectAnchors": [],
+    "sourceLine": 1102
+   },
+   {
+    "id": "FHRC36-FAQ-033",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the difference between the FHRC36 and FHRC28?",
+    "expectAnchors": [],
+    "sourceLine": 1331
+   },
+   {
+    "id": "FHRC36-FAQ-034",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What serial numbers does this manual cover?",
+    "expectAnchors": [],
+    "sourceLine": 1334
+   },
+   {
+    "id": "FHRC36-FAQ-035",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the maximum machine speed?",
+    "expectAnchors": [
+     "1,300 FPM"
+    ],
+    "sourceLine": 1337
+   },
+   {
+    "id": "FHRC36-FAQ-036",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the speed limits imposed by the controller for safety faults?",
+    "expectAnchors": [
+     "200 FPM",
+     "400 FPM"
+    ],
+    "sourceLine": 1340
+   },
+   {
+    "id": "FHRC36-FAQ-037",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What hydraulic oil should I use?",
+    "expectAnchors": [],
+    "sourceLine": 1343
+   },
+   {
+    "id": "FHRC36-FAQ-038",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What gear lube is required for axle differentials?",
+    "expectAnchors": [],
+    "sourceLine": 1346
+   },
+   {
+    "id": "FHRC36-FAQ-039",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What grease is specified?",
+    "expectAnchors": [],
+    "sourceLine": 1349
+   },
+   {
+    "id": "FHRC36-FAQ-040",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What tire pressures should I use?",
+    "expectAnchors": [
+     "60 PSI",
+     "65 PSI"
+    ],
+    "sourceLine": 1352
+   },
+   {
+    "id": "FHRC36-FAQ-041",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the aggregate size choices available on the RC-36 controller?",
+    "expectAnchors": [
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
+    ],
+    "sourceLine": 1355
+   },
+   {
+    "id": "FHRC36-FAQ-042",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "How many memory presets are available?",
+    "expectAnchors": [],
+    "sourceLine": 1358
+   },
+   {
+    "id": "FHRC36-FAQ-043",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the maximum gate opening?",
+    "expectAnchors": [
+     "4.00 inches",
+     "5.00 inches"
+    ],
+    "sourceLine": 1361
+   },
+   {
+    "id": "FHRC36-FAQ-044",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What should spread roll speed be set to?",
+    "expectAnchors": [
+     "100 RPM"
+    ],
+    "sourceLine": 1364
+   },
+   {
+    "id": "FHRC36-FAQ-045",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the charge pressure specification?",
+    "expectAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "sourceLine": 1367
+   },
+   {
+    "id": "FHRC36-FAQ-046",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the hydrostatic drive pump pressure settings?",
+    "expectAnchors": [
+     "7,000 PSI",
+     "6,500 PSI",
+     "400 PSI"
+    ],
+    "sourceLine": 1370
+   },
+   {
+    "id": "FHRC36-FAQ-047",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the auxiliary pump pressure?",
+    "expectAnchors": [
+     "3,000 PSI",
+     "400 PSI"
+    ],
+    "sourceLine": 1373
+   },
+   {
+    "id": "FHRC36-FAQ-048",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What are the gate cylinder relief valve settings?",
+    "expectAnchors": [
+     "1,500 PSI"
+    ],
+    "sourceLine": 1376
+   },
+   {
+    "id": "FHRC36-FAQ-049",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the fan valve pressure?",
+    "expectAnchors": [
+     "2,000 PSI",
+     "2,100 PSI"
+    ],
+    "sourceLine": 1379
+   },
+   {
+    "id": "FHRC36-FAQ-050",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the main relief pressure for steering?",
+    "expectAnchors": [
+     "1,200 PSI"
+    ],
+    "sourceLine": 1382
+   },
+   {
+    "id": "FHRC36-FAQ-051",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the pilot pressure for hitch functions?",
+    "expectAnchors": [
+     "250 PSI"
+    ],
+    "sourceLine": 1385
+   },
+   {
+    "id": "FHRC36-FAQ-052",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the engine RPM for high idle operation?",
+    "expectAnchors": [
+     "2,200 RPM",
+     "900 RPM"
+    ],
+    "sourceLine": 1388
+   },
+   {
+    "id": "FHRC36-FAQ-053",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "How do I report a safety defect?",
+    "expectAnchors": [],
+    "sourceLine": 1391
+   },
+   {
+    "id": "FHRC36-FAQ-054",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "Who do I call for parts and service?",
+    "expectAnchors": [],
+    "sourceLine": 1443
+   },
+   {
+    "id": "FHRC36-FAQ-055",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What information do I need to order parts?",
+    "expectAnchors": [],
+    "sourceLine": 1446
+   },
+   {
+    "id": "FHRC36-FAQ-056",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "Where is Etnyre located?",
+    "expectAnchors": [],
+    "sourceLine": 1449
+   },
+   {
+    "id": "FHRC36-FAQ-057",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What warranty is provided?",
+    "expectAnchors": [],
+    "sourceLine": 1452
+   },
+   {
+    "id": "FHRC36-FAQ-058",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is covered by M-218-19?",
+    "expectAnchors": [],
+    "sourceLine": 1457
+   },
+   {
+    "id": "FHRC36-FAQ-059",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "Where are the RC-36 plug connector pins defined?",
+    "expectAnchors": [
+     "12VDC"
+    ],
+    "sourceLine": 1460
+   },
+   {
+    "id": "FHRC36-FAQ-060",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the Sonic Bin Switch setup procedure?",
+    "expectAnchors": [],
+    "sourceLine": 1466
+   },
+   {
+    "id": "FHRC36-FAQ-061",
+    "kbId": "fhrc36",
+    "kind": "faq",
+    "section": "Section 17 \u2014 General FAQ",
+    "question": "What is the Emergency Driveline Disengage procedure?",
+    "expectAnchors": [],
+    "sourceLine": 1469
+   }
+  ],
+  "general": [
+   {
+    "id": "GENERAL-PRB-001",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 1 \u2014 Speed Sensor Error or Failure",
+    "question": "Speed sensor error alarm is sounding; machine is not moving as expected",
+    "expectAnchors": [
+     "P1-PIN 21",
+     "12 volts",
+     "10 volts",
+     "7 volts"
+    ],
+    "sourceLine": 247
+   },
+   {
+    "id": "GENERAL-PRB-002",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 2 \u2014 Fuel Sender Alarm",
+    "question": "Fuel sender alarm is active",
+    "expectAnchors": [
+     "P2-PIN 19",
+     "250 ohms",
+     "68 gallons",
+     "140 ohms",
+     "32 gallons",
+     "94 ohms"
+    ],
+    "sourceLine": 285
+   },
+   {
+    "id": "GENERAL-PRB-003",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 3 \u2014 Low Oil Pressure Alarm",
+    "question": "Low oil pressure alarm is active",
+    "expectAnchors": [
+     "P2-PIN 18",
+     "P2-PIN 2",
+     "5 PSI",
+     "1,400 RPM",
+     "10 PSI",
+     "30 PSI"
+    ],
+    "sourceLine": 314
+   },
+   {
+    "id": "GENERAL-PRB-004",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 4 \u2014 Water Temperature Alarm",
+    "question": "Water temperature alarm is active",
+    "expectAnchors": [
+     "P2-PIN 20"
+    ],
+    "sourceLine": 355
+   },
+   {
+    "id": "GENERAL-PRB-005",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 5 \u2014 Hydraulic Oil Temperature Alarm",
+    "question": "Hydraulic oil temperature alarm is active",
+    "expectAnchors": [
+     "P2-PIN 17",
+     "180\u00b0F"
+    ],
+    "sourceLine": 396
+   },
+   {
+    "id": "GENERAL-PRB-006",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 6 \u2014 Gate Sensor Failure Alarm (Rexroth Computer)",
+    "question": "Gate sensor failure alarm \u2014 the digital display will indicate which side has the failure",
+    "expectAnchors": [
+     "7050350",
+     "5.0 volts",
+     "1.5 volts",
+     "1.0 volt"
+    ],
+    "sourceLine": 432
+   },
+   {
+    "id": "GENERAL-PRB-007",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 7 \u2014 Checking Solid State Gate Transducer (Rexroth Computers)",
+    "question": "Checking Solid State Gate Transducer (Rexroth Computers)",
+    "expectAnchors": [
+     "7050350",
+     "5 volts",
+     "1.5 volts",
+     "1.0 volt",
+     "3 volts",
+     "1 volt"
+    ],
+    "sourceLine": 484
+   },
+   {
+    "id": "GENERAL-PRB-008",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 8 \u2014 Gates Open or Close Faster Than the Other Side",
+    "question": "Left and right gates move at noticeably different speeds",
+    "expectAnchors": [
+     "P4-PIN 5",
+     "P4-PIN 6",
+     "P4-PIN 3",
+     "P4-PIN 4",
+     "1.2 amps"
+    ],
+    "sourceLine": 509
+   },
+   {
+    "id": "GENERAL-PRB-009",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 9 \u2014 Air Gates Out of Adjustment (Very Loud Noise When Master Power Turns On or Off)",
+    "question": "Very loud noise when master power is switched on or off",
+    "expectAnchors": [],
+    "sourceLine": 543
+   },
+   {
+    "id": "GENERAL-PRB-010",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 10 \u2014 Spreadroll Speed Fluctuating",
+    "question": "The spread roll motor speed is not steady",
+    "expectAnchors": [],
+    "sourceLine": 568
+   },
+   {
+    "id": "GENERAL-PRB-011",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 11 \u2014 Hydraulic Standby Pressure Fluctuating (Gauge Needle Is Not Steady)",
+    "question": "The standby or load sense pressure gauge needle is unstable or bouncing",
+    "expectAnchors": [
+     "0.040 inches"
+    ],
+    "sourceLine": 594
+   },
+   {
+    "id": "GENERAL-PRB-012",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 12 \u2014 Overlap or Streak in Center When Hoppers Are Fully Extended",
+    "question": "Material is either too heavy in the middle (overlap) or leaving a void down the center of the road (streak)",
+    "expectAnchors": [],
+    "sourceLine": 619
+   },
+   {
+    "id": "GENERAL-PRB-013",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 13 \u2014 No Gradability (Machine Cannot Climb Incline)",
+    "question": "Machine cannot climb a grade that it should be able to handle",
+    "expectAnchors": [
+     "2,200 RPM",
+     "200 FPM"
+    ],
+    "sourceLine": 631
+   },
+   {
+    "id": "GENERAL-PRB-014",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 14 \u2014 Auxiliary Hydraulic Pressure Will Not Relieve",
+    "question": "Pressure does not relieve after reaching main pressure. This creates heat, torque loss, and a hard start condition",
+    "expectAnchors": [],
+    "sourceLine": 665
+   },
+   {
+    "id": "GENERAL-PRB-015",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 15 \u2014 Gates Will Not Operate (Hydraulic Buss Bar)",
+    "question": "Gates do not respond to controls",
+    "expectAnchors": [],
+    "sourceLine": 698
+   },
+   {
+    "id": "GENERAL-PRB-016",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 16 \u2014 Starter Cranks But Engine Does Not Start",
+    "question": "Starter motor turns the engine over but the engine does not fire",
+    "expectAnchors": [
+     "12 volts"
+    ],
+    "sourceLine": 731
+   },
+   {
+    "id": "GENERAL-PRB-017",
+    "kbId": "general",
+    "kind": "problem",
+    "section": "Problem 17 \u2014 Emergency Driveline Disengage Procedure",
+    "question": "Emergency Driveline Disengage Procedure",
+    "expectAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "sourceLine": 754
+   }
+  ]
+ }
+}
