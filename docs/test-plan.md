@@ -49,7 +49,8 @@ is far less paraphrase-sensitive than CHT-06. See `architecture.md` on determini
 | UI-04 | Content | lightbox opens and closes | ui | Active |
 | NEG-01 | Negative | invalid routes fail closed | ui | Active |
 | NEG-02 | Negative | API error shape on unknown product | ui | Active |
-| SES-01 | Session | "Talk to me" opens the panel | ui | Active |
+| SES-00 | Session | "Talk to me" opens the caller intake form; it will not submit empty | ui | Active |
+| SES-01 | Session | filled intake form opens the panel | ui | Active |
 | SES-02 | Session | reaches connected state, realtime socket opens | ui | Active |
 | CAT-01 | Catalogue | every declared KB file exists | api | Active |
 | CAT-02 | Catalogue | serial routing is unambiguous | api | Active |
@@ -58,13 +59,20 @@ is far less paraphrase-sensitive than CHT-06. See `architecture.md` on determini
 | CAT-05 | Catalogue | scenario text still present in its source KB | api | Active |
 | CAT-06 | Catalogue | rotation pool large enough to matter | api | Active |
 | CAT-07 | Catalogue | budgets ordered sensibly | api | Active |
-| CHT-01 | Chat | full positive workflow: open → serial → confirm → ask → answer → end | ui | Active |
-| CHT-02 | Chat | agent greeting asks for a serial inside budget | ui | Active |
-| CHT-03 | Chat | serial is read back for confirmation inside budget | ui | Active |
+| CHT-01 | Chat | full positive workflow, declining the texted steps: intake form → ask → answer in chat → sign off → end | ui | Active |
+| CHT-01b | Chat | full positive workflow, accepting the texted steps (agent falls back to chat: number not textable) | ui | Active |
+| CHT-02 | Chat | agent greets inside budget | ui | Active |
+| CHT-03 | Chat | agent confirms the machine from the form's serial, inside budget | ui | Active |
 | CHT-04 | Chat | each machine family identified from its own serial (4 cases) | ui | Active |
 | CHT-05 | Chat | answer is non-empty and inside budget | ui | Active |
 | CHT-06 | Chat | answer contains anchors from the KB's own answer | ui | Off by config |
 | CHT-07 | Chat | RC-28 serial never gets an RC-36 answer | ui | Off by config |
+| CHT-08 | Chat | agent asks the caller to rate the call after they sign off | ui | Active |
+| CHT-09 | Chat | caller answers the rating with a drawn score, and the agent closes the call | ui | Active |
+| CAT-08 | Catalogue | generated phone numbers stay inside the fictional 555-01xx block | api | Active |
+| CAT-09 | Catalogue | the sign-off never volunteers a rating | api | Active |
+| CAT-10 | Catalogue | both answers to the text offer exist and interpolate only known values | api | Active |
+| CAT-11 | Catalogue | specific intents outrank generic ones (ordering rules) | api | Active |
 | VOI-01 | Voice | agent joins room | voice | Skipped — phase 3 |
 | VOI-02 | Voice | responds to published audio | voice | Skipped — phase 3 |
 | VOI-03 | Voice | first-response latency budget | voice | Skipped — phase 3 |

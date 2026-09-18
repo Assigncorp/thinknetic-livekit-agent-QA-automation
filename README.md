@@ -237,8 +237,9 @@ gate. See [`.env.example`](.env.example) for the full list.
 The config named by `TESTBED_CONFIG` (default **`config/testbed.config.json`**) is the
 single source of truth for the product under test. Which KB files exist, where the
 serial list lives, how a serial routes to a knowledge base, how a scenario is picked,
-what the agent's conversation contract is, every latency budget, and how strictly a
-reply is judged — all declared there. No test file needs editing to change any of it.
+who the caller says they are on the intake form, what the agent's conversation contract
+is, every latency budget, and how strictly a reply is judged — all declared there. No
+test file needs editing to change any of it.
 
 ```jsonc
 "knowledgeBases": [
@@ -397,12 +398,12 @@ thinknetic-livekit-agent-QA-automation/
 ├── ui/                         BROWSER SUITE — Playwright + TypeScript   [ACTIVE]
 │   ├── src/
 │   │   ├── config/             env.ts (routes/API) + testbed.ts (config + pickers)
-│   │   ├── constants/          timeouts and budgets
+│   │   ├── constants/          timeouts
 │   │   ├── selectors.ts        ★ EVERY locator lives here
 │   │   ├── types/              API payload + test-bed types
 │   │   ├── pages/              BasePage, ProductPage, VoiceWidget, ChatWidget
 │   │   ├── fixtures/test.ts    page objects, console errors, socket capture
-│   │   └── utils/              logger, test-data loader
+│   │   └── utils/              test-data loader, KB anchors, session tracking
 │   └── tests/
 │       ├── smoke/              must pass before anything else is worth running
 │       ├── functional/         page content + session lifecycle
@@ -443,13 +444,13 @@ instead of a 45-second chat test failing with "the agent did not reply".
 
 | # | Step |
 |---|---|
-| 1 | click **Talk to me**, panel reaches `Listening — go ahead` |
-| 2 | agent greets and asks for the serial number |
-| 3 | send a serial drawn from the rotation pool |
-| 4 | agent reads it back digit by digit — **confirmation is required before it will take a question** |
-| 5 | confirm |
-| 6 | ask a question drawn at random from that machine's KB |
-| 7 | assert the answer: non-empty, inside budget, and citing a fact from that KB entry |
+| 1 | click **Talk to me** — the **"Before we start"** form opens |
+| 2 | fill it in: a serial drawn from the rotation pool, plus a name, company and phone drawn per run; **Start call** |
+| 3 | panel reaches `Listening — go ahead` |
+| 4 | agent greets and — having had the serial before the call started — opens with the machine already pulled up |
+| 5 | ask a question drawn at random from that machine's KB |
+| 6 | assert the answer: non-empty, inside budget, and citing a fact from that KB entry |
+| 7 | sign off, and rate the call if the agent asks |
 | 8 | end the session |
 
 **The caller's side is not scripted.** The agent is an LLM and departs from that
@@ -459,7 +460,7 @@ agent turn to *finish streaming*, reads it, matches it against the intents decla
 `chatFlow.intents`, and answers whatever was actually asked. Teaching it a new agent
 behaviour means adding an intent to the config, not editing a test.
 
-**Step 6 is a walkthrough, not an answer.** Verified live: the agent replies with a
+**Step 5 is a walkthrough, not an answer.** Verified live: the agent replies with a
 safety preamble, offers to *text* you the steps, and — if asked to answer in the chat
 — delivers the procedure one step at a time, waiting for you to confirm each one. The
 manual's facts are several steps in, so the suite plays a caller who performs each
@@ -519,27 +520,59 @@ npx playwright test --grep-invert @live   # everything that touches no session
    targets cross-contamination between machine families, the defect that would
    actually mislead an operator.
 6. **The agent does not always register the serial.** Observed on etnyre-dev
-   2026-09-17: the same serial that worked minutes earlier was ignored twice in a row,
-   with the agent re-asking for it instead of reading it back. The reactive driver
-   answers the re-ask, so the call still completes — but a serial the agent ignores
-   repeatedly will exhaust the turn budget and go red, which is the correct outcome.
-7. **DEFECT — the agent never asks the caller to rate the call.** Confirmed across
-   every recorded session, including the agent's own wrap-up and an explicit
-   "that is all, goodbye". The `asksForFeedback` intent has never once fired.
+   2026-09-17, when the caller still read the serial out: the same serial that worked
+   minutes earlier was ignored twice in a row, with the agent re-asking for it instead
+   of reading it back. The intake form should end this — the serial now reaches the
+   agent before the call starts — so the driver still answers a re-ask, but the chat
+   suite records a `defect` annotation when one happens, because it now means the form
+   did not reach the agent.
+7. **DEFECT — the phone field rejects its own placeholder.** The *Before we start*
+   form suggests `555-0100` and then refuses it: *"Enter a valid phone number"*. The
+   555 *area* code is not valid anywhere in NANP, only the 555 *exchange* is, so the
+   placeholder cannot ever be submitted. Anyone filling the form by hand hits this
+   first. The suite generates `<real area code>-555-01<nn>` instead — the block
+   reserved for fiction, which passes the validator and can never ring a real person.
+8. **RESOLVED — the agent asks for a rating, but only if the caller ends the call.**
+   Verified 2026-09-18: *"Glad I could help. Before we finish, could you let me know how
+   your experience was today and rate this call from one to ten?"*
 
-   The suite **never volunteers a rating** — a caller who rates a call unprompted is
-   not realistic, and doing so would paper over the defect. It listens, answers if
-   asked, and **fails the run when it is not asked** (`assertions.requireFeedbackRequest`).
+   This was carried as a confirmed defect until 2026-09-18, and the finding was wrong —
+   not about what was observed, but about why. No rating request had ever appeared across
+   every session recorded up to 2026-09-17, because every one of those sessions ended by
+   simply stopping: the suite got its answer and hung up, and the agent filled the silence
+   with its idle nudges until it let the caller go. The request lives on the other side of
+   a closing turn that a call ending that way never reaches.
 
-   > **`make chat` is red by design until this is fixed.** The failure is the bug
-   > report: it names the defect, and the run still ends with a cleanly closed
-   > session and a full transcript, because the assertion runs after teardown. The
-   > moment the agent starts asking, it goes green on its own. To silence it while
-   > working on something else: `REQUIRE_FEEDBACK_REQUEST=false`.
+   So every run now closes the call from the caller's side first —
+   `chatFlow.closingStatement`, *"That answers it, thank you — I'm all set and that's
+   everything I needed today."* — and the request comes back in the agent's reply.
 
-   Capturing the call reference from `/e/call-logs` to attach to the bug report is
-   **blocked** — that page is behind an email magic-link login, so it needs a saved
-   session, a readable test mailbox, or an API token.
+   The suite still **never volunteers a rating**: the sign-off carries no score, and the
+   catalogue suite fails if one is ever written into it. A caller who rates a call
+   unprompted would turn the run green whether or not the agent ever asked.
+   `assertions.requireFeedbackRequest` stays on, now as a regression gate rather than a
+   standing bug report.
+
+   > **Sample size: four calls**, all on 2026-09-18 across four knowledge bases, and every
+   > one produced the request. The agent rephrases it every time, and the fourth wording
+   > — *"how your experience was today, on a scale from one to ten?"* — slipped through
+   > the match list and was reported as a missing request. The phrases now come from what
+   > the four calls have in common, not from the most recent one. If the request ever
+   > turns out to be conditional, this is the first entry to revisit.
+
+9. **The texted-steps path can never receive a text.** The agent offers to SMS the
+   troubleshooting steps, and the suite runs the full workflow once accepting and once
+   declining. On the accept path it reads the number back digit by digit, tries it, and
+   returns *"It looks like that number can't receive texts — it's likely a landline. I'll
+   walk you through the steps verbally, one at a time."* The `555-01xx` fictional block is
+   not textable, and the only alternative is texting a real person — so that path proves
+   the journey and the fallback, not delivery. The fallback itself is correct behaviour,
+   and is what a real caller on a landline gets.
+10. **Call logs are out of reach.** Every run records the LiveKit room, call id and
+   visitor identity, and attaches them to any failure — enough to identify a call
+   exactly. Pulling the matching record from `/e/call-logs` is **blocked**: that page is
+   behind an email magic-link login, so it needs a saved session, a readable test
+   mailbox, or an API token.
 
 ---
 
@@ -553,8 +586,9 @@ npx playwright test --grep-invert @live   # everything that touches no session
 | Public API | `GET /api/v1/public/organizations/{org}/products/{slug}` → 200, no auth |
 | Error contract | unknown product **and** unknown org → `404 {message, error, statusCode}` |
 | Agent flag | `has_assistant` drives the "Talk to me" entry point |
+| Caller intake | **"Before we start"** dialog (2026-09-18): serial number, name, company, phone — all required — then **Start call** |
 | Session panel | text input, `Send` / `Mute` / `End`, status `Listening — go ahead` |
-| Agent persona | "Jason with Etnyre Customer Support"; asks for serial, reads it back |
+| Agent persona | "Jason with Etnyre Customer Support"; opens with the machine already pulled up from the form's serial |
 | Test hooks | none |
 
 ---

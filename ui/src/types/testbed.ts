@@ -50,6 +50,14 @@ export interface TestbedConfig {
     serialsPerKb: number;
     excludeSerials: string[];
   };
+  /** Pools the "Before we start" form is filled from. */
+  callerIntake: {
+    names: string[];
+    companies: string[];
+    phoneAreaCodes: string[];
+    /** `{{area}}` and `{{line}}` are substituted per run. */
+    phoneFormat: string;
+  };
   chatFlow: {
     agentIdlePrompts: string[];
     intents: ChatIntent[];
@@ -62,24 +70,42 @@ export interface TestbedConfig {
     /** How many agent follow-up questions to answer before giving up. */
     maxClarifications: number;
     clarificationReply: string;
+    /** What the caller answers when the agent offers to text the steps. */
+    textOfferReplies: { accept: string; decline: string };
+    /** The caller's sign-off, sent once the answer is in, to close the call. */
+    closingStatement: string;
     feedbackScale: { min: number; max: number };
   };
   budgets: {
     sessionConnectMs: number;
     greetingMs: number;
-    serialAcknowledgedMs: number;
+    /** Cumulative, from the conversation starting to the machine being confirmed. */
+    machineIdentifiedMs: number;
     answerMs: number;
     wrapUpMs: number;
     apiResponseMs: number;
   };
   assertions: {
     requireNonEmptyReply: boolean;
+    /** The agent must close the call after the caller rates it. */
+    requireClosingStatement: boolean;
     /** The agent must ask the caller to rate the call before it ends. */
     requireFeedbackRequest: boolean;
     minReplyChars: number;
     checkExpectedAnchors: boolean;
     failOnWrongControllerFamily: boolean;
   };
+}
+
+/**
+ * Who the caller says they are. Everything the "Before we start" form needs:
+ * the serial routes the agent to a knowledge base, the rest is who is calling.
+ */
+export interface CallerDetails {
+  serial: string;
+  name: string;
+  company: string;
+  phone: string;
 }
 
 /** One resolved test case: which serial to give, and what to ask once accepted. */

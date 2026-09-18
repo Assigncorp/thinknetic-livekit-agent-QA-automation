@@ -101,6 +101,37 @@
     "_serialsPerKbNote": "How many serials to keep per KB in the generated index. Rotation draws from these.",
     "excludeSerials": []
   },
+  "callerIntake": {
+    "_comment": "The 'Before we start' dialog that now stands between 'Talk to me' and the call. Four required fields - serial number, name, company, phone - then 'Start call'. The serial comes from the hopper workbook via the drawn test case; the rest is drawn per run from the pools here, so consecutive runs never look like the same caller. Verified on etnyre-dev 2026-09-18.",
+    "names": [
+      "Dale Hutchins",
+      "Marcus Whitfield",
+      "Priya Raghunathan",
+      "Terry Okafor",
+      "Sandra Kowalczyk",
+      "Wes Trimble",
+      "Angela Mendoza",
+      "Raymond Boudreaux",
+      "Nia Ferguson",
+      "Curtis Vandersloot"
+    ],
+    "companies": [
+      "Fielder Paving",
+      "Redstone Aggregates",
+      "Calloway Road Works",
+      "Tri-County Surfacing",
+      "Bellmont Asphalt",
+      "Grange Highway Services",
+      "Lockridge Materials",
+      "Pinnacle Chip Seal",
+      "Harbor Line Contracting",
+      "Westfall Grading"
+    ],
+    "phoneAreaCodes": ["480", "602", "312", "404", "512", "615", "720", "919"],
+    "phoneFormat": "{{area}}-555-01{{line}}",
+    "_phoneNote": "VERIFIED 2026-09-18: the field runs a real phone validator, and the form will not submit until it passes. {{area}} is a genuine NANP area code and {{line}} a two-digit draw, which puts every generated number inside <area>-555-0100..0199 - the block NANP reserves for fiction, so a test run can never produce a number that reaches a real person. The 555 AREA code does NOT validate: the field's own placeholder, '555-0100', is rejected by the field itself (see README - product defect).",
+    "_serialNote": "Not listed here. It is the drawn test case's serial, straight from resources/serials/hopper-classification.xlsx, because it is what routes the agent to a knowledge base."
+  },
   "chatFlow": {
     "_comment": "The conversation contract, verified on etnyre-dev. Phrases are matched case-insensitively as regex fragments - keep them short and structural, never full sentences.",
     "agentIdlePrompts": [
@@ -117,28 +148,40 @@
         "reply": "Yes, that is correct."
       },
       {
+        "id": "readsBackPhone",
+        "_note": "VERIFIED 2026-09-18 on the accept-the-text path: given a number, the agent reads it back digit by digit before using it - 'I have seven two zero, five five five, zero one nine eight. Is that correct?'. Without this it falls through to the ends-in-a-question-mark fallback and gets answered with clarificationReply, which talks about troubleshooting steps and has nothing to do with a phone number. That only ever appeared to work because the reply happens to open with 'Yes, that is right'.",
+        "match": ["is that correct"],
+        "reply": "Yes, that is correct."
+      },
+      {
+        "id": "readyForQuestion",
+        "_note": "MUST stay above asksForSerial. VERIFIED 2026-09-18: the agent's session-memory opener routinely recaps the last call - 'Last time, I helped confirm the serial number for your machine' - and that phrase is what asksForSerial matches on. Ordered the other way round the suite reads a recap as a request and types the serial at an agent that already has it. The agent has the machine. VERIFIED 2026-09-18: with the serial supplied on the 'Before we start' form, this is now the SECOND turn of a call rather than a response to the caller reading a serial out - 'Hi, I have your Chip Spreader Variable Hopper pulled up here...'. Also covers the session-memory opener ('would you like to pick up where we left off?').",
+        "match": ["what can i help you with", "pulled up", "how can i help", "carry on from where", "pick up where we left off"],
+        "reply": "{{question}}"
+      },
+      {
         "id": "asksForSerial",
-        "_note": "The opening greeting, and any later re-ask after the agent loses the serial.",
+        "_note": "Kept although the caller now gives the serial on the form before the call starts: the agent re-asking for it is a defect worth answering rather than hanging on, and the chat suite records it when it fires.",
         "match": ["serial number", "read it out for me"],
         "reply": "{{serial}}"
       },
       {
-        "id": "readyForQuestion",
-        "_note": "Serial accepted. Also covers the session-memory opener ('would you like to carry on from where we left off?').",
-        "match": ["what can i help you with", "pulled up", "how can i help", "carry on from where"],
-        "reply": "{{question}}"
-      },
-      {
         "id": "offersToText",
-        "_note": "Verified 2026-09-17: rather than typing the steps, the agent offers to SMS them - 'What's the best number to text that to?'. Left unanswered, the KB facts never reach the transcript and content checking cannot pass. This asks it to answer in the chat instead.",
+        "_note": "Verified 2026-09-17: rather than typing the steps, the agent offers to SMS them - 'I can text you the full list of troubleshooting steps... would that be helpful?', and before the intake form existed, 'What's the best number to text that to?'. A real caller answers this either way, so the reply is not fixed here: the test case supplies it from chatFlow.textOfferReplies and both answers are exercised. See that block for what each one costs.",
         "match": ["best number to text", "text that to", "text you the", "send you the full", "text them to you"],
-        "reply": "Please don't text it. Give me the full steps here in this chat instead."
+        "reply": "{{textOffer}}"
       },
       {
         "id": "declinesTransfer",
         "_note": "The agent offers to hand the caller to a human. Declining keeps the call in our hands and gets it to its natural close - which is where a rating would be asked for, if it ever were. Phrases are deliberately narrow: the greeting says 'Jason with Etnyre Customer Support' and answers often say 'call Etnyre service at 888-586-1899', and neither is an offer to transfer.",
         "match": ["connect you", "transfer you", "put you through", "speak to a representative", "speak with a representative", "have a technician", "escalate this"],
         "reply": "No, that's it for today."
+      },
+      {
+        "id": "asksForFeedback",
+        "_note": "MUST stay above stepwiseWalkthrough and clarifying - intents are matched top to bottom and the first hit wins. VERIFIED 2026-09-18, once the caller started signing off. The agent always asks, but not in the same words: '...could you let me know how your experience was today and rate this call from one to ten?' twice, and '...how your experience was today, on a scale from one to ten?' on a third call. That third one went UNMATCHED on first run - 'scale of' does not catch 'scale from', and 'rate your experience' does not catch 'how your experience was' - so the suite silently withheld a rating the agent had asked for and reported the request as missing. The phrases below are now taken from what the three calls have in common rather than from what one of them said. A fourth call then showed the phrases were never the real problem: 'Glad that helped! Before you go, could you tell me how your experience was today, and rate the call from one to ten?' matched here perfectly well, but clarifying sits on 'could you tell me' and was reached first, so the turn was answered as a diagnostic question and the rating was silently withheld again. Hence the ordering rule above, which the catalogue suite enforces.",
+        "match": ["how your experience was", "one to ten", "on a scale", "scale of", "rate your experience", "rate this call", "how did i do", "leave feedback", "feedback number"],
+        "reply": "{{feedback}}"
       },
       {
         "id": "stepwiseWalkthrough",
@@ -163,14 +206,10 @@
         "reply": "{{clarification}}"
       },
       {
-        "id": "asksForFeedback",
-        "_note": "UNVERIFIED - no feedback or rating request has ever been observed on etnyre-dev, across the sessions recorded so far. Declared so that if the agent does start asking, the call is completed properly instead of abandoned mid-question. If it never asks, this never matches and costs nothing. Confirm the real wording before trusting it.",
-        "match": ["rate your experience", "how did i do", "scale of", "leave feedback", "feedback number", "rate this call"],
-        "reply": "{{feedback}}"
-      },
-      {
         "id": "farewell",
-        "match": ["i'll let you go", "thanks for calling"],
+        "_note": "The agent's own sign-off, once the rating is in. Nothing to say back - the suite reads it, checks it is a real closing rather than silence, and ends the call. Phrases cover both the thank-you form and the give-up form ('I haven't heard back, so I'll let you go'), because both end a call.",
+        "_matchNote": "Deliberately excludes 'glad I could help' and the like. The agent opens its RATING request that way ('Glad I could help! Before we wrap up...'), and an answer turn can easily say it too - matching on it would classify a real answer as a goodbye and lose it.",
+        "match": ["i'll let you go", "thanks for calling", "thank you for calling", "take care", "have a great day", "have a good one"],
         "reply": null
       }
     ],
@@ -182,9 +221,18 @@
     "_maxTurnsNote": "Upper bound on agent turns in one call. A step-by-step walkthrough is long, so this has to be generous - but bounded, so a conversation that never lands fails instead of running forever.",
     "maxClarifications": 4,
     "_maxClarificationsNote": "The agent troubleshoots before it cites the manual - safety preamble, then questions, then steps. This caps how many of its follow-ups we answer before giving up, so a dialogue that never lands fails instead of looping.",
-    "_feedbackNote": "A rating is given ONLY when the agent asks for one, through the asksForFeedback intent. It must never be volunteered: a caller who rates a call unprompted is not realistic, and it would paper over the fact that the agent never asks - which is the defect worth reporting. Every chat run records whether it was asked.",
+    "_feedbackNote": "A rating is given ONLY when the agent asks for one, through the asksForFeedback intent. It must never be volunteered: a caller who rates a call unprompted is not realistic, and it would turn a run green whether or not the agent ever asked - which is the one thing this is here to measure. Every chat run records whether it was asked.",
+    "textOfferReplies": {
+      "_comment": "The two answers a caller can give when the agent offers to text the troubleshooting steps. The chat suite runs the full workflow once with each, because they are genuinely different journeys and only one of them can be content-checked.",
+      "accept": "Yes, that would be helpful - please send it to {{phone}}.",
+      "_acceptNote": "Takes the SMS. VERIFIED 2026-09-18: the agent reads the number back for confirmation, tries it, and comes back with 'It looks like that number can't receive texts - it's likely a landline', then walks the steps verbally instead. So this path does NOT prove an SMS arrives, and cannot: the 555-01xx fictional block is not textable, and the alternative is texting a real person. What it does prove is the whole journey up to and including the fallback, which is the behaviour a real caller with a landline gets. The steps then leave the chat, so the KB facts never reach the transcript: assertions.checkExpectedAnchors cannot be satisfied on this path and is skipped for it. {{phone}} is the number the caller gave on the form - it also answers the older 'what is the best number to text that to?' shape of the offer in one go, so the agent is never asked twice.",
+      "decline": "Please don't text it. Give me the full steps here in this chat instead.",
+      "_declineNote": "Keeps the procedure in the chat, one step at a time, which is the only way the manual's numbers ever reach the transcript. Content checking depends on this path."
+    },
     "clarificationReply": "Yes, that is right. It happens during normal operation - please give me the full troubleshooting steps from the manual.",
     "_clarificationNote": "Answers the agent's follow-up question and pushes it back towards the manual. A bare 'Yes.' often just produces another question.",
+    "closingStatement": "That answers it, thank you - I'm all set and that's everything I needed today.",
+    "_closingNote": "Said once the question has been answered, to close the call from the caller's side before hanging up. A rating is only ever asked for at the natural end of a call, and a caller who simply stops typing never gets there - the agent sits through its idle nudges instead. So the suite states plainly that it is done, and THEN listens for a feedback request. It is a sign-off, not a rating: it must never contain or imply a score, or it would paper over the defect it exists to expose.",
     "feedbackScale": {
       "_comment": "The score the asksForFeedback intent replies with, drawn fresh per run (or reproducibly when scenarioSelection.seed is set).",
       "min": 1,
@@ -193,20 +241,24 @@
   },
   "budgets": {
     "_comment": "Milliseconds. Placeholders pending a week of dev baselines - see docs/architecture.md.",
-    "_streamingNote": "Turns stream token by token, and a turn is only judged once it has finished streaming. So these measure time to a COMPLETE turn, not time to the first word.",
+    "_streamingNote": "Turns stream token by token, and a turn is only judged once it has finished streaming. So these measure time to a COMPLETE turn, not time to the first word - and every one of them therefore carries chatFlow.turnQuietMs (4s) of deliberate silence inside it.",
     "sessionConnectMs": 20000,
-    "greetingMs": 25000,
-    "serialAcknowledgedMs": 25000,
+    "greetingMs": 45000,
+    "_greetingNote": "Time to the agent's FIRST complete turn. Re-based 2026-09-18, from 25000: with the serial supplied on the intake form the agent no longer opens with a quick 'what is your serial'. Its first turn is the whole opening - it loads that serial's session history and composes a recap of the last call - and it can arrive bundled with the short 'Hi, this is Jason' line as a single turn. Measured 26.0s on a recap-carrying call, against the old 25s gate, which is the kind of budget that flips red and green at random and then gets ignored. Still a placeholder: collect baselines and reset to ~p95.",
+    "machineIdentifiedMs": 60000,
+    "_machineIdentifiedNote": "CUMULATIVE from the start of the conversation to the turn where the agent confirms it has the machine - not that one turn's duration. Cumulative because it is often the same turn as the greeting, and timing one turn against two budgets measures nothing twice. Replaced serialAcknowledgedMs (and BUDGET_SERIAL_MS) on 2026-09-18: there is no serial acknowledgement any more, the caller gives it on the form.",
     "answerMs": 45000,
-    "wrapUpMs": 8000,
-    "_wrapUpNote": "How long to listen for one more turn after the answer - a feedback request, for instance - before ending the call. Deliberately short: this is time spent waiting for something that usually never comes.",
+    "wrapUpMs": 45000,
+    "_wrapUpNote": "How long to wait for each of the agent's closing turns after the caller signs off - the rating request, then the goodbye. Re-based 2026-09-18 from 20000, which was sized back when this was thought to be time spent waiting for something that never came. It does come, and these are ordinary agent turns: measured 11.6-13.1s for the rating request and 4.8-5.4s for the goodbye, against answer turns of 26-29s. Headroom, not a fix: the run that reported the agent 'went quiet on the rating' was NOT a budget timeout - both turns were comfortably inside 20s - it was the agent hanging up in the same breath as its goodbye, which is handled in ChatWidget.wrapUp by recovering trailing turns from the cached transcript. Costs nothing on a healthy call now that wrapUp stops the moment the farewell arrives.",
     "apiResponseMs": 3000
   },
   "assertions": {
     "_comment": "Phase 1 is deterministic only: a reply arrives, it is non-empty, it lands inside budget. Wording is never asserted.",
     "requireNonEmptyReply": true,
+    "requireClosingStatement": true,
+    "_closingStatementNote": "After the caller gives a rating, the agent must actually close the call - acknowledge it and say goodbye - rather than going silent and leaving the caller to hang up on a dangling question. The suite waits for that turn (budgets.wrapUpMs), checks it is a real closing rather than an empty or truncated one, and only then ends the session.",
     "requireFeedbackRequest": true,
-    "_feedbackRequestNote": "The agent must ask the caller to rate the call before it ends. It never does - that is a product defect, and this assertion fails every run until it is fixed. Deliberately not downgraded to a warning: the bug is real, so the suite says so. Set REQUIRE_FEEDBACK_REQUEST=false to silence it while working on something else.",
+    "_feedbackRequestNote": "The agent must ask the caller to rate the call before it ends. This PASSES as of 2026-09-18, and it did not before: the request is made at the natural end of a call, so it only appears once the caller says they are done (chatFlow.closingStatement). A run that had the caller simply stop typing never reached it, and the agent hung up after its idle nudges instead. Keep this on - it is now a real regression gate on a behaviour the deployment demonstrably has. Set REQUIRE_FEEDBACK_REQUEST=false only to silence it while working on something else.",
     "minReplyChars": 20,
     "checkExpectedAnchors": false,
     "_anchorsNote": "OFF because the agent does not answer KB questions directly - verified on etnyre-dev 2026-09-17. Asked 'what are the speed limits for safety faults', it returns a clarifying question, then a safety preamble, then begins explaining, and the manual's numbers arrive later than any bounded conversation reaches. Left on, the check passes or fails depending on which scenario the draw picks, which is a flaky gate and worse than an honest gap. Everything needed is in place - anchors, the spoken-number matcher, and a draw restricted to the 118 of 221 scenarios that carry a checkable fact - so set CHECK_EXPECTED_ANCHORS=true to switch it on once the agent answers inline, or to audit content deliberately.",

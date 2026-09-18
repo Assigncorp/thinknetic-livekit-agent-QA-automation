@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
+  CallerDetails,
   ChatCase,
   KnowledgeBase,
   Scenario,
@@ -60,12 +61,13 @@ export const testbed: TestbedConfig = {
     turnQuietMs: num(process.env.TURN_QUIET_MS, file.chatFlow.turnQuietMs),
     maxTurns: num(process.env.MAX_TURNS, file.chatFlow.maxTurns),
     maxClarifications: num(process.env.MAX_CLARIFICATIONS, file.chatFlow.maxClarifications),
+    closingStatement: process.env.CLOSING_STATEMENT ?? file.chatFlow.closingStatement,
   },
   budgets: {
     ...file.budgets,
     sessionConnectMs: num(process.env.BUDGET_SESSION_CONNECT_MS, file.budgets.sessionConnectMs),
     greetingMs: num(process.env.BUDGET_GREETING_MS, file.budgets.greetingMs),
-    serialAcknowledgedMs: num(process.env.BUDGET_SERIAL_MS, file.budgets.serialAcknowledgedMs),
+    machineIdentifiedMs: num(process.env.BUDGET_MACHINE_MS, file.budgets.machineIdentifiedMs),
     answerMs: num(process.env.BUDGET_ANSWER_MS, file.budgets.answerMs),
     wrapUpMs: num(process.env.BUDGET_WRAP_UP_MS, file.budgets.wrapUpMs),
     apiResponseMs: num(process.env.BUDGET_API_MS, file.budgets.apiResponseMs),
@@ -84,6 +86,10 @@ export const testbed: TestbedConfig = {
     requireFeedbackRequest: bool(
       process.env.REQUIRE_FEEDBACK_REQUEST,
       file.assertions.requireFeedbackRequest,
+    ),
+    requireClosingStatement: bool(
+      process.env.REQUIRE_CLOSING_STATEMENT,
+      file.assertions.requireClosingStatement,
     ),
   },
 };
@@ -143,6 +149,33 @@ export function feedbackScore(): number {
   const { min, max } = testbed.chatFlow.feedbackScale;
   const rng = makeRng(testbed.scenarioSelection.seed);
   return min + Math.floor(rng() * (max - min + 1));
+}
+
+/**
+ * Who the caller is, for the "Before we start" form: a name, a company and a
+ * phone number drawn per run, around the serial that routes the call.
+ *
+ * Drawn rather than fixed because the agent remembers callers as well as
+ * serials, and a suite that always calls in as the same person from the same
+ * company trains the deployment on a caller who does not exist. Reproducible
+ * when `scenarioSelection.seed` is set, like every other draw here.
+ *
+ * The phone number is generated inside `<area>-555-0100..0199`, the block NANP
+ * reserves for fiction. It passes the form's validator and cannot ring a real
+ * person - and that is a property of the generated value, so the format string
+ * is not something to loosen casually.
+ */
+export function callerDetails(serial?: string): CallerDetails {
+  const rng = makeRng(testbed.scenarioSelection.seed);
+  const intake = testbed.callerIntake;
+  return {
+    serial: serial ?? resolveChatCase().serial.serial,
+    name: pick(intake.names, rng),
+    company: pick(intake.companies, rng),
+    phone: intake.phoneFormat
+      .replace('{{area}}', pick(intake.phoneAreaCodes, rng))
+      .replace('{{line}}', String(Math.floor(rng() * 100)).padStart(2, '0')),
+  };
 }
 
 /**

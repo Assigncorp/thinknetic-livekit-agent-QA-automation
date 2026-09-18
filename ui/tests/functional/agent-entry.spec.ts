@@ -1,6 +1,6 @@
 import { test, expect } from '../../src/fixtures/test.js';
 import { sel } from '../../src/selectors.js';
-import { testbed } from '../../src/config/testbed.js';
+import { testbed, callerDetails } from '../../src/config/testbed.js';
 
 /**
  * Functional: the voice session lifecycle as seen from the browser.
@@ -11,9 +11,39 @@ import { testbed } from '../../src/config/testbed.js';
 test.describe.configure({ mode: 'serial' });
 
 test.describe('@live @regression agent session lifecycle', () => {
+  /**
+   * The gate in front of every call, as of 2026-09-18. It costs no agent
+   * session, so it is the test that should go red first if the form changes -
+   * rather than every live suite failing at once with "the panel never opened".
+   */
+  test('"Talk to me" asks who is calling before it connects', async ({ page, productPage }) => {
+    await productPage.open();
+    await productPage.openCallerForm();
+
+    const form = sel.callerIntake;
+    await expect(form.serial(page), 'no serial number field').toBeVisible();
+    await expect(form.name(page), 'no caller name field').toBeVisible();
+    await expect(form.company(page), 'no company name field').toBeVisible();
+    await expect(form.phone(page), 'no phone number field').toBeVisible();
+    await expect(form.startCall(page)).toBeVisible();
+
+    // An empty form must not start a call. All four fields are required, so
+    // the dialog staying open is the app refusing - and it is worth proving,
+    // because a form that submitted empty would hand the agent a call with no
+    // machine and no caller.
+    await form.startCall(page).click();
+    await expect(
+      form.dialog(page),
+      'the form submitted with every field empty, so a call started with no caller details',
+    ).toBeVisible();
+
+    await form.cancel(page).click();
+    await expect(form.dialog(page), 'Cancel did not close the form').toBeHidden();
+  });
+
   test('clicking "Talk to me" opens the agent panel', async ({ productPage, voiceWidget }) => {
     await productPage.open();
-    await productPage.startVoiceSession();
+    await productPage.startVoiceSession(callerDetails());
     await voiceWidget.expectOpen();
     await voiceWidget.end();
   });
@@ -24,7 +54,7 @@ test.describe('@live @regression agent session lifecycle', () => {
     voiceWidget,
   }) => {
     await productPage.open();
-    await productPage.startVoiceSession();
+    await productPage.startVoiceSession(callerDetails());
     await voiceWidget.expectOpen();
 
     // Documents the behaviour every other live test has to work around: the
@@ -51,7 +81,7 @@ test.describe('@live @regression agent session lifecycle', () => {
     socketUrls,
   }) => {
     await productPage.open();
-    await productPage.startVoiceSession();
+    await productPage.startVoiceSession(callerDetails());
     await voiceWidget.expectOpen();
 
     const connectMs = await voiceWidget.waitForConnected();

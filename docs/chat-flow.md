@@ -1,24 +1,87 @@
 # The agent chat flow
 
-Observed end-to-end on `etnyre-dev` on 2026-09-16, in text mode.
+Observed end-to-end on `etnyre-dev` on 2026-09-16, and re-verified on 2026-09-18 after
+the caller intake form landed, in text mode.
 
 ## The contract
 
 | # | Who | What |
 |---|---|---|
 | 1 | caller | clicks **Talk to me** |
-| 2 | app | panel opens: `Connecting…` → `Listening — go ahead`, with a text input, Mute and End |
-| 3 | agent | *"Hi, this is Jason with Etnyre Customer Support… Could you start by giving me the serial number of your Chip Spreader?"* |
-| 4 | caller | gives a serial, e.g. `K7170` |
-| 5 | agent | reads it back digit by digit: *"Let me read that back: K-7-1-7-0. Is that right?"* |
-| 6 | caller | confirms |
-| 7 | agent | has the machine pulled up and invites the question |
-| 8 | caller | asks a KB question |
-| 9 | agent | answers |
-| 10 | caller | clicks **End** |
+| 2 | app | **"Before we start"** dialog opens: Serial number, Your name, Company name, Phone number — all four required — with **Cancel** and **Start call** |
+| 3 | caller | fills all four and clicks **Start call** |
+| 4 | app | panel opens: `Connecting…` → `Listening — go ahead`, with a text input, Mute and End |
+| 5 | agent | *"Hi, this is Jason with Etnyre Customer Support. I can help you with your Chip Spreader."* |
+| 6 | agent | already has the machine: *"Hi, I have your Chip Spreader Variable Hopper pulled up here… Would you like to pick up where we left off, or is there something else I can help you with today?"* |
+| 7 | caller | asks a KB question |
+| 8 | agent | answers |
+| 9 | caller | signs off: *"That answers it, thank you — I'm all set and that's everything I needed today."* |
+| 10 | agent | closes the call |
+| 11 | caller | clicks **End** |
 
-Step 5 is easy to miss and will hang a naive test: the agent will not accept a
-question until the serial is confirmed.
+## The caller intake form — new on 2026-09-18
+
+**"Talk to me" no longer starts a call.** It opens a dialog titled *Before we start*
+asking for four required fields, and the call begins on **Start call**:
+
+| Field | `name` | Where the suite's value comes from |
+|---|---|---|
+| Serial number | `serialNumber` | the drawn test case, straight from `resources/serials/hopper-classification.xlsx` — it is what routes the agent to a knowledge base |
+| Your name | `customerName` | drawn per run from `callerIntake.names` |
+| Company name | `companyName` | drawn per run from `callerIntake.companies` |
+| Phone number | `phone` | generated per run inside the fictional block (below) |
+
+Every field carries a real `<label>`, so all four and both buttons resolve by
+accessible name — no structural CSS anywhere in `sel.callerIntake`.
+
+The identity is drawn rather than fixed for the same reason serials rotate: the agent
+remembers callers, and a suite that always calls in as the same person from the same
+company trains the deployment on somebody who does not exist. `scenarioSelection.seed`
+reproduces a specific draw.
+
+### This changed the call itself
+
+The serial is handed over before a word is spoken, so **the agent no longer asks for a
+serial and no longer reads one back**. It opens with the machine already in hand. The
+old three-turn handshake — ask, read back, confirm — is gone, and with it the
+assertions that timed it. What replaces them: the agent's first turn inside
+`budgets.greetingMs`, and the machine confirmed inside `budgets.machineIdentifiedMs` —
+which is **cumulative** from the start of the conversation, because that confirmation is
+routinely the *same turn* as the greeting, and timing one turn against two budgets
+measures it twice and calls it coverage.
+
+Both numbers were re-based on 2026-09-18 and `serialAcknowledgedMs` retired with the
+handshake it named. The agent's first turn now carries the whole opening — it loads that
+serial's history and composes a recap of the last call — and one was measured at **26.0s**
+against the old 25s gate. A budget that flips red and green at random is worse than none,
+so `greetingMs` is now 45s. Still placeholders: collect baselines and reset to ~p95.
+
+`asksForSerial` and `readsBackSerial` stay in `chatFlow.intents` anyway. If the agent
+does ask, the driver answers instead of hanging — and the chat suite records a `defect`
+annotation saying the form did not reach the agent. Recorded, not failed: one LLM turn
+going its own way is not worth failing a run whose answer is good, but it showing up in
+every report is a defect.
+
+### The phone field rejects its own placeholder
+
+The field runs a real phone validator, and the form will not submit until it passes.
+Verified 2026-09-18:
+
+| Value | Result |
+|---|---|
+| `555-0100` — **the field's own placeholder** | *Enter a valid phone number* |
+| `555-555-0142` | *Enter a valid phone number* |
+| `480-555-0142` | accepted |
+| `+1 480 555 0142` | accepted |
+
+The 555 *area* code is not usable — only the 555 *exchange* is. So the suite generates
+`<real area code>-555-01<nn>`, which is the block NANP reserves for fiction: it passes
+the validator and cannot ring a real person. `phoneFormat` in the config carries that
+guarantee and `api/tests/test_scenario_catalog.py` asserts it, because loosening the
+format would quietly end it.
+
+Suggesting a value in the placeholder that the field then refuses is a product defect,
+and it is the first thing that will confuse anyone filling this form by hand.
 
 ## The caller's side is not a script
 
@@ -49,35 +112,99 @@ interpolates a value `converse()` does not supply.
 Each turn is returned as a `ConversationStep` carrying the matched intent and how long
 it took, so budgets are asserted per stage and a failure prints the whole exchange.
 
-### Feedback at the end of a call — a confirmed defect
+### Feedback at the end of a call — the caller has to end it
 
-**No feedback, rating or score request has been observed on `etnyre-dev` in any
-recorded session.** Sessions were driven through to the agent's own wrap-up
-(*"I haven't heard back, so I'll let you go…"*) and through an explicit *"That is all,
-thank you. Goodbye."*, and neither produced one. Ending the call just leaves
-`Call ended` and a **Start again** button.
+**The agent does ask the caller to rate the call. It asks only when the call reaches its
+natural end, and a call only gets there when the caller says so.** Verified on
+`etnyre-dev` 2026-09-18:
 
-**A rating is never volunteered.** A caller who rates a call unprompted is not
-realistic, and it would hide the thing worth reporting. `ChatWidget.wrapUp()` listens
-for one more turn (`budgets.wrapUpMs`, deliberately short) after the answer and answers
-`asksForFeedback` if it fires.
+> *"Glad I could help. Before we finish, could you let me know how your experience was
+> today and rate this call from one to ten?"*
 
-When it does not fire — which is every run so far — the test **fails**
-(`assertions.requireFeedbackRequest`). That assertion deliberately runs *after* the call
-is torn down, so a failing run still leaves a cleanly closed session, a full transcript
-and the `call closure` attachment to attach to the bug report.
+That request had never once been seen before, across every session recorded up to
+2026-09-17. Those sessions ended by simply stopping — the suite got its answer and hung
+up — and the agent filled the silence with its idle nudges (*"Are you still there?"*,
+*"I'm still here whenever you're ready"*) until it let the caller go. The rating request
+lives on the other side of a closing turn that a call ending that way never reaches.
 
-The agent does handle a rating when given one — an earlier experiment that volunteered
-"I would rate this call 9 out of 10" got *"Thank you so much for calling. Take care"*
-and the agent then ended the session itself. So the capability exists; it is simply
-never solicited. That experiment was removed: it made every transcript look like
-feedback was working.
+So it was never a missing capability. It was a call that never ended.
+
+**The caller closes the call, and only then listens.** `ChatWidget.wrapUp()` first sends
+`chatFlow.closingStatement` — *"That answers it, thank you — I'm all set and that's
+everything I needed today."* — which hands the agent its closing turn, and the request
+comes back in it. `asksForFeedback` catches it on `rate this call`; the rest of that
+intent's phrases are still guesses and still cost nothing when they do not match.
+
+**A rating is never volunteered.** The sign-off is a sign-off: it carries no score, and
+the catalogue suite fails if a number or the word "rate" ever appears in it. A caller who
+rates a call unprompted is not realistic, and it would turn a run green whether or not
+the agent ever asked — which is precisely the thing this is here to measure. After
+sending it, `wrapUp()` listens for up to four more turns (`budgets.wrapUpMs` each) and
+answers `asksForFeedback` if it fires.
+
+When it does not fire, the test **fails** (`assertions.requireFeedbackRequest`). That is
+now a regression gate on a behaviour the deployment demonstrably has, rather than a
+standing bug report. The assertion deliberately runs *after* the call is torn down, so a
+failing run still leaves a cleanly closed session, a full transcript and the
+`call closure` attachment.
+
+Told the caller is done, the agent may say goodbye and end the session itself. That is
+a call ending normally, so `wrapUp()` records a `sessionEnded` step and stops rather
+than failing a run whose answer has already been verified.
+
+### Waiting for the agent to close the call
+
+Once the rating is sent, the suite waits for the agent to close — it should not be left
+hanging in the air — verifies that closing turn, and only then ends the session. Verified
+2026-09-18 on both text-offer paths:
+
+> *"Thank you so much for calling Etnyre. Take care, and have a great one"* (4.8s, 5.4s)
+
+`wrapUp()` takes `stopAfterIntent: 'farewell'`, so it stops the moment that lands instead
+of sitting out the rest of its budget. `assertions.requireClosingStatement` then checks a
+closing turn exists and is long enough to be a real sign-off rather than a fragment.
+
+**That turn is easy to lose.** The agent hangs up in the same breath as saying it, and the
+app removes the transcript from the DOM when a call ends — so the read that would confirm
+the turn throws, and the turn is discarded even though it was seen. A run failed exactly
+that way, reporting *"the agent went quiet on the rating"* about a call the agent had
+closed politely. `wrapUp()` now recovers trailing turns from the cached transcript when a
+live read fails.
+
+Worth being precise about the cause, because the obvious explanation was wrong: it was
+**not** a budget timeout. Both closing turns land inside 15s and `budgets.wrapUpMs` was 20s
+at the time. The budget was raised to 45s for headroom, but the hang-up race is what broke
+it.
+
+The verdicts for both this and the rating fire *after* the call is torn down, matching
+`requireFeedbackRequest`: the waiting, reading and capture all happen while the call is
+live, and only the judgement is deferred, so a failure still leaves a cleanly closed
+session and a complete report.
 
 `wrapUp()` takes a whitelist of intent ids rather than matching everything, because the
 agent's closing turn is often *"anything else I can help with?"* — which matches
 `readyForQuestion` and would otherwise re-ask a question already answered.
 
-**Confirm the real wording before trusting this.** The match phrases are guesses.
+**Sample size: four calls**, all on 2026-09-18 and across four knowledge bases. Every one
+reached the request — but the fourth one nearly went unrecorded, and that is the more
+useful finding:
+
+> *"Glad we could get that sorted out. Before you go, could you let me know how your
+> experience was today, on a scale from one to ten?"*
+
+That did not match. `scale of` does not catch *"scale from"*, and `rate your experience`
+does not catch *"how your experience was"*. The suite withheld a rating the agent had
+asked for, and then reported the request as missing — a false defect, which is the worst
+kind of test failure because it reads like a real one.
+
+The phrases now come from what the four calls have **in common** — `how your experience
+was`, `one to ten`, `on a scale` — rather than from whichever one was observed most
+recently. The lesson generalises: this agent rephrases itself every call, so any match
+list built from a single transcript will eventually report a behaviour as absent when it
+is merely worded differently.
+
+If the request ever turns out to be conditional — on the KB, on session history, on how
+the call went — this section is the first thing to revisit.
 
 ## Six behaviours that shape the test design
 
@@ -89,7 +216,14 @@ After confirming `K7170` it said:
 > software, and I provided the full steps verbally after confirming your serial number.
 > Would you like to carry on from where we left off?"*
 
-So the turn after confirmation is **not deterministic** — it depends on what previous
+Still true with the intake form, just earlier — the memory now lands in the agent's
+opening turn, before the caller has said anything. Verified 2026-09-18 on `K7294`:
+
+> *"Hi, I have your Chip Spreader Variable Hopper pulled up here. Last time, you reached
+> out but hadn't specified exactly what you needed help with… Would you like to pick up
+> where we left off, or is there something else I can help you with today?"*
+
+So the agent's opening is **not deterministic** — it depends on what previous
 runs did with that serial. Two consequences, both handled in config:
 
 - `scenarioSelection.rotateSerials` draws a different serial each run from a pool of
@@ -170,10 +304,11 @@ bubbles, replace the evaluate block with a locator and delete this note.
 
 Deterministic only, per `assertions` in the config:
 
-- the panel opens and reaches `Listening`
-- the greeting asks for a serial, inside `budgets.greetingMs`
-- the serial is read back, inside `budgets.serialAcknowledgedMs`
-- confirming it produces a new agent turn
+- the intake form opens, carries all four required fields, and refuses to submit empty
+- the form is accepted and the panel opens and reaches `Listening`
+- the agent greets, inside `budgets.greetingMs`
+- the agent confirms it has the machine from the form's serial, inside
+  `budgets.machineIdentifiedMs` (cumulative from the conversation starting)
 - the KB question produces a non-empty answer inside `budgets.answerMs`
 - ending returns the page to its pre-session state
 
@@ -198,15 +333,53 @@ So the facts worth verifying — `1,200 PSI`, `P2-PIN 19`, `240 ohms` — are no
 first reply. They are several steps into an interactive procedure, and only reachable
 by playing the caller who actually performs each step.
 
-Three intents carry that load: `offersToText` declines the SMS and asks for the steps
-in the chat, `stepwiseWalkthrough` answers *"let me know when you've done that"* with
-*"Done. What is the next step?"*, and `clarifying` handles the diagnostic questions in
-between. `converse()` accumulates every turn the agent takes after the question into
-`fullAnswer`, and the content check runs against all of it rather than any single turn
-— because no single turn contains the answer.
+Three intents carry that load: `offersToText` answers the offer to SMS the steps,
+`stepwiseWalkthrough` answers *"let me know when you've done that"* with *"Done. What is
+the next step?"*, and `clarifying` handles the diagnostic questions in between.
+`converse()` accumulates every turn the agent takes after the question into `fullAnswer`,
+and the content check runs against all of it rather than any single turn — because no
+single turn contains the answer.
 
 `chatFlow.maxTurns` bounds the walk, so a procedure that never reaches the facts fails
 rather than running forever.
+
+### "Shall I text you the steps?" — both answers are tested
+
+A real caller answers that either way, so `offersToText` has no fixed reply. Its reply is
+`{{textOffer}}`, and the full positive workflow runs **once per answer** from
+`chatFlow.textOfferReplies`:
+
+| | What the caller says | What it buys |
+|---|---|---|
+| `decline` | *"Please don't text it. Give me the full steps here in this chat instead."* | the procedure stays in the chat, one step at a time — the only path on which the manual's numbers ever reach the transcript, so content checking depends on it |
+| `accept` | *"Yes, that would be helpful — please send it to `{{phone}}`."* | the number the intake form collects is actually used; nothing else exercises it |
+
+The accept reply hands the number over unprompted, which also answers the older *"what's
+the best number to text that to?"* shape of the offer in the same turn instead of looping
+back into the same intent.
+
+The anchor check is **skipped on the accept path**. With the steps going to a phone there
+is nothing in the transcript to find, and leaving it on would fail a call with "the agent
+did not cite the manual" when the suite is what asked it not to.
+
+#### The accept path cannot actually receive a text
+
+Verified 2026-09-18. The agent reads the number back digit by digit, tries it, and comes
+back with:
+
+> *"It looks like that number can't receive texts — it's likely a landline. I'll walk you
+> through the steps verbally, one at a time."*
+
+The `555-01xx` fictional block is not textable, and the only alternative is texting a real
+person, so **this path does not and cannot prove an SMS arrives.** What it does prove is
+the whole journey up to and including the fallback — which is exactly what a real caller
+on a landline gets, and worth having a test for.
+
+That read-back is also why `readsBackPhone` exists. Without it the turn *"I have seven two
+zero, five five five, zero one nine eight. Is that correct?"* falls through to the
+ends-in-a-question-mark fallback and gets answered with `clarificationReply`, which talks
+about troubleshooting steps and has nothing to do with a phone number. It only ever
+appeared to work because that reply happens to open with *"Yes, that is right"*.
 
 ### The agent speaks its numbers
 

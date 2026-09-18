@@ -13,9 +13,10 @@ tell you), or the button's label changed. Fix it in `ui/src/selectors.ts`, not
 in the test.
 
 ### The `@live` session tests fail but everything else passes
-Most likely the voice widget selectors, which were written from expected markup
-rather than observed markup. Run `cd ui && npx playwright test --grep @live --headed`,
-watch what actually renders, and correct `sel.voiceWidget` in `ui/src/selectors.ts`.
+Most likely a session panel selector. Run
+`cd ui && npx playwright test --grep @live --headed`, watch what actually renders, and
+correct `sel.chatWidget` (the panel's controls, shared by voice and text) or
+`sel.callerIntake` (the "Before we start" form) in `ui/src/selectors.ts`.
 
 ### Chrome asks for microphone permission during a run
 The permission should be pre-granted by `playwright.config.ts`. If a prompt

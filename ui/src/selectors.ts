@@ -37,6 +37,31 @@ export const sel = {
   },
 
   /**
+   * VERIFIED 2026-09-18 - the "Before we start" dialog. "Talk to me" no longer
+   * opens a call: it opens this form, and the call starts on "Start call".
+   *
+   * All four fields are `required` and carry real `<label>`s, so every one of
+   * them resolves by accessible name with no structural CSS. The patterns are
+   * narrow because "Your name" and "Company name" both contain "name".
+   */
+  callerIntake: {
+    dialog: (p: Page): Locator => p.getByRole('dialog', { name: /before we start/i }),
+    serial: (p: Page): Locator => p.getByRole('textbox', { name: /serial number/i }),
+    name: (p: Page): Locator => p.getByRole('textbox', { name: /your name/i }),
+    company: (p: Page): Locator => p.getByRole('textbox', { name: /company name/i }),
+    phone: (p: Page): Locator => p.getByRole('textbox', { name: /phone number/i }),
+    startCall: (p: Page): Locator => p.getByRole('button', { name: /^start call$/i }),
+    cancel: (p: Page): Locator => p.getByRole('button', { name: /^cancel$/i }),
+    /**
+     * Whatever the form is complaining about. Structural, and deliberately so:
+     * MUI renders field errors as helper text with no role and no accessible
+     * name to hang on to. Only ever read to explain a failure, never asserted
+     * on - so a class change costs a worse error message, not a red run.
+     */
+    fieldErrors: (p: Page): Locator => p.locator('.MuiFormHelperText-root'),
+  },
+
+  /**
    * VERIFIED 2026-09-16 - the session panel. Same panel serves voice and text;
    * these are the text-mode controls.
    */
@@ -67,14 +92,5 @@ export const sel = {
      */
     connecting: (p: Page): Locator => p.getByText(/connecting/i),
     listening: (p: Page): Locator => p.getByText(/listening/i),
-  },
-
-  /**
-   * Voice-specific controls beyond the shared panel.
-   * UNVERIFIED - phase 2. Mute/End above are the verified ones.
-   */
-  voiceWidget: {
-    panel: (p: Page): Locator => p.getByRole('dialog'),
-    statusText: (p: Page): Locator => p.getByText(/connecting|listening|speaking/i),
   },
 } as const;

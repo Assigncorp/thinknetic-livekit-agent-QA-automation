@@ -1,8 +1,0 @@
-README.md
-pyproject.toml
-tests/test_livekit_session.py
-thinknetic_livekit_qa_voice.egg-info/PKG-INFO
-thinknetic_livekit_qa_voice.egg-info/SOURCES.txt
-thinknetic_livekit_qa_voice.egg-info/dependency_links.txt
-thinknetic_livekit_qa_voice.egg-info/requires.txt
-thinknetic_livekit_qa_voice.egg-info/top_level.txt

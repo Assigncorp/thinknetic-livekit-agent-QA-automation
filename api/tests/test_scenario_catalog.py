@@ -65,6 +65,10 @@ def test_budgets_are_ordered_sensibly():
     assert b["sessionConnectMs"] < b["answerMs"], "connecting should not be budgeted slower than a full answer"
     assert b["apiResponseMs"] < b["greetingMs"], "an API call should be budgeted faster than an LLM greeting"
     assert all(v > 0 for k, v in b.items() if not k.startswith("_")), "a budget of zero will never pass"
+    assert b["machineIdentifiedMs"] >= b["greetingMs"], (
+        "machineIdentifiedMs is cumulative from the start of the conversation and the "
+        "greeting is inside it, so it can never be the tighter of the two"
+    )
 
 
 # --------------------------------------------------------------------------
@@ -267,10 +271,117 @@ def test_chat_flow_intents_cover_the_conversation():
         "answered with the serial again instead of a confirmation"
     )
 
+    # Intents are matched top to bottom and the first hit wins, so a specific
+    # request has to outrank a generic one. The rating request is phrased as an
+    # ordinary polite question - "could you tell me how your experience was
+    # today, and rate the call from one to ten?" - which clarifying matches on
+    # "could you tell me". Ordered the wrong way round, that turn is answered as
+    # a diagnostic question, no rating is ever sent, and the run then reports
+    # the request as missing. Observed doing exactly that on 2026-09-18.
+    # The agent's session-memory opener recaps the previous call - "Last time, I
+    # helped confirm the serial number for your machine" - and asksForSerial
+    # matches on exactly that phrase. Ordered the wrong way round, the suite
+    # reads a recap as a request and types the serial at an agent that already
+    # has it from the intake form. Observed on 2026-09-18.
+    assert ids.index("readyForQuestion") < ids.index("asksForSerial"), (
+        "readyForQuestion must come before asksForSerial, or a recap that merely "
+        "mentions the serial number gets answered with the serial"
+    )
+
+    for generic in ("clarifying", "stepwiseWalkthrough"):
+        assert ids.index("asksForFeedback") < ids.index(generic), (
+            f"asksForFeedback must come before {generic}, or a rating request "
+            f"phrased as an ordinary question gets swallowed by it and the "
+            f"caller never answers with a score"
+        )
+
+
+def test_both_answers_to_the_text_offer_exist():
+    """
+    The agent offers to SMS the troubleshooting steps, and the chat suite runs
+    the whole workflow once for each answer. Neither may go missing: losing
+    `decline` would take the manual's numbers out of the transcript for good,
+    and losing `accept` would leave the phone number the intake form collects
+    entirely unexercised.
+    """
+    replies = CONFIG["chatFlow"]["textOfferReplies"]
+    for answer in ("accept", "decline"):
+        assert replies.get(answer, "").strip(), f"chatFlow.textOfferReplies.{answer} is empty"
+
+    assert "{{phone}}" in replies["accept"], (
+        "the accept answer should hand over the caller's number, so the older "
+        "'what is the best number to text that to?' shape of the offer is answered "
+        "in one go rather than asked again"
+    )
+    # These are substituted into an intent reply that is itself a placeholder,
+    # so anything unknown in here survives both passes and gets typed at the
+    # agent verbatim.
+    for answer, text in replies.items():
+        if answer.startswith("_"):
+            continue
+        unknown = set(re.findall(r"\{\{(\w+)\}\}", text)) - {"phone"}
+        assert not unknown, f"textOfferReplies.{answer} uses unknown placeholders {unknown}"
+
+
+def test_caller_intake_pools_are_usable():
+    """The "Before we start" form is filled from these, and it rejects blanks."""
+    intake = CONFIG["callerIntake"]
+    assert len(intake["names"]) >= 5, "too few caller names to be worth drawing from"
+    assert len(intake["companies"]) >= 5, "too few companies to be worth drawing from"
+    assert intake["phoneAreaCodes"], "no area codes to build a phone number from"
+    for field in ("names", "companies"):
+        assert all(v.strip() for v in intake[field]), f"callerIntake.{field} has a blank entry"
+
+
+def test_generated_phone_numbers_can_never_reach_a_real_person():
+    """
+    Every run types a phone number into a live product. NANP reserves
+    <area code>-555-0100..0199 for fiction, so a number built inside that block
+    cannot ring anybody. Loosening the format would quietly end that guarantee,
+    which is why it is asserted rather than left to the comment next to it.
+    """
+    intake = CONFIG["callerIntake"]
+    for area in intake["phoneAreaCodes"]:
+        assert re.fullmatch(r"[2-9]\d{2}", area), (
+            f"{area!r} is not a usable NANP area code - the form's validator will "
+            f"reject it, exactly as it rejects its own 555 placeholder"
+        )
+
+    for line in ("00", "42", "99"):
+        number = intake["phoneFormat"].replace("{{area}}", "480").replace("{{line}}", line)
+        assert re.fullmatch(r"480-555-01\d{2}", number), (
+            f"callerIntake.phoneFormat produced {number!r}, which is outside the "
+            f"555-0100..0199 fictional block - it could be somebody's real number"
+        )
+
+
+def test_closing_statement_signs_off_without_volunteering_a_rating():
+    """
+    The caller closes the call themselves, because a rating is only ever asked
+    for at a call's natural end and a caller who just stops typing never gets
+    there. But the sign-off must stay a sign-off: a score in it would answer the
+    question the agent is supposed to ask, and the run would go green on a
+    defect that is still there.
+    """
+    closing = CONFIG["chatFlow"]["closingStatement"]
+    assert closing and closing.strip(), (
+        "chatFlow.closingStatement is empty - the call would just go quiet, and "
+        "the agent hangs up on its own instead of reaching its closing turn"
+    )
+    assert not re.search(r"\d", closing), (
+        f"chatFlow.closingStatement contains a number: {closing!r}. It must never "
+        f"volunteer a rating - the whole point is to find out whether the agent asks"
+    )
+    scoring = re.search(r"\b(rate|rating|score|out of|stars?)\b", closing, re.I)
+    assert not scoring, (
+        f"chatFlow.closingStatement offers a rating ({scoring.group(0)!r}): {closing!r}. "
+        f"It is a sign-off only - the agent has to ask"
+    )
+
 
 def test_chat_flow_intent_placeholders_are_known():
     """A reply may only interpolate values converse() actually supplies."""
-    known = {"serial", "question", "clarification", "feedback"}
+    known = {"serial", "question", "clarification", "feedback", "phone", "textOffer"}
     for intent in CONFIG["chatFlow"]["intents"]:
         reply = intent.get("reply")
         if not reply:

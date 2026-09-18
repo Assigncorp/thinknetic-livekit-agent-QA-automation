@@ -12,6 +12,10 @@ export interface ConversationVars {
   clarification: string;
   /** Score to give if the agent asks the caller to rate the call. */
   feedback: string;
+  /** The number the caller gave on the intake form. */
+  phone: string;
+  /** Yes or no, when the agent offers to text the troubleshooting steps. */
+  textOffer: string;
 }
 
 /** One turn the agent took, how it was understood, and what was said back. */
@@ -24,12 +28,26 @@ export interface ConversationStep {
   ms: number;
 }
 
-/** Fills {{serial}} / {{question}} / {{feedback}} in a configured reply. */
+/**
+ * Fills {{serial}} / {{question}} / {{feedback}} / ... in a configured reply.
+ *
+ * Substitution repeats, because a value may itself carry a placeholder: the
+ * `offersToText` reply is `{{textOffer}}`, and the accept answer behind it ends
+ * in `{{phone}}`. A single pass would leave that inner one sitting in the
+ * message as literal text and type it at the agent. Bounded so a value that
+ * refers to itself stops instead of spinning.
+ */
 function render(template: string, vars: ConversationVars): string {
-  return template.replace(
-    /\{\{(\w+)\}\}/g,
-    (whole, key: string) => vars[key as keyof ConversationVars] ?? whole,
-  );
+  let out = template;
+  for (let pass = 0; pass < 3 && out.includes('{{'); pass += 1) {
+    const before = out;
+    out = out.replace(
+      /\{\{(\w+)\}\}/g,
+      (whole, key: string) => vars[key as keyof ConversationVars] ?? whole,
+    );
+    if (out === before) break;
+  }
+  return out;
 }
 
 /** Turns already accounted for, keyed by text with a count (turns can legitimately repeat). */
@@ -79,6 +97,17 @@ function freshTurns(current: string[], seen: Map<string, number>): string[] {
  * on its own terms - see `converse()`.
  */
 export class ChatWidget extends BasePage {
+  /**
+   * The last transcript that could be read, kept so a report can still show
+   * the conversation after the call is over.
+   *
+   * The app tears the transcript out of the DOM when a call ends, and the
+   * agent routinely ends the call itself the moment it has its rating - so
+   * reading it at teardown, which is the natural place, returns nothing
+   * exactly on the runs where the closing exchange is most worth seeing.
+   */
+  private lastReadTranscript: TranscriptMessage[] = [];
+
   constructor(page: Page) {
     super(page);
   }
@@ -167,7 +196,7 @@ export class ChatWidget extends BasePage {
       );
     }
 
-    return sel.chatWidget.input(this.page).evaluate((inputEl) => {
+    const messages = await sel.chatWidget.input(this.page).evaluate((inputEl) => {
       const inputRow = (inputEl as HTMLElement).closest('.MuiStack-root');
       let messageArea = inputRow?.previousElementSibling as HTMLElement | null;
       while (messageArea && !messageArea.innerText.trim()) {
@@ -206,6 +235,19 @@ export class ChatWidget extends BasePage {
         })
         .filter((m) => m.text.length > 0) as TranscriptMessage[];
     });
+
+    this.lastReadTranscript = messages;
+    return messages;
+  }
+
+  /**
+   * The conversation as the app last rendered it, both sides, readable after
+   * the call has ended. This is the only artefact that shows what the CALLER
+   * sent in the app's own words rather than the suite's - including the
+   * rating, which is otherwise just the suite asserting about itself.
+   */
+  lastTranscript(): TranscriptMessage[] {
+    return this.lastReadTranscript;
   }
 
   /**
@@ -284,6 +326,13 @@ export class ChatWidget extends BasePage {
     await sel.chatWidget.send(this.page).click();
     // The input clearing is the app's own acknowledgement that it took the turn.
     await expect(input).toHaveValue('', { timeout: 10_000 });
+
+    // Re-read now, while the call is certainly still open, so the cached
+    // transcript contains what was just sent. Without this, a message the
+    // agent answers by hanging up - which is what it does with a rating -
+    // never makes it into any report, and the run looks like it never sent
+    // one.
+    await this.transcript().catch(() => undefined);
     return before;
   }
 
@@ -400,28 +449,84 @@ export class ChatWidget extends BasePage {
   }
 
   /**
-   * Handles whatever the agent says on the way out, then stops as soon as it
-   * goes quiet. Used to answer a feedback request before hanging up.
+   * Closes the call from the caller's side, then handles whatever the agent
+   * says on the way out until it goes quiet. Used to answer a feedback request
+   * before hanging up.
+   *
+   * `closing` is the caller's sign-off ("that's everything I needed"), and it
+   * is sent FIRST, before anything is read. A rating is only ever asked for at
+   * the natural end of a call, and a caller who simply stops typing never gets
+   * there: the agent fills the silence with its idle nudges and eventually
+   * hangs up on its own. Saying plainly that we are done is what hands the
+   * agent its closing turn - and VERIFIED 2026-09-18, that is the turn the
+   * rating request comes back in. It is a sign-off only: it must never
+   * volunteer a score, or the run goes green whether or not the agent asked.
    *
    * `only` is a whitelist of intent ids on purpose: the agent's closing turn is
    * often "anything else I can help with?", which matches `readyForQuestion`
    * and would otherwise re-ask the question we have already had answered.
    *
-   * Returns the steps taken, empty if the agent had nothing more to say -
-   * which, so far, is every recorded session.
+   * Returns the closing turns the agent took, so the caller can report whether
+   * a rating was asked for.
    */
   async wrapUp(
     vars: ConversationVars,
-    opts: { turnTimeoutMs: number; only: string[]; maxTurns?: number },
+    opts: {
+      turnTimeoutMs: number;
+      only: string[];
+      maxTurns?: number;
+      closing?: string;
+      /** Stop reading once this intent arrives - the call is over. */
+      stopAfterIntent?: string;
+    },
   ): Promise<ConversationStep[]> {
     const { intents } = testbed.chatFlow;
     const steps: ConversationStep[] = [];
-    let seen = await this.agentTurns();
 
-    for (let i = 0; i < (opts.maxTurns ?? 3); i += 1) {
+    // send() hands back the turns as they stood the instant the sign-off went
+    // out, which is the only correct baseline for "what the agent said back to
+    // it" - snapshotting after would swallow the reply we are here to read.
+    //
+    // Either read can find the call already over: told the caller is done, the
+    // agent says goodbye and hangs up by itself. That is a call ending
+    // normally, not a failure, so it is recorded and the wrap-up stops rather
+    // than throwing away a run whose answer has already been verified.
+    const sendOrNoteHangUp = async (message: string): Promise<string[] | null> => {
+      try {
+        return await this.send(message);
+      } catch {
+        steps.push({
+          intent: 'sessionEnded',
+          agentTurn: 'the agent closed the session itself before this could be sent',
+          reply: message,
+          ms: 0,
+        });
+        return null;
+      }
+    };
+
+    let seen: string[] | null = opts.closing
+      ? await sendOrNoteHangUp(opts.closing)
+      : await this.agentTurns().catch(() => null);
+
+    for (let i = 0; seen !== null && i < (opts.maxTurns ?? 3); i += 1) {
       const started = Date.now();
       const turn = await this.nextAgentTurn(seen, opts.turnTimeoutMs);
-      if (turn === null) break;
+      if (turn === null) {
+        // Nothing readable any more. Anything the agent managed to say on its
+        // way out is still in the cached transcript, so take it from there
+        // rather than reporting silence.
+        for (const missed of this.unreadAgentTurns(seen)) {
+          const intent = intents.find((candidate) => anyOf(candidate.match).test(missed));
+          steps.push({
+            intent: intent?.id ?? 'unrecognised',
+            agentTurn: missed,
+            reply: null,
+            ms: Date.now() - started,
+          });
+        }
+        break;
+      }
 
       const ms = Date.now() - started;
       const intent = intents.find((candidate) => anyOf(candidate.match).test(turn));
@@ -430,14 +535,32 @@ export class ChatWidget extends BasePage {
 
       steps.push({ intent: intent?.id ?? 'unrecognised', agentTurn: turn, reply, ms });
 
-      if (reply === null) {
-        seen = [...seen, turn];
-        continue;
-      }
-      seen = await this.send(reply);
+      seen = reply === null ? [...seen, turn] : await sendOrNoteHangUp(reply);
+
+      // The agent has said goodbye, so nothing else is coming. Without this the
+      // wrap-up sits out its whole budget waiting for a turn that will never
+      // arrive, on every single run.
+      if (intent && opts.stopAfterIntent === intent.id) break;
     }
 
     return steps;
+  }
+
+  /**
+   * Agent turns sitting in the last readable transcript that were never handed
+   * back as a turn.
+   *
+   * The agent can say goodbye and end the session in the same breath, and the
+   * app takes the transcript out of the DOM with it - so a turn that plainly
+   * happened, and is plainly in the cached copy, can never be read live. Losing
+   * it means reporting "the agent went quiet" about a call it closed politely.
+   */
+  private unreadAgentTurns(seen: string[]): string[] {
+    const idle = anyOf(testbed.chatFlow.agentIdlePrompts);
+    const rendered = this.lastReadTranscript
+      .filter((m) => m.who === 'agent' && !idle.test(m.text))
+      .map((m) => m.text);
+    return freshTurns(rendered, countTurns(seen));
   }
 
   /** Like waitForNewAgentTurn, but returns null instead of throwing on timeout. */
@@ -447,32 +570,6 @@ export class ChatWidget extends BasePage {
     } catch {
       return null;
     }
-  }
-
-  /**
-   * Waits for an agent turn matching `pattern` that was not already present.
-   * Returns how long it took, in ms - the number the latency budget asserts on.
-   */
-  async waitForAgent(pattern: RegExp, timeoutMs: number, ignore: string[] = []): Promise<number> {
-    const started = Date.now();
-    const seen = countTurns(ignore);
-
-    try {
-      await expect
-        .poll(
-          async () => freshTurns(await this.agentTurns(), seen).some((t) => pattern.test(t)),
-          { timeout: timeoutMs, intervals: [500, 1000, 1000, 2000] },
-        )
-        .toBe(true);
-    } catch (err) {
-      // Captured now, at actual timeout time - not when the poll started.
-      const transcript = (await this.agentTurns()).join('\n');
-      throw new Error(
-        `No new agent turn matched ${pattern}. Transcript so far:\n${transcript}\n\n${(err as Error).message}`,
-      );
-    }
-
-    return Date.now() - started;
   }
 
   /**
@@ -501,9 +598,20 @@ export class ChatWidget extends BasePage {
         )
         .toBeGreaterThan(0);
     } catch (err) {
-      const transcript = (await this.agentTurns()).join('\n');
+      const turns = await this.agentTurns().catch(() => []);
+      // An empty transcript is a different fault from a conversation that
+      // stalls partway, and the two need different people to look at them: the
+      // agent never joined the room at all, versus the agent stopped replying.
+      // Reported identically, the first one reads as a broken test.
+      const detail =
+        turns.length === 0
+          ? 'The agent never said anything at all - it did not join this call. ' +
+            'The session connected and the panel opened, so this is the agent ' +
+            'side, not the browser. Quote the room reference in the "call ' +
+            'reference" attachment when reporting it.'
+          : `Transcript so far:\n${turns.join('\n')}`;
       throw new Error(
-        `Agent did not produce a new turn within budget. Transcript so far:\n${transcript}\n\n${(err as Error).message}`,
+        `Agent did not produce a new turn within budget. ${detail}\n\n${(err as Error).message}`,
       );
     }
 

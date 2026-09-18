@@ -15,14 +15,3 @@ export const TIMEOUT = {
   /** First agent reply in chat mode. LLM + TTS, so generous by design. */
   agentReply: 30_000,
 } as const;
-
-/**
- * Performance budgets asserted by tests. Separate from TIMEOUT: a timeout is
- * "give up here", a budget is "slower than this is a defect".
- */
-export const BUDGET = {
-  /** Observed ~0.4s on dev 2026-09-16. */
-  apiResponseMs: 3_000,
-  /** Click to connected state. Placeholder pending baseline data. */
-  sessionConnectMs: 15_000,
-} as const;
