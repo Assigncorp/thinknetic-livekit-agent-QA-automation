@@ -31,7 +31,7 @@ on:
 concurrency:
   # Never two of these at once: they would share the 100/minute window and
   # each would measure the other's traffic.
-  group: api-perf
+  group: api-rate-limit  # shared with ci.yml api + livekit-contract
   cancel-in-progress: false
 
 env:
