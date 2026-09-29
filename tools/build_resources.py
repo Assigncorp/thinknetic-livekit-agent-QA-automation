@@ -30,6 +30,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import oracle_build
+
 try:
     import openpyxl
 except ImportError:  # pragma: no cover
@@ -159,7 +161,7 @@ def build_serial_index(cfg: dict[str, Any]) -> dict[str, Any]:
 # Scenario pool
 # --------------------------------------------------------------------------
 
-def anchor_terms(answer: str, limit: int = 6, asked: str = "") -> list[str]:
+def anchor_terms(answer: str, limit: int = 8, asked: str = "") -> list[str]:
     """
     Facts from the KB's own answer that a correct reply cannot paraphrase away:
     pin references, part numbers, and measurements with units.
@@ -184,7 +186,12 @@ def anchor_terms(answer: str, limit: int = 6, asked: str = "") -> list[str]:
         r"\b\d{6,7}\b",
         # Measurements with a unit. Every one of these is a number the manual
         # commits to, which a correct answer has to get right.
-        r"\b[\d,]+(?:\.\d+)?\s?(?:PSI|FPM|RPM|ohms?|volts?|VDC|amps?|gallons?)\b",
+        # `\s*-?\s*` rather than a single optional space: the KBs write
+        # "30-amp inline fuse", and a hyphen is how a compound adjective is
+        # spelled, not a different specification.
+        r"\b[\d,]+(?:\.\d+)?\s*-?\s*"
+        r"(?:PSI|FPM|RPM|GPM|ohms?|volts?|VDC|amps?|amperes?|gallons?|"
+        r"bar|kPa|ft-?lbs?|foot-?pounds?)\b",
         r"\b\d+(?:\.\d+)?\s?°?\s?F\b",
         r"\b\d+(?:\.\d+)?\s?(?:inch|inches)\b",
         # Clearances are always written as a fraction WITH a unit - a bare
@@ -192,6 +199,15 @@ def anchor_terms(answer: str, limit: int = 6, asked: str = "") -> list[str]:
         r"\b\d+/\d+\s?(?:inch|inches|\")",
     ):
         terms.extend(m.group(0) for m in re.finditer(pattern, answer, re.IGNORECASE))
+
+    # "30-amp inline fuse" is a measurement written as a compound adjective. It is
+    # the same fact as "30 amps", and anchors._loose() joins on `[\s-]*` so either
+    # spelling matches either way round - but the anchor itself is also validated
+    # against a fixed set of shapes by api/tests/test_scenario_catalog.py, and a
+    # hyphen is not one of them. Normalise here rather than widening that guard:
+    # it exists to stop ordinary vocabulary becoming an anchor, and it should stay
+    # narrow.
+    terms = [re.sub(r"^([\d,]+(?:\.\d+)?)\s*-\s*([A-Za-z])", r"\1 \2", t) for t in terms]
 
     # De-duplicate, preserve order, and drop anything the question already says.
     asked_lower = asked.lower()
@@ -205,8 +221,16 @@ def anchor_terms(answer: str, limit: int = 6, asked: str = "") -> list[str]:
     return out[:limit]
 
 
-def collect_answer(lines: list[str], idx: int, stoppers: tuple, window: int = 30) -> str:
-    """Text belonging to the entry at `idx`, up to the next heading or question."""
+def collect_answer(lines: list[str], idx: int, stoppers: tuple, window: int = 60) -> str:
+    """Text belonging to the entry at `idx`, up to the next heading or question.
+
+    The window was 30 and is 60 because 30 was cutting the tail off the longer
+    step-by-step entries: the manual's numbers cluster in the last steps (the
+    charge-pressure reading is step 6 of 6), so a short window dropped exactly
+    the facts worth anchoring on. Measured over the five KBs, 30 -> 60 gains
+    four scenarios an anchor and one a checkable step order; 60 -> 120 gains
+    nothing, so the entries are genuinely bounded and this is not a knob to
+    keep turning."""
     out: list[str] = []
     for follow in lines[idx + 1: idx + 1 + window]:
         if follow.startswith("#"):
@@ -276,6 +300,7 @@ def build_scenarios(cfg: dict[str, Any]) -> dict[str, Any]:
 
             counter += 1
             prompt = question.lstrip("Q:").strip()
+            found = anchor_terms(answer, asked=prompt)
             scenarios.append(
                 {
                     "id": f"{kb['id'].upper()}-{'FAQ' if faq else ('HOW' if howto else 'PRB')}-{counter:03d}",
@@ -283,8 +308,14 @@ def build_scenarios(cfg: dict[str, Any]) -> dict[str, Any]:
                     "kind": "faq" if faq else ("howto" if howto else "problem"),
                     "section": section,
                     "question": prompt,
-                    "expectAnchors": anchor_terms(answer, asked=prompt),
+                    "expectAnchors": found,
                     "sourceLine": idx + 1,
+                    # Everything the deterministic oracle needs about this entry:
+                    # which anchors sit in which step, whether the entry carries a
+                    # safety instruction, whether it ends in escalation. Computed
+                    # here because this is the only place that still has the
+                    # answer text in hand.
+                    **oracle_build.entry_facts(answer, found),
                 }
             )
 
@@ -313,7 +344,22 @@ def main() -> None:
     index = build_serial_index(cfg)
     (out_dir / "serial-index.json").write_text(json.dumps(index, indent=1) + "\n", encoding="utf-8")
 
-    print(f"\nWrote {out_dir.relative_to(ROOT)}/scenarios.json and serial-index.json")
+    print("Building the deterministic oracle...")
+    corpus = oracle_build.build_corpus_numerals(cfg)
+    (out_dir / "corpus-numerals.json").write_text(
+        json.dumps(corpus, indent=1) + "\n", encoding="utf-8"
+    )
+    differential = oracle_build.build_differential(cfg, corpus)
+    (out_dir / "differential-index.json").write_text(
+        json.dumps(differential, indent=1) + "\n", encoding="utf-8"
+    )
+    oracle = oracle_build.build_oracle(cfg, scenarios)
+    (out_dir / "oracle.json").write_text(json.dumps(oracle, indent=1) + "\n", encoding="utf-8")
+
+    print(
+        f"\nWrote {out_dir.relative_to(ROOT)}/: scenarios.json, serial-index.json, "
+        f"corpus-numerals.json, differential-index.json, oracle.json"
+    )
 
 
 if __name__ == "__main__":

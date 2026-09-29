@@ -71,13 +71,19 @@ Verified 2026-09-18:
 |---|---|
 | `555-0100` — **the field's own placeholder** | *Enter a valid phone number* |
 | `555-555-0142` | *Enter a valid phone number* |
-| `480-555-0142` | accepted |
-| `+1 480 555 0142` | accepted |
+| `480-555-0142` | accepted on 2026-09-18; **cut to `48055501` and refused since 2026-09-28** |
+| `+1 480 555 0142` | accepted on 2026-09-18; **cannot be entered since 2026-09-28** |
+| `4805550142` | accepted |
+
+**Changed 2026-09-28:** the field is now `maxLength=10` with `inputmode=numeric`, and it
+drops every non-digit as it is typed. Separators eat into the ten characters, so a dashed
+number loses its last two digits and fails validation, and a `+1` prefix can never fit.
+Only ten bare digits survive. The suite now types exactly that.
 
 The 555 *area* code is not usable — only the 555 *exchange* is. So the suite generates
-`<real area code>-555-01<nn>`, which is the block NANP reserves for fiction: it passes
+`<real area code>55501<nn>` (ten bare digits), which is the block NANP reserves for fiction: it passes
 the validator and cannot ring a real person. `phoneFormat` in the config carries that
-guarantee and `api/tests/test_scenario_catalog.py` asserts it, because loosening the
+guarantee and `tests/api/tests/test_scenario_catalog.py` asserts it, because loosening the
 format would quietly end it.
 
 Suggesting a value in the placeholder that the field then refuses is a product defect,
@@ -390,7 +396,7 @@ replies:
 > or **six hundred feet per minute** in two-wheel drive"*
 
 never `400 FPM`. A literal match on the KB's numeral finds nothing, so
-`ui/src/utils/anchors.ts` matches either form — the number in digits or in words, the
+`tests/ui/src/utils/anchors.ts` matches either form — the number in digits or in words, the
 unit abbreviated or spelled out, including how people actually say them
 (`2,500 FPM` → *"twenty five hundred feet per minute"* as well as *"two thousand five
 hundred"*).
@@ -415,7 +421,7 @@ answers need a human, and the failure message prints the KB file and line number
 one can look. With the flag on, `resolveChatCase` draws
 only from those — otherwise a run could pick an unanchored scenario, skip the check
 and still report green. `tools/build_resources.py` enforces the anchor shapes and
-`api/tests/test_scenario_catalog.py` guards against the padding returning.
+`tests/api/tests/test_scenario_catalog.py` guards against the padding returning.
 
 `failOnWrongControllerFamily` still ships off: did an RC-36 serial get an RC-28
 answer. It targets cross-contamination between machine families, which is the defect

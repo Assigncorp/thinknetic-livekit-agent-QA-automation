@@ -10,20 +10,29 @@ What actually hurts, worst first:
 
 | # | Risk | Impact | Covered by |
 |---|---|---|---|
-| 1 | Agent gives wrong technical guidance on a machine an operator is standing in front of | Safety | partially — CHT-06/07 exist but ship **switched off**; see note below |
-| 2 | Agent unreachable — entry point missing or session will not connect | Support outage | `ui/tests/smoke`, `ui/tests/functional/agent-entry` |
-| 3 | Agent answers for a product it has no KB for | Wrong info, quietly | `ui/tests/negative`, `api` 404 contract |
-| 4 | Backend contract changes and the UI degrades silently | Broken page | `api/tests/test_product_schema` |
-| 5 | Latency makes the agent unusable in the field | Abandonment | budgets in `api` + `ui`; real numbers need `voice/` |
-| 6 | Config points dev at the wrong environment | Data confusion | `api/tests/test_runtime_config` |
+| 1 | Agent gives wrong technical guidance on a machine an operator is standing in front of | Safety | improving — the deterministic oracle (ORC-*) catches fabricated and cross-family figures offline; ships **report-only**, see note below |
+| 2 | Agent unreachable — entry point missing or session will not connect | Support outage | `tests/ui/tests/smoke`, `tests/ui/tests/functional/agent-entry` |
+| 3 | Agent answers for a product it has no KB for | Wrong info, quietly | `tests/ui/tests/negative`, `api` 404 contract |
+| 4 | Backend contract changes and the UI degrades silently | Broken page | `tests/api/tests/test_product_schema` |
+| 5 | Latency makes the agent unusable in the field | Abandonment | `tests/api/tests/test_performance` at the HTTP layer; budgets in `ui`; the number that matters (agent turn latency) is measured per turn by `tests/sdk/` (report/data/livekit-sdk.*.json) — see livekit-sdk-testing.md |
+| 6 | Config points dev at the wrong environment | Data confusion | `tests/api/tests/test_runtime_config` |
+| 7 | A client cannot back off correctly, or the limiter stops enforcing | Throttled UI, or an unprotected endpoint | `tests/api/tests/test_rate_limit` |
 
-Note the gap: risk #1 is the highest-impact item and the least covered. The machinery
-for it now exists — CHT-06 checks the answer against anchor terms lifted from the KB's
-own answer, CHT-07 fails when an RC-28 serial gets an RC-36 answer — but both are
-disabled in `config/testbed.config.json` because they will produce false failures on
-valid paraphrases. Turning CHT-07 on is the highest-value next step: cross-contamination
-between machine families is the defect that would actually mislead an operator, and it
-is far less paraphrase-sensitive than CHT-06. See `architecture.md` on determinism.
+Note the gap, and what has changed. Risk #1 is still the highest-impact item, but it is no
+longer the least covered. CHT-06/07 remain off in `config/testbed.config.json` for the
+reason they always were — they produce false failures on valid paraphrases — and the
+replacement for them is now built: `tests/judge/src/oracle.py` compiles the knowledge bases into
+an index and asserts against it deterministically, so a fabricated specification or a
+figure belonging to another machine is caught by parsing rather than by matching wording.
+It runs offline on every PR (ORC-01..12) and reports on recorded calls via `make oracle`.
+
+It ships report-only too — every entry in `config.oracle.gates` is `false`, asserted by
+ORC-05 — because a gate whose threshold was read off a manual rather than measured from
+calls goes red on a healthy deployment. `crossFamilyForbidden` and `numericProvenance` are
+the two to switch on first, once a fortnight of nightly runs says the baseline is clean.
+See [deterministic-kb-testing.md](deterministic-kb-testing.md) for the design, the full
+case catalogue (LKT/TRN/DKB/FAB/XFM/SAF/MEM/CNV/RES/ORC) and the edge-case list, and
+`architecture.md` on determinism.
 
 ## Coverage matrix
 
@@ -43,6 +52,28 @@ is far less paraphrase-sensitive than CHT-06. See `architecture.md` on determini
 | API-09 | API | payload matches JSON schema | api | Active |
 | CFG-01 | Config | `/env.js` served | api | Active |
 | CFG-02 | Config | no obvious secrets in `/env.js` | api | Active |
+| RL-01 | Rate limit | API advertises its limit | api | Active |
+| RL-02 | Rate limit | limit/remaining/reset internally consistent | api | Active |
+| RL-03 | Rate limit | the limit has not silently changed | api | Active |
+| RL-04 | Rate limit | consecutive requests decrement `remaining` | api | Active |
+| RL-05 | Rate limit | a 404 still costs a request | api | Active |
+| RL-06 | Rate limit | one bucket covers the whole API | api | Active |
+| RL-07 | Rate limit | `/env.js` stays outside the bucket | api | Active |
+| RL-11 | Rate limit | limiter state consistent across instances — **it is not** | api | Reports; off by config |
+| RL-08 | Rate limit | a burst past the limit never 5xxs | api | Opt-in (`@load`) |
+| RL-12 | Rate limit | the advertised limit is actually enforced — **it is not, for one client** | api | Opt-in; reports, off by config |
+| RL-09 | Rate limit | the 429 tells a client how to back off | api | Opt-in (`@load`) |
+| RL-10 | Rate limit | the window rolls over and service resumes | api | Opt-in (`@load`) |
+| PERF-01 | Performance | first request on a fresh connection inside `coldMs` | api | Active |
+| PERF-02 | Performance | warm p50 inside budget | api | Active |
+| PERF-03 | Performance | warm p95 inside budget | api | Active |
+| PERF-04 | Performance | no single sample breaches the 3s ceiling | api | Active |
+| PERF-05 | Performance | p95/p50 spread bounded — latency not bimodal | api | Active |
+| PERF-06 | Performance | payload inside its byte budget | api | Active |
+| PERF-07 | Performance | compression still negotiated, ≥2× saving | api | Active |
+| PERF-08 | Performance | 5 concurrent callers — endpoint does not serialise | api | Active |
+| PERF-09 | Performance | 404 path no slower than the happy path | api | Active |
+| PERF-10 | Performance | `/env.js` p95 — it blocks SPA boot | api | Active |
 | UI-01 | Content | heading matches API `name` | ui | Active |
 | UI-02 | Content | entry point matches `has_assistant` | ui | Active |
 | UI-03 | Content | gallery renders assets | ui | Active |
@@ -76,6 +107,31 @@ is far less paraphrase-sensitive than CHT-06. See `architecture.md` on determini
 | VOI-01 | Voice | agent joins room | voice | Skipped — phase 3 |
 | VOI-02 | Voice | responds to published audio | voice | Skipped — phase 3 |
 | VOI-03 | Voice | first-response latency budget | voice | Skipped — phase 3 |
+| JC-01 | Judge | rubrics are declared, weighted and well-formed | judge | Offline — runs on every PR |
+| JC-02 | Judge | all 221 scenarios resolve to the right KB section | judge | Offline |
+| JC-03 | Judge | anchor matcher agrees with `tests/ui/src/utils/anchors.ts` | judge | Offline |
+| JC-04 | Judge | the prompt carries the section, the family constraint and every rubric | judge | Offline |
+| JA-01 | Judge | a faithful answer scores well (no false positive on a gating rubric) | judge | Needs `ANTHROPIC_API_KEY` |
+| JA-02 | Judge | a defective answer is caught — fabrication, cross-family, stripped warning | judge | Needs `ANTHROPIC_API_KEY` |
+| JA-03 | Judge | the judge separates the two by ≥0.25 | judge | Needs `ANTHROPIC_API_KEY` |
+| JS-01 | Judge | recorded calls scored against their KB | judge | Report-only — never gates |
+| JS-02 | Judge | judge vs literal anchor-matcher disagreements | judge | Report-only |
+| LK-01 | Judge | drive a real call over the LiveKit SDK, record it, score it | judge | Skipped — `LIVEKIT_*` now set; blocked on confirming `agentName` |
+| ORC-01 | Oracle | spoken-number grammar round-trips with `anchors.spell_integer`; non-measurements stay non-measurements | judge | Offline — runs on every PR |
+| ORC-02 | Oracle | bounded matching: `0 PSI` does not fire inside `400 PSI` | judge | Offline |
+| ORC-03 | Oracle | `P1-PIN 21` compiles to a pattern that matches (silent-failure regression) | judge | Offline |
+| ORC-04 | Oracle | differential index: no allowed/forbidden overlap, every figure attributed, never empty | judge | Offline |
+| ORC-05 | Oracle | unit table resolves; phrase lists auditable; **every gate ships off** | judge | Offline |
+| ORC-06 | Oracle | every scenario has an entry; coverage counts match; structural-only tagged | judge | Offline |
+| ORC-07 | Oracle | the compiled corpus matches a fresh parse — catches a KB edited without `make resources` | judge | Offline |
+| ORC-08 | Oracle | applicability: non-reaching run, SMS-accept path, reaching run | judge | Offline |
+| ORC-09 | Oracle | a faithful call fails nothing (false-positive guard) | judge | Offline |
+| ORC-10 | Oracle | a defective call is caught with no model; scoring is byte-identical twice | judge | Offline |
+| ORC-11 | Oracle | a fabricated specification is caught, spoken as well as written | judge | Offline |
+| ORC-12 | Oracle | a foreign figure is caught and attributed; a correct answer is not flagged | judge | Offline |
+| FAB-01 | Oracle | every measurement in a real call traces to that machine's manual | judge | Report-only — gate candidate |
+| XFM-01 | Oracle | no figure from another machine reaches this caller | judge | Report-only — gate candidate |
+| SAF-01 | Oracle | the safety instruction precedes the first step fact | judge | Report-only — gate candidate |
 
 ## Explicitly out of scope for now
 
@@ -83,3 +139,10 @@ Visual regression, accessibility audit, mobile viewports, authenticated flows,
 concurrent-call load, and cross-browser. Each is a deliberate deferral, not an
 omission — add them when the phase-1 suite has been green for a fortnight and
 people trust it.
+
+Sustained-load capacity testing is out of scope for a harder reason than
+priority: the API allows 100 requests a minute across the whole suite, so any
+load tool would spend its run measuring the rate limiter rather than the
+endpoint. [api-test-strategy.md](api-test-strategy.md) sets out what would
+have to change first, and lists the rate-limit and performance cases that are
+deferred (RL-11..RL-14, PERF-11..PERF-16) with the reason for each.

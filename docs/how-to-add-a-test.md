@@ -6,9 +6,9 @@ Ask what would have to break for the test to fail.
 
 | If the failure would be... | It belongs in |
 |---|---|
-| a wrong status code, missing field, slow endpoint | `api/` |
-| something a user can see or click | `ui/` |
-| what the agent actually said or how fast it said it | `voice/` (phase 3) |
+| a wrong status code, missing field, slow endpoint | `tests/api/` |
+| something a user can see or click | `tests/ui/` |
+| what the agent actually said or how fast it said it | `tests/sdk/` (LiveKit SDK suite — docs/livekit-sdk-testing.md) |
 
 Push assertions as far down as they will go. An API test runs in 300ms and
 fails with an unambiguous message; the browser test covering the same thing
@@ -16,10 +16,10 @@ takes 20 seconds and fails with "element not found".
 
 ## Adding a UI test
 
-1. **Add the locator to `ui/src/selectors.ts`** - never inline it in the test.
+1. **Add the locator to `tests/ui/src/selectors.ts`** - never inline it in the test.
    Use `getByRole` with an accessible name. Mark it `UNVERIFIED` until a run
    proves it.
-2. **Put behaviour in a page object** (`ui/src/pages/`). Tests describe intent;
+2. **Put behaviour in a page object** (`tests/ui/src/pages/`). Tests describe intent;
    page objects know how the DOM works.
 3. **Add data to `/testdata`**, not to the test body, if it is a value someone
    might reasonably change.
@@ -29,7 +29,7 @@ takes 20 seconds and fails with "element not found".
    - `tests/negative/` - bad input, bad routes, fail-closed behaviour
    - `tests/chat/` - chat mode (currently skipped)
 5. **Tag it** `@live` if it opens a real agent session, so it can be excluded.
-6. **Use a budget from `ui/src/constants/timeouts.ts`.** A number typed directly
+6. **Use a budget from `tests/ui/src/constants/timeouts.ts`.** A number typed directly
    into a test is a number nobody will ever find again.
 
 ```ts

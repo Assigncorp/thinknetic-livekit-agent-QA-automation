@@ -11,12 +11,14 @@ staging or prod by changing one environment variable.
 
 ```
           +-------------------------------+
-          |  ui/     Playwright + TS      |  what a user can see and do
+          |  tests/ui/     Playwright + TS      |  what a user can see and do
           +-------------------------------+
-          |  api/    pytest + httpx       |  what the client is served
+          |  tests/api/    pytest + httpx       |  what the client is served
           +-------------------------------+
-          |  voice/  LiveKit Python SDK   |  what the agent actually says
+          |  tests/sdk/    LiveKit Python SDK   |  what the agent actually says
           +-------------------------------+   (phase 3)
+          |  tests/judge/  LLM-as-judge + SDK   |  whether what it says is in
+          +-------------------------------+   the manual
 ```
 
 Cheapest signal first. The API suite runs before the UI suite in CI because a
@@ -35,7 +37,7 @@ repo-root `.env` keep the seam from leaking into daily use.
 Java/Rest Assured was considered to match the existing team tooling. It loses on
 the voice path - there is no maintained LiveKit Java client - so it would need a
 Python sidecar anyway. If the API suite needs to land in the existing Jenkins
-pipeline later, porting `api/` to Rest Assured is a contained job; nothing else
+pipeline later, porting `tests/api/` to Rest Assured is a contained job; nothing else
 depends on its language.
 
 ## Determinism
@@ -49,8 +51,37 @@ LLM output is not deterministic, so asserting on reply wording produces a suite
 that is red every morning for no reason. When semantic coverage is added, it
 should be threshold-based scoring (faithfulness to the KB, refusal correctness,
 escalation triggering) reported separately from the pass/fail suite, so a
-borderline score never blocks a release on its own. The `judge` seam is not built
-yet; `voice/` and the chat placeholder are where it will attach.
+borderline score never blocks a release on its own.
+
+That seam is now `tests/judge/`, and it holds to every part of the above. It scores
+seven rubrics 0.0-1.0 against the knowledge-base section a question came from -
+never against the judge model's own knowledge, which contains no Etnyre manual
+and would grade on plausibility instead. It reports to
+`report/data/judge-scores.json` and gates nothing: `judge.requireScoreGate` and
+`judge.requireSafetyGate` both ship off, because the thresholds were read off
+the manuals rather than measured from calls, and a gate on a guessed threshold
+is the same mistake this document records about the latency budgets below.
+
+Its offline half - rubric validation, KB grounding, anchor parity with the
+browser suite - needs no network and no API account, and is cheap enough to run
+on every PR. That half is what stops the expensive half scoring confident
+nonsense.
+
+There is now a third thing in `tests/judge/`, and it is neither of the above:
+`oracle.py` is a DETERMINISTIC assertion layer. Where the scorer asks a model
+whether an answer is faithful, the oracle asks questions that have crisp
+answers - did the agent state a number that appears in no manual we hold, did
+it quote a figure belonging to a different machine, did the safety line come
+before the first step - and answers them by parsing, against an index compiled
+from the knowledge bases at `make resources` time. Same transcript in, same
+verdict out, offline, forever.
+
+That is the distinction this section was reaching for. Asserting on WORDING is
+what produces a suite that is red every morning; asserting on the NUMBERS a
+manual commits to does not, because paraphrase does not move a number. So the
+oracle can eventually gate where a score cannot - and it still ships with every
+gate off, because the gate is a statistic over k runs and there is no baseline
+yet. See deterministic-kb-testing.md.
 
 ## Latency budgets
 
@@ -71,7 +102,15 @@ the suite does not turn into an accidental load test. Run
 1. **Now** - page functional + public API, deterministic.
 2. **Next** - chat mode once it is enabled on dev; authenticated flows using the
    better-auth login (note the cookie naming/URL-encoding quirk when you get there).
-3. **Phase 3** - `voice/` against LiveKit directly: connection integrity,
+3. **Now, gating offline** - `tests/judge/src/oracle.py`: deterministic KB assertions
+   (ORC-01..12 on every PR, `make oracle` over recorded calls). Report-only on
+   real calls until a fortnight of nightly runs re-bases the gates.
+4. **Phase 3 (built 2026-09-28)** - `tests/sdk/` against LiveKit directly (docs/livekit-sdk-testing.md): connection integrity,
    turn-taking via VAD, local transcription for content checks, barge-in.
-4. **Later** - semantic scoring layer, concurrent-call load with k6 or Locust,
-   Allure for a single cross-layer report.
+   Sessions come from the product's public session endpoint (the token carries
+   the dispatch to `thinknetic-agents-nonprod`); text, audio publishing, local
+   transcription and barge-in are all built.
+5. **Now, reporting only** - `tests/judge/`: semantic scoring against the KB. Turn
+   `requireSafetyGate` on once a fortnight of scores has re-based the thresholds.
+6. **Later** - concurrent-call load with k6 or Locust, Allure for a single
+   cross-layer report.

@@ -12,7 +12,7 @@ mitigation is containment, not cleverness.
 
 ## Rules
 
-1. **One file.** Every locator lives in `ui/src/selectors.ts`. A test file that
+1. **One file.** Every locator lives in `tests/ui/src/selectors.ts`. A test file that
    contains a selector string is a bug in the test file.
 2. **Role first.** `getByRole('button', { name: /talk to me/i })` survives
    restyling, DOM restructuring and class-name churn. It only breaks when the

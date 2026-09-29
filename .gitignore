@@ -1,6 +1,6 @@
 # node
 node_modules/
-ui/node_modules/
+tests/ui/node_modules/
 *.tsbuildinfo
 
 # python
@@ -17,19 +17,16 @@ __pycache__/
 *.local.json
 
 # test output
-reports/**
-!reports/.gitkeep
-ui/test-results/
-ui/playwright-report/
-ui/blob-report/
+report/**
+!report/.gitkeep
+tests/ui/test-results/
+tests/ui/playwright-report/
+tests/ui/blob-report/
 **/traces/
 **/*.webm
 **/*.zip
 allure-results/
 allure-report/
-
-# audio captured during voice runs
-voice/recordings/
 
 # os
 .DS_Store

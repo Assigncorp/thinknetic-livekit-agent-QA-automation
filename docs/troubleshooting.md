@@ -4,19 +4,19 @@
 Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`, then restart the shell.
 
 ### Playwright cannot find a browser
-`cd ui && npx playwright install chromium`. Browsers live outside the repo, so a
+`cd tests/ui && npx playwright install chromium`. Browsers live outside the repo, so a
 fresh clone always needs this.
 
 ### Every UI test fails at `expect(talkToMe).toBeVisible()`
 Either the dev deployment is down (run `make api` — it takes seconds and will
-tell you), or the button's label changed. Fix it in `ui/src/selectors.ts`, not
+tell you), or the button's label changed. Fix it in `tests/ui/src/selectors.ts`, not
 in the test.
 
 ### The `@live` session tests fail but everything else passes
 Most likely a session panel selector. Run
-`cd ui && npx playwright test --grep @live --headed`, watch what actually renders, and
+`cd tests/ui && npx playwright test --grep @live --headed`, watch what actually renders, and
 correct `sel.chatWidget` (the panel's controls, shared by voice and text) or
-`sel.callerIntake` (the "Before we start" form) in `ui/src/selectors.ts`.
+`sel.callerIntake` (the "Before we start" form) in `tests/ui/src/selectors.ts`.
 
 ### Chrome asks for microphone permission during a run
 The permission should be pre-granted by `playwright.config.ts`. If a prompt

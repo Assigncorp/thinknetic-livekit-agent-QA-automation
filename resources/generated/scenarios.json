@@ -16,9 +16,28 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The machine won't start / starter doesn't crank",
     "expectAnchors": [
+     "30 amp",
      "12 VDC"
     ],
-    "sourceLine": 460
+    "sourceLine": 460,
+    "requiredAnchors": [
+     "30 amp",
+     "12 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "12 VDC"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-002",
@@ -27,7 +46,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine won't start",
     "expectAnchors": [],
-    "sourceLine": 481
+    "sourceLine": 481,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-003",
@@ -40,7 +69,34 @@
      "400 PSI",
      "0 PSI"
     ],
-    "sourceLine": 500
+    "sourceLine": 500,
+    "requiredAnchors": [
+     "1000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 6,
+      "anchor": "1000 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "0 PSI"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "Turn machine off",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-004",
@@ -49,7 +105,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed is limited to 200 FPM and I can't increase it",
     "expectAnchors": [],
-    "sourceLine": 522
+    "sourceLine": 522,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-005",
@@ -61,7 +127,29 @@
      "0.40 amps",
      "0.00 amps"
     ],
-    "sourceLine": 532
+    "sourceLine": 532,
+    "requiredAnchors": [
+     "0.40 amps",
+     "0.00 amps"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "0.40 amps"
+     },
+     {
+      "step": 2,
+      "anchor": "0.00 amps"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-006",
@@ -73,7 +161,29 @@
      "12 VDC",
      "0 VDC"
     ],
-    "sourceLine": 547
+    "sourceLine": 547,
+    "requiredAnchors": [
+     "12 VDC",
+     "0 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 3,
+      "anchor": "12 VDC"
+     },
+     {
+      "step": 4,
+      "anchor": "0 VDC"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-007",
@@ -82,7 +192,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The machine keeps shutting off unexpectedly / Uncommanded Motion Detection (UCMD) alarm",
     "expectAnchors": [],
-    "sourceLine": 576
+    "sourceLine": 576,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-008",
@@ -91,7 +211,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault alarm is showing",
     "expectAnchors": [],
-    "sourceLine": 587
+    "sourceLine": 587,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 3,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-009",
@@ -100,7 +230,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The conveyor won't move",
     "expectAnchors": [],
-    "sourceLine": 600
+    "sourceLine": 600,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-010",
@@ -109,7 +249,17 @@
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The auger won't move",
     "expectAnchors": [],
-    "sourceLine": 622
+    "sourceLine": 622,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-011",
@@ -117,8 +267,27 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The gates won't open or operate",
-    "expectAnchors": [],
-    "sourceLine": 640
+    "expectAnchors": [
+     "18 inches"
+    ],
+    "sourceLine": 640,
+    "requiredAnchors": [
+     "18 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 8,
+    "orderedAnchors": [
+     {
+      "step": 8,
+      "anchor": "18 inches"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-012",
@@ -130,7 +299,29 @@
      "1.0 amp",
      "0.9 amp"
     ],
-    "sourceLine": 675
+    "sourceLine": 675,
+    "requiredAnchors": [
+     "1.0 amp",
+     "0.9 amp"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 1,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "1.0 amp"
+     },
+     {
+      "step": 1,
+      "anchor": "0.9 amp"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-013",
@@ -141,7 +332,24 @@
     "expectAnchors": [
      "1/16\""
     ],
-    "sourceLine": 685
+    "sourceLine": 685,
+    "requiredAnchors": [
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "1/16\""
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-014",
@@ -153,7 +361,29 @@
      "400 PSI",
      "96 RPM"
     ],
-    "sourceLine": 708
+    "sourceLine": 708,
+    "requiredAnchors": [
+     "400 PSI",
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 2,
+      "anchor": "96 RPM"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-015",
@@ -164,7 +394,24 @@
     "expectAnchors": [
      "0.040 inch"
     ],
-    "sourceLine": 727
+    "sourceLine": 727,
+    "requiredAnchors": [
+     "0.040 inch"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "0.040 inch"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "engine off",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-016",
@@ -178,7 +425,39 @@
      "180\u00b0F",
      "140\u00b0F"
     ],
-    "sourceLine": 748
+    "sourceLine": 748,
+    "requiredAnchors": [
+     "400 PSI",
+     "3000 PSI",
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 7,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "180\u00b0F"
+     },
+     {
+      "step": 4,
+      "anchor": "140\u00b0F"
+     },
+     {
+      "step": 7,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 7,
+      "anchor": "3000 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-017",
@@ -189,7 +468,24 @@
     "expectAnchors": [
      "5 PSI"
     ],
-    "sourceLine": 775
+    "sourceLine": 775,
+    "requiredAnchors": [
+     "5 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 10,
+    "orderedAnchors": [
+     {
+      "step": 10,
+      "anchor": "5 PSI"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-018",
@@ -197,8 +493,22 @@
     "kind": "howto",
     "section": "Section 8 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The display says \"ETNYRE NO COMMUNICATION\" or is showing nothing",
-    "expectAnchors": [],
-    "sourceLine": 801
+    "expectAnchors": [
+     "30 amp"
+    ],
+    "sourceLine": 801,
+    "requiredAnchors": [
+     "30 amp"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-019",
@@ -212,7 +522,39 @@
      "39.5 ohms",
      "33.5 ohms"
     ],
-    "sourceLine": 815
+    "sourceLine": 815,
+    "requiredAnchors": [
+     "P2-PIN19",
+     "260 ohms",
+     "39.5 ohms",
+     "33.5 ohms"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "260 ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "39.5 ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "33.5 ohms"
+     },
+     {
+      "step": 6,
+      "anchor": "P2-PIN19"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-020",
@@ -223,7 +565,24 @@
     "expectAnchors": [
      "240\u00b0F"
     ],
-    "sourceLine": 840
+    "sourceLine": 840,
+    "requiredAnchors": [
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "240\u00b0F"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-021",
@@ -233,10 +592,28 @@
     "question": "I see error codes on the display \u2014 what do they mean?",
     "expectAnchors": [
      "400 FPM",
+     "12 VDC",
+     "0 VDC",
      "180\u00b0F",
      "240\u00b0F"
     ],
-    "sourceLine": 863
+    "sourceLine": 863,
+    "requiredAnchors": [
+     "400 FPM",
+     "12 VDC",
+     "0 VDC",
+     "180\u00b0F",
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-022",
@@ -248,7 +625,29 @@
      "200 FPM",
      "7000 PSI"
     ],
-    "sourceLine": 909
+    "sourceLine": 909,
+    "requiredAnchors": [
+     "200 FPM",
+     "7000 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "200 FPM"
+     },
+     {
+      "step": 5,
+      "anchor": "7000 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS28-HOW-023",
@@ -257,7 +656,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "There is a streak or void down the center of the road when both hoppers are fully extended",
     "expectAnchors": [],
-    "sourceLine": 934
+    "sourceLine": 934,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-024",
@@ -266,7 +675,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "There is an overlap or heavy streak in the center of the road when hoppers are fully extended",
     "expectAnchors": [],
-    "sourceLine": 946
+    "sourceLine": 946,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 1,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-025",
@@ -278,7 +697,29 @@
      "96 RPM",
      "1/32\""
     ],
-    "sourceLine": 955
+    "sourceLine": 955,
+    "requiredAnchors": [
+     "96 RPM",
+     "1/32\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "96 RPM"
+     },
+     {
+      "step": 3,
+      "anchor": "1/32\""
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-026",
@@ -289,7 +730,19 @@
     "expectAnchors": [
      "96 RPM"
     ],
-    "sourceLine": 971
+    "sourceLine": 971,
+    "requiredAnchors": [
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-HOW-027",
@@ -298,7 +751,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Output / Product Quality Problems",
     "question": "Material is bridging in the hopper and not flowing through the gate",
     "expectAnchors": [],
-    "sourceLine": 977
+    "sourceLine": 977,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 3,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-028",
@@ -309,7 +772,19 @@
     "expectAnchors": [
      "1300 FPM"
     ],
-    "sourceLine": 1221
+    "sourceLine": 1221,
+    "requiredAnchors": [
+     "1300 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-029",
@@ -320,7 +795,19 @@
     "expectAnchors": [
      "500 FPM"
     ],
-    "sourceLine": 1224
+    "sourceLine": 1224,
+    "requiredAnchors": [
+     "500 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-030",
@@ -329,7 +816,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "How many memory presets are available?",
     "expectAnchors": [],
-    "sourceLine": 1227
+    "sourceLine": 1227,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-031",
@@ -338,7 +835,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What hydraulic oil does the machine use?",
     "expectAnchors": [],
-    "sourceLine": 1230
+    "sourceLine": 1230,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-032",
@@ -347,7 +854,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What gear lube is used in the axles?",
     "expectAnchors": [],
-    "sourceLine": 1233
+    "sourceLine": 1233,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-033",
@@ -356,7 +873,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What grease is used for all bearing fittings?",
     "expectAnchors": [],
-    "sourceLine": 1236
+    "sourceLine": 1236,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-034",
@@ -367,7 +894,19 @@
     "expectAnchors": [
      "400 PSI"
     ],
-    "sourceLine": 1239
+    "sourceLine": 1239,
+    "requiredAnchors": [
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-035",
@@ -379,7 +918,20 @@
      "3000 PSI",
      "3100 PSI"
     ],
-    "sourceLine": 1242
+    "sourceLine": 1242,
+    "requiredAnchors": [
+     "3000 PSI",
+     "3100 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-036",
@@ -391,7 +943,20 @@
      "400 PSI",
      "420 PSI"
     ],
-    "sourceLine": 1245
+    "sourceLine": 1245,
+    "requiredAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-037",
@@ -403,7 +968,20 @@
      "7000 PSI",
      "6500 PSI"
     ],
-    "sourceLine": 1248
+    "sourceLine": 1248,
+    "requiredAnchors": [
+     "7000 PSI",
+     "6500 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-038",
@@ -415,7 +993,20 @@
      "1300 PSI",
      "1400 PSI"
     ],
-    "sourceLine": 1251
+    "sourceLine": 1251,
+    "requiredAnchors": [
+     "1300 PSI",
+     "1400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-039",
@@ -426,7 +1017,19 @@
     "expectAnchors": [
      "1200 PSI"
     ],
-    "sourceLine": 1254
+    "sourceLine": 1254,
+    "requiredAnchors": [
+     "1200 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-040",
@@ -437,7 +1040,19 @@
     "expectAnchors": [
      "250 PSI"
     ],
-    "sourceLine": 1257
+    "sourceLine": 1257,
+    "requiredAnchors": [
+     "250 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-041",
@@ -449,7 +1064,20 @@
      "2000 PSI",
      "2100 PSI"
     ],
-    "sourceLine": 1260
+    "sourceLine": 1260,
+    "requiredAnchors": [
+     "2000 PSI",
+     "2100 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-042",
@@ -460,7 +1088,19 @@
     "expectAnchors": [
      "96 RPM"
     ],
-    "sourceLine": 1263
+    "sourceLine": 1263,
+    "requiredAnchors": [
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-043",
@@ -472,7 +1112,20 @@
      "4 inches",
      "5 inches"
     ],
-    "sourceLine": 1266
+    "sourceLine": 1266,
+    "requiredAnchors": [
+     "4 inches",
+     "5 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-044",
@@ -483,7 +1136,19 @@
     "expectAnchors": [
      "80 PSI"
     ],
-    "sourceLine": 1269
+    "sourceLine": 1269,
+    "requiredAnchors": [
+     "80 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-045",
@@ -492,7 +1157,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "How do I access the Etnyre online version of this manual?",
     "expectAnchors": [],
-    "sourceLine": 1272
+    "sourceLine": 1272,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-046",
@@ -501,7 +1176,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
     "expectAnchors": [],
-    "sourceLine": 1275
+    "sourceLine": 1275,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-047",
@@ -510,7 +1195,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "What is the machine's serial number range for M-215-16?",
     "expectAnchors": [],
-    "sourceLine": 1278
+    "sourceLine": 1278,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS28-FAQ-048",
@@ -519,7 +1214,17 @@
     "section": "Section 15 \u2014 General FAQ",
     "question": "Who do I call for parts?",
     "expectAnchors": [],
-    "sourceLine": 1281
+    "sourceLine": 1281,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    }
   ],
   "vhrs36": [
@@ -530,7 +1235,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter won't crank / the machine won't start cranking",
     "expectAnchors": [],
-    "sourceLine": 547
+    "sourceLine": 547,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "Contact Etnyre"
    },
    {
     "id": "VHRS36-HOW-002",
@@ -539,7 +1254,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine will not start",
     "expectAnchors": [],
-    "sourceLine": 559
+    "sourceLine": 559,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-003",
@@ -552,7 +1277,34 @@
      "400 PSI",
      "0 PSI"
     ],
-    "sourceLine": 573
+    "sourceLine": 573,
+    "requiredAnchors": [
+     "1000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 6,
+      "anchor": "1000 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "0 PSI"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-004",
@@ -561,7 +1313,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed setpoint is limited to 200 FPM and I cannot increase it",
     "expectAnchors": [],
-    "sourceLine": 589
+    "sourceLine": 589,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-005",
@@ -575,7 +1337,22 @@
      "12 VDC",
      "0 VDC"
     ],
-    "sourceLine": 601
+    "sourceLine": 601,
+    "requiredAnchors": [
+     "0.40 amps",
+     "0.00 amps",
+     "12 VDC",
+     "0 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-006",
@@ -584,7 +1361,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Speed sensor fault / uncommanded motion detection (UCMD) shutdown",
     "expectAnchors": [],
-    "sourceLine": 611
+    "sourceLine": 611,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "Warning",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-007",
@@ -593,7 +1380,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault alarm",
     "expectAnchors": [],
-    "sourceLine": 625
+    "sourceLine": 625,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-008",
@@ -602,7 +1399,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No conveyor movement",
     "expectAnchors": [],
-    "sourceLine": 639
+    "sourceLine": 639,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-009",
@@ -611,7 +1418,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No auger movement",
     "expectAnchors": [],
-    "sourceLine": 653
+    "sourceLine": 653,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-010",
@@ -623,7 +1440,29 @@
      "180\u00b0F",
      "140\u00b0F"
     ],
-    "sourceLine": 667
+    "sourceLine": 667,
+    "requiredAnchors": [
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "180\u00b0F"
+     },
+     {
+      "step": 3,
+      "anchor": "140\u00b0F"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-011",
@@ -634,7 +1473,24 @@
     "expectAnchors": [
      "240\u00b0F"
     ],
-    "sourceLine": 683
+    "sourceLine": 683,
+    "requiredAnchors": [
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "240\u00b0F"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-012",
@@ -647,7 +1503,34 @@
      "240 ohms",
      "33.5 ohms"
     ],
-    "sourceLine": 697
+    "sourceLine": 697,
+    "requiredAnchors": [
+     "P2-PIN19",
+     "240 ohms",
+     "33.5 ohms"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "P2-PIN19"
+     },
+     {
+      "step": 4,
+      "anchor": "240 ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "33.5 ohms"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-013",
@@ -659,7 +1542,29 @@
      "2200 RPM",
      "200 FPM"
     ],
-    "sourceLine": 709
+    "sourceLine": 709,
+    "requiredAnchors": [
+     "2200 RPM",
+     "200 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "2200 RPM"
+     },
+     {
+      "step": 1,
+      "anchor": "200 FPM"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-014",
@@ -668,7 +1573,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve",
     "expectAnchors": [],
-    "sourceLine": 723
+    "sourceLine": 723,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 6,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "Shut off the machine",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-015",
@@ -677,7 +1592,17 @@
     "section": "Section 9 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Display says \"ETNYRE NO COMMUNICATION\" or is not working",
     "expectAnchors": [],
-    "sourceLine": 739
+    "sourceLine": 739,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-016",
@@ -690,7 +1615,21 @@
      "180\u00b0F",
      "240\u00b0F"
     ],
-    "sourceLine": 747
+    "sourceLine": 747,
+    "requiredAnchors": [
+     "400 FPM",
+     "180\u00b0F",
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-017",
@@ -701,7 +1640,24 @@
     "expectAnchors": [
      "96 RPM"
     ],
-    "sourceLine": 770
+    "sourceLine": 770,
+    "requiredAnchors": [
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 3,
+      "anchor": "96 RPM"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-018",
@@ -713,7 +1669,29 @@
      "1.0 amp",
      "400 PSI"
     ],
-    "sourceLine": 782
+    "sourceLine": 782,
+    "requiredAnchors": [
+     "1.0 amp",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 2,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "1.0 amp"
+     },
+     {
+      "step": 2,
+      "anchor": "400 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-019",
@@ -722,7 +1700,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Gates will not operate",
     "expectAnchors": [],
-    "sourceLine": 794
+    "sourceLine": 794,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 9,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-020",
@@ -734,7 +1722,29 @@
      "400 PSI",
      "96 RPM"
     ],
-    "sourceLine": 818
+    "sourceLine": 818,
+    "requiredAnchors": [
+     "400 PSI",
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 2,
+      "anchor": "96 RPM"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-021",
@@ -743,7 +1753,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Overlap or streak in the center when hoppers are fully extended",
     "expectAnchors": [],
-    "sourceLine": 832
+    "sourceLine": 832,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-022",
@@ -754,7 +1774,24 @@
     "expectAnchors": [
      "1/16\""
     ],
-    "sourceLine": 840
+    "sourceLine": 840,
+    "requiredAnchors": [
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "1/16\""
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-023",
@@ -763,7 +1800,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Hydraulic standby (load sense) pressure is fluctuating (gauge needle not steady)",
     "expectAnchors": [],
-    "sourceLine": 859
+    "sourceLine": 859,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "engine off",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-024",
@@ -774,7 +1821,24 @@
     "expectAnchors": [
      "96 RPM"
     ],
-    "sourceLine": 873
+    "sourceLine": 873,
+    "requiredAnchors": [
+     "96 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "96 RPM"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-025",
@@ -783,7 +1847,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Material is piling up in one area of the hopper / uneven distribution",
     "expectAnchors": [],
-    "sourceLine": 885
+    "sourceLine": 885,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 3,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-026",
@@ -792,7 +1866,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "I need to do shoulder work or spread a narrow strip",
     "expectAnchors": [],
-    "sourceLine": 895
+    "sourceLine": 895,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-027",
@@ -803,7 +1887,24 @@
     "expectAnchors": [
      "18.0 inches"
     ],
-    "sourceLine": 907
+    "sourceLine": 907,
+    "requiredAnchors": [
+     "18.0 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "18.0 inches"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-028",
@@ -812,7 +1913,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "What is the difference between the RC 36 and RC 28 controllers?",
     "expectAnchors": [],
-    "sourceLine": 1100
+    "sourceLine": 1100,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-029",
@@ -821,7 +1932,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "Can I adjust the speed setpoint while the machine is in motion?",
     "expectAnchors": [],
-    "sourceLine": 1103
+    "sourceLine": 1103,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-030",
@@ -830,7 +1951,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I save operating settings for quick recall?",
     "expectAnchors": [],
-    "sourceLine": 1106
+    "sourceLine": 1106,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-031",
@@ -839,7 +1970,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I read engine fault codes?",
     "expectAnchors": [],
-    "sourceLine": 1115
+    "sourceLine": 1115,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "Warning",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-032",
@@ -848,7 +1989,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "Why won't the right gate open even when everything looks correct?",
     "expectAnchors": [],
-    "sourceLine": 1123
+    "sourceLine": 1123,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-033",
@@ -857,7 +2008,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "What should I do if the machine starts moving unexpectedly?",
     "expectAnchors": [],
-    "sourceLine": 1126
+    "sourceLine": 1126,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-034",
@@ -866,7 +2027,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "How do I set up the ultrasonic conveyor auto switches?",
     "expectAnchors": [],
-    "sourceLine": 1129
+    "sourceLine": 1129,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "CAUTION",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-035",
@@ -880,9 +2051,30 @@
      "6500 PSI",
      "3000 PSI",
      "1300 PSI",
-     "80 PSI"
+     "80 PSI",
+     "1200 PSI",
+     "250 PSI"
     ],
-    "sourceLine": 1150
+    "sourceLine": 1150,
+    "requiredAnchors": [
+     "400 PSI",
+     "7000 PSI",
+     "6500 PSI",
+     "3000 PSI",
+     "1300 PSI",
+     "80 PSI",
+     "1200 PSI",
+     "250 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-036",
@@ -891,7 +2083,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "What does the fuel level resistance calibration table look like?",
     "expectAnchors": [],
-    "sourceLine": 1164
+    "sourceLine": 1164,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-037",
@@ -900,7 +2102,17 @@
     "section": "Section 16 \u2014 General FAQ",
     "question": "What does the hydraulic oil temperature resistance table look like?",
     "expectAnchors": [],
-    "sourceLine": 1172
+    "sourceLine": 1172,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "VHRS36-HOW-038",
@@ -908,8 +2120,22 @@
     "kind": "howto",
     "section": "Section 16 \u2014 General FAQ",
     "question": "What are the RC 36 controller computer connector pin assignments?",
-    "expectAnchors": [],
-    "sourceLine": 1194
+    "expectAnchors": [
+     "5 VDC"
+    ],
+    "sourceLine": 1194,
+    "requiredAnchors": [
+     "5 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    }
   ],
   "fhrc28": [
@@ -923,11 +2149,55 @@
      "P1-PIN 21",
      "P3-PIN 10",
      "6703670",
+     "30 amp",
      "12 VDC",
      "10 VDC",
      "1/16\""
     ],
-    "sourceLine": 464
+    "sourceLine": 464,
+    "requiredAnchors": [
+     "P1-PIN 21",
+     "P3-PIN 10",
+     "6703670",
+     "30 amp",
+     "12 VDC",
+     "10 VDC",
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 3,
+      "anchor": "1/16\""
+     },
+     {
+      "step": 4,
+      "anchor": "12 VDC"
+     },
+     {
+      "step": 4,
+      "anchor": "10 VDC"
+     },
+     {
+      "step": 5,
+      "anchor": "6703670"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 21"
+     },
+     {
+      "step": 6,
+      "anchor": "P3-PIN 10"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-002",
@@ -939,7 +2209,29 @@
      "P2-PIN 19",
      "7 gallons"
     ],
-    "sourceLine": 498
+    "sourceLine": 498,
+    "requiredAnchors": [
+     "P2-PIN 19",
+     "7 gallons"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 7,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "7 gallons"
+     },
+     {
+      "step": 7,
+      "anchor": "P2-PIN 19"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-003",
@@ -953,9 +2245,63 @@
      "30 PSI",
      "65 PSI",
      "5 PSI",
-     "1400 RPM"
+     "1400 RPM",
+     "10 PSI",
+     "1401 RPM"
     ],
-    "sourceLine": 519
+    "sourceLine": 519,
+    "requiredAnchors": [
+     "P2-PIN 18",
+     "P2-PIN 2",
+     "30 PSI",
+     "65 PSI",
+     "5 PSI",
+     "1400 RPM",
+     "10 PSI",
+     "1401 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 8,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "30 PSI"
+     },
+     {
+      "step": 1,
+      "anchor": "65 PSI"
+     },
+     {
+      "step": 1,
+      "anchor": "5 PSI"
+     },
+     {
+      "step": 3,
+      "anchor": "1400 RPM"
+     },
+     {
+      "step": 3,
+      "anchor": "10 PSI"
+     },
+     {
+      "step": 3,
+      "anchor": "1401 RPM"
+     },
+     {
+      "step": 5,
+      "anchor": "P2-PIN 18"
+     },
+     {
+      "step": 5,
+      "anchor": "P2-PIN 2"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-004",
@@ -967,7 +2313,29 @@
      "P2-PIN 20",
      "240\u00b0F"
     ],
-    "sourceLine": 549
+    "sourceLine": 549,
+    "requiredAnchors": [
+     "P2-PIN 20",
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 11,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "240\u00b0F"
+     },
+     {
+      "step": 6,
+      "anchor": "P2-PIN 20"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": true,
+    "safetyEvidence": "caution",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-005",
@@ -979,7 +2347,29 @@
      "P2-PIN 17",
      "180\u00b0F"
     ],
-    "sourceLine": 581
+    "sourceLine": 581,
+    "requiredAnchors": [
+     "P2-PIN 17",
+     "180\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 13,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "180\u00b0F"
+     },
+     {
+      "step": 12,
+      "anchor": "P2-PIN 17"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": true,
+    "safetyEvidence": "caution",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-006",
@@ -988,13 +2378,68 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Gate sensor failure alarm on display (left or right gate)",
     "expectAnchors": [
+     "P1-PIN 10",
+     "P1-PIN 18",
+     "P1-PIN 6",
+     "P1-PIN 11",
+     "P1-PIN 19",
+     "P1-PIN 7",
      "7050350",
-     "5.0 VDC",
-     "1.5 VDC",
-     "1.0 VDC",
-     "270 OHMS"
+     "5.0 VDC"
     ],
-    "sourceLine": 617
+    "sourceLine": 617,
+    "requiredAnchors": [
+     "P1-PIN 10",
+     "P1-PIN 18",
+     "P1-PIN 6",
+     "P1-PIN 11",
+     "P1-PIN 19",
+     "P1-PIN 7",
+     "7050350",
+     "5.0 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 3,
+      "anchor": "7050350"
+     },
+     {
+      "step": 3,
+      "anchor": "5.0 VDC"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 10"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 18"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 6"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 11"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 19"
+     },
+     {
+      "step": 6,
+      "anchor": "P1-PIN 7"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-007",
@@ -1010,7 +2455,49 @@
      "1.2 amps",
      "1,500 PSI"
     ],
-    "sourceLine": 660
+    "sourceLine": 660,
+    "requiredAnchors": [
+     "P4-PIN 5",
+     "P4-PIN 6",
+     "P4-PIN 3",
+     "P4-PIN 4",
+     "1.2 amps",
+     "1,500 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "1.2 amps"
+     },
+     {
+      "step": 2,
+      "anchor": "1,500 PSI"
+     },
+     {
+      "step": 5,
+      "anchor": "P4-PIN 5"
+     },
+     {
+      "step": 5,
+      "anchor": "P4-PIN 6"
+     },
+     {
+      "step": 5,
+      "anchor": "P4-PIN 3"
+     },
+     {
+      "step": 5,
+      "anchor": "P4-PIN 4"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-008",
@@ -1021,7 +2508,24 @@
     "expectAnchors": [
      "1/16\""
     ],
-    "sourceLine": 690
+    "sourceLine": 690,
+    "requiredAnchors": [
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "1/16\""
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-009",
@@ -1033,7 +2537,29 @@
      "400 PSI",
      "100 RPM"
     ],
-    "sourceLine": 705
+    "sourceLine": 705,
+    "requiredAnchors": [
+     "400 PSI",
+     "100 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 2,
+      "anchor": "100 RPM"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-010",
@@ -1045,7 +2571,29 @@
      "400 PSI",
      "040 inch"
     ],
-    "sourceLine": 722
+    "sourceLine": 722,
+    "requiredAnchors": [
+     "400 PSI",
+     "040 inch"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "040 inch"
+     },
+     {
+      "step": 3,
+      "anchor": "400 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": true,
+    "safetyEvidence": "engine off",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-011",
@@ -1054,7 +2602,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Gates will not operate (hydraulic buss bar does not move)",
     "expectAnchors": [],
-    "sourceLine": 738
+    "sourceLine": 738,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 9,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-012",
@@ -1063,7 +2621,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "The starter cranks but the engine will not start",
     "expectAnchors": [],
-    "sourceLine": 772
+    "sourceLine": 772,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 6,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-013",
@@ -1072,7 +2640,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine stops while I am moving and then moves again when I push the joystick to neutral and back forward",
     "expectAnchors": [],
-    "sourceLine": 794
+    "sourceLine": 794,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 1,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-014",
@@ -1083,7 +2661,24 @@
     "expectAnchors": [
      "12 VDC"
     ],
-    "sourceLine": 802
+    "sourceLine": 802,
+    "requiredAnchors": [
+     "12 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 1,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "12 VDC"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-015",
@@ -1094,7 +2689,24 @@
     "expectAnchors": [
      "4.9 volts"
     ],
-    "sourceLine": 813
+    "sourceLine": 813,
+    "requiredAnchors": [
+     "4.9 volts"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 2,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "4.9 volts"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-016",
@@ -1106,7 +2718,29 @@
      "6,500 PSI",
      "7,000 PSI"
     ],
-    "sourceLine": 834
+    "sourceLine": 834,
+    "requiredAnchors": [
+     "6,500 PSI",
+     "7,000 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "6,500 PSI"
+     },
+     {
+      "step": 5,
+      "anchor": "7,000 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-017",
@@ -1119,7 +2753,21 @@
      "3181497",
      "400 PSI"
     ],
-    "sourceLine": 854
+    "sourceLine": 854,
+    "requiredAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-018",
@@ -1128,7 +2776,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "MDC fault code shows \"Invalid Reset\"",
     "expectAnchors": [],
-    "sourceLine": 872
+    "sourceLine": 872,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-019",
@@ -1140,7 +2798,20 @@
      "2,500 FPM",
      "1/16\""
     ],
-    "sourceLine": 882
+    "sourceLine": 882,
+    "requiredAnchors": [
+     "2,500 FPM",
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-020",
@@ -1151,7 +2822,19 @@
     "expectAnchors": [
      "5 VDC"
     ],
-    "sourceLine": 890
+    "sourceLine": 890,
+    "requiredAnchors": [
+     "5 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-021",
@@ -1160,7 +2843,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "MDC fault code shows \"Invalid Program\"",
     "expectAnchors": [],
-    "sourceLine": 898
+    "sourceLine": 898,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-022",
@@ -1169,7 +2862,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Auxiliary hydraulic pressure will not relieve",
     "expectAnchors": [],
-    "sourceLine": 906
+    "sourceLine": 906,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-023",
@@ -1178,7 +2881,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "There is an overlap or heavy streak of material down the center of the road when the hopper is fully extended",
     "expectAnchors": [],
-    "sourceLine": 940
+    "sourceLine": 940,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-024",
@@ -1187,7 +2900,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "There is a void or streak down the center of the road",
     "expectAnchors": [],
-    "sourceLine": 952
+    "sourceLine": 952,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-025",
@@ -1196,7 +2919,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "The application rate on the ground does not match what the display shows",
     "expectAnchors": [],
-    "sourceLine": 964
+    "sourceLine": 964,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-026",
@@ -1205,7 +2938,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Gates are delivering material at low speeds but not maintaining proper rate at high speeds",
     "expectAnchors": [],
-    "sourceLine": 977
+    "sourceLine": 977,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-027",
@@ -1214,7 +2957,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Material is bridging in the hopper \u2014 flow stops intermittently",
     "expectAnchors": [],
-    "sourceLine": 989
+    "sourceLine": 989,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-028",
@@ -1227,7 +2980,21 @@
      "60 PSI",
      "65 PSI"
     ],
-    "sourceLine": 1005
+    "sourceLine": 1005,
+    "requiredAnchors": [
+     "200 FPM",
+     "60 PSI",
+     "65 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-029",
@@ -1236,7 +3003,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine cannot hold position on a grade / rolls back when stopping",
     "expectAnchors": [],
-    "sourceLine": 1015
+    "sourceLine": 1015,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-030",
@@ -1245,7 +3022,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Spreading on shoulders \u2014 material not distributing evenly to the shoulder edge",
     "expectAnchors": [],
-    "sourceLine": 1029
+    "sourceLine": 1029,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-031",
@@ -1254,7 +3041,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Truck is having trouble keeping up / truck is pushing the chipspreader on a downgrade",
     "expectAnchors": [],
-    "sourceLine": 1039
+    "sourceLine": 1039,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-HOW-032",
@@ -1263,7 +3060,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Stopping distances are too long / machine cannot stop quickly enough",
     "expectAnchors": [],
-    "sourceLine": 1050
+    "sourceLine": 1050,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-033",
@@ -1272,7 +3079,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the difference between the FHRC36 and FHRC28?",
     "expectAnchors": [],
-    "sourceLine": 1252
+    "sourceLine": 1252,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-034",
@@ -1281,7 +3098,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What serial numbers does this manual cover?",
     "expectAnchors": [],
-    "sourceLine": 1255
+    "sourceLine": 1255,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-035",
@@ -1292,7 +3119,19 @@
     "expectAnchors": [
      "1,300 FPM"
     ],
-    "sourceLine": 1258
+    "sourceLine": 1258,
+    "requiredAnchors": [
+     "1,300 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-036",
@@ -1304,7 +3143,20 @@
      "200 FPM",
      "400 FPM"
     ],
-    "sourceLine": 1261
+    "sourceLine": 1261,
+    "requiredAnchors": [
+     "200 FPM",
+     "400 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-037",
@@ -1313,7 +3165,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What hydraulic oil should I use?",
     "expectAnchors": [],
-    "sourceLine": 1264
+    "sourceLine": 1264,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-038",
@@ -1322,7 +3184,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What gear lube is required for axle differentials?",
     "expectAnchors": [],
-    "sourceLine": 1267
+    "sourceLine": 1267,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-039",
@@ -1331,7 +3203,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What grease is specified?",
     "expectAnchors": [],
-    "sourceLine": 1270
+    "sourceLine": 1270,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-040",
@@ -1343,7 +3225,20 @@
      "60 PSI",
      "65 PSI"
     ],
-    "sourceLine": 1273
+    "sourceLine": 1273,
+    "requiredAnchors": [
+     "60 PSI",
+     "65 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-041",
@@ -1356,7 +3251,21 @@
      "3/8\"",
      "5/8\""
     ],
-    "sourceLine": 1276
+    "sourceLine": 1276,
+    "requiredAnchors": [
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-042",
@@ -1365,7 +3274,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "How many memory presets are available?",
     "expectAnchors": [],
-    "sourceLine": 1279
+    "sourceLine": 1279,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-043",
@@ -1377,7 +3296,20 @@
      "4.00 inches",
      "5.00 inches"
     ],
-    "sourceLine": 1282
+    "sourceLine": 1282,
+    "requiredAnchors": [
+     "4.00 inches",
+     "5.00 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-044",
@@ -1388,7 +3320,19 @@
     "expectAnchors": [
      "100 RPM"
     ],
-    "sourceLine": 1285
+    "sourceLine": 1285,
+    "requiredAnchors": [
+     "100 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-045",
@@ -1400,7 +3344,20 @@
      "400 PSI",
      "420 PSI"
     ],
-    "sourceLine": 1288
+    "sourceLine": 1288,
+    "requiredAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-046",
@@ -1413,7 +3370,21 @@
      "6,500 PSI",
      "400 PSI"
     ],
-    "sourceLine": 1291
+    "sourceLine": 1291,
+    "requiredAnchors": [
+     "7,000 PSI",
+     "6,500 PSI",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-047",
@@ -1425,7 +3396,20 @@
      "3,000 PSI",
      "400 PSI"
     ],
-    "sourceLine": 1294
+    "sourceLine": 1294,
+    "requiredAnchors": [
+     "3,000 PSI",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-048",
@@ -1436,7 +3420,19 @@
     "expectAnchors": [
      "1,500 PSI"
     ],
-    "sourceLine": 1297
+    "sourceLine": 1297,
+    "requiredAnchors": [
+     "1,500 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-049",
@@ -1448,7 +3444,20 @@
      "2,000 PSI",
      "2,100 PSI"
     ],
-    "sourceLine": 1300
+    "sourceLine": 1300,
+    "requiredAnchors": [
+     "2,000 PSI",
+     "2,100 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-050",
@@ -1459,7 +3468,19 @@
     "expectAnchors": [
      "1,200 PSI"
     ],
-    "sourceLine": 1303
+    "sourceLine": 1303,
+    "requiredAnchors": [
+     "1,200 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-051",
@@ -1470,7 +3491,19 @@
     "expectAnchors": [
      "250 PSI"
     ],
-    "sourceLine": 1306
+    "sourceLine": 1306,
+    "requiredAnchors": [
+     "250 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-052",
@@ -1482,7 +3515,20 @@
      "2,200 RPM",
      "900 RPM"
     ],
-    "sourceLine": 1309
+    "sourceLine": 1309,
+    "requiredAnchors": [
+     "2,200 RPM",
+     "900 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-053",
@@ -1490,8 +3536,22 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
-    "expectAnchors": [],
-    "sourceLine": 1312
+    "expectAnchors": [
+     "12 VDC"
+    ],
+    "sourceLine": 1312,
+    "requiredAnchors": [
+     "12 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-054",
@@ -1500,7 +3560,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "Who do I call for parts and service?",
     "expectAnchors": [],
-    "sourceLine": 1392
+    "sourceLine": 1392,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    },
    {
     "id": "FHRC28-FAQ-055",
@@ -1509,7 +3579,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What information do I need to order parts?",
     "expectAnchors": [],
-    "sourceLine": 1395
+    "sourceLine": 1395,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-056",
@@ -1518,7 +3598,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "Where is Etnyre located?",
     "expectAnchors": [],
-    "sourceLine": 1398
+    "sourceLine": 1398,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC28-FAQ-057",
@@ -1527,7 +3617,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What warranty is provided?",
     "expectAnchors": [],
-    "sourceLine": 1401
+    "sourceLine": 1401,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    }
   ],
   "fhrc36": [
@@ -1538,7 +3638,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Starter does not crank / machine won't turn over",
     "expectAnchors": [],
-    "sourceLine": 582
+    "sourceLine": 582,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    },
    {
     "id": "FHRC36-HOW-002",
@@ -1547,7 +3657,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Starter cranks but the engine will not start",
     "expectAnchors": [],
-    "sourceLine": 596
+    "sourceLine": 596,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    },
    {
     "id": "FHRC36-HOW-003",
@@ -1561,7 +3681,39 @@
      "400 PSI",
      "0 PSI"
     ],
-    "sourceLine": 610
+    "sourceLine": 610,
+    "requiredAnchors": [
+     "0.00 Volts",
+     "1,000 PSI",
+     "400 PSI",
+     "0 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 7,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "0.00 Volts"
+     },
+     {
+      "step": 6,
+      "anchor": "1,000 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 6,
+      "anchor": "0 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": true,
+    "safetyEvidence": "Turn the machine off",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    },
    {
     "id": "FHRC36-HOW-004",
@@ -1570,7 +3722,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Machine speed is limited to 200 FPM and won't go faster",
     "expectAnchors": [],
-    "sourceLine": 632
+    "sourceLine": 632,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-005",
@@ -1583,7 +3745,34 @@
      "0.40 Amps",
      "0.00 Amps"
     ],
-    "sourceLine": 644
+    "sourceLine": 644,
+    "requiredAnchors": [
+     "0 RPM",
+     "0.40 Amps",
+     "0.00 Amps"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "0 RPM"
+     },
+     {
+      "step": 2,
+      "anchor": "0.40 Amps"
+     },
+     {
+      "step": 2,
+      "anchor": "0.00 Amps"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": true,
+    "safetyEvidence": "Warning",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-006",
@@ -1596,7 +3785,21 @@
      "3181497",
      "400 PSI"
     ],
-    "sourceLine": 656
+    "sourceLine": 656,
+    "requiredAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "WARNING",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-007",
@@ -1609,7 +3812,34 @@
      "12 VDC",
      "0 VDC"
     ],
-    "sourceLine": 674
+    "sourceLine": 674,
+    "requiredAnchors": [
+     "400 FPM",
+     "12 VDC",
+     "0 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "400 FPM"
+     },
+     {
+      "step": 4,
+      "anchor": "12 VDC"
+     },
+     {
+      "step": 5,
+      "anchor": "0 VDC"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-008",
@@ -1618,7 +3848,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Uncommanded motion \u2014 machine moves wrong direction / UCMD shutdown",
     "expectAnchors": [],
-    "sourceLine": 703
+    "sourceLine": 703,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-009",
@@ -1627,7 +3867,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Joystick fault / ALARM: JOYSTICK FAILURE",
     "expectAnchors": [],
-    "sourceLine": 719
+    "sourceLine": 719,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 3,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-010",
@@ -1636,7 +3886,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No conveyor movement / conveyors not running",
     "expectAnchors": [],
-    "sourceLine": 736
+    "sourceLine": 736,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-011",
@@ -1645,7 +3905,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No auger movement",
     "expectAnchors": [],
-    "sourceLine": 754
+    "sourceLine": 754,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 4,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-012",
@@ -1656,7 +3926,24 @@
     "expectAnchors": [
      "240\u00b0F"
     ],
-    "sourceLine": 770
+    "sourceLine": 770,
+    "requiredAnchors": [
+     "240\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "240\u00b0F"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-013",
@@ -1670,7 +3957,39 @@
      "33.5 Ohms",
      "39.5 Ohms"
     ],
-    "sourceLine": 788
+    "sourceLine": 788,
+    "requiredAnchors": [
+     "240 Ohms",
+     "260 Ohms",
+     "33.5 Ohms",
+     "39.5 Ohms"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 6,
+    "orderedAnchors": [
+     {
+      "step": 4,
+      "anchor": "240 Ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "260 Ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "33.5 Ohms"
+     },
+     {
+      "step": 4,
+      "anchor": "39.5 Ohms"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-014",
@@ -1683,7 +4002,34 @@
      "180\u00b0F",
      "140\u00b0F"
     ],
-    "sourceLine": 808
+    "sourceLine": 808,
+    "requiredAnchors": [
+     "400 PSI",
+     "180\u00b0F",
+     "140\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 9,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "180\u00b0F"
+     },
+     {
+      "step": 3,
+      "anchor": "140\u00b0F"
+     },
+     {
+      "step": 6,
+      "anchor": "400 PSI"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-015",
@@ -1691,8 +4037,22 @@
     "kind": "howto",
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Display shows \"ETNYRE NO COMMUNICATION\"",
-    "expectAnchors": [],
-    "sourceLine": 835
+    "expectAnchors": [
+     "30 amp"
+    ],
+    "sourceLine": 835,
+    "requiredAnchors": [
+     "30 amp"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-016",
@@ -1701,7 +4061,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "No message on display at all",
     "expectAnchors": [],
-    "sourceLine": 845
+    "sourceLine": 845,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-017",
@@ -1713,7 +4083,29 @@
      "1,500 PSI",
      "0.0 inches"
     ],
-    "sourceLine": 851
+    "sourceLine": 851,
+    "requiredAnchors": [
+     "1,500 PSI",
+     "0.0 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 9,
+    "orderedAnchors": [
+     {
+      "step": 5,
+      "anchor": "1,500 PSI"
+     },
+     {
+      "step": 9,
+      "anchor": "0.0 inches"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-018",
@@ -1724,7 +4116,24 @@
     "expectAnchors": [
      "1.000 amp"
     ],
-    "sourceLine": 875
+    "sourceLine": 875,
+    "requiredAnchors": [
+     "1.000 amp"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 1,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "1.000 amp"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-019",
@@ -1735,7 +4144,24 @@
     "expectAnchors": [
      "1/16\""
     ],
-    "sourceLine": 889
+    "sourceLine": 889,
+    "requiredAnchors": [
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 1,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "1/16\""
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-020",
@@ -1747,7 +4173,29 @@
      "2,200 RPM",
      "200 FPM"
     ],
-    "sourceLine": 910
+    "sourceLine": 910,
+    "requiredAnchors": [
+     "2,200 RPM",
+     "200 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "2,200 RPM"
+     },
+     {
+      "step": 1,
+      "anchor": "200 FPM"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-021",
@@ -1758,7 +4206,24 @@
     "expectAnchors": [
      "5 PSI"
     ],
-    "sourceLine": 930
+    "sourceLine": 930,
+    "requiredAnchors": [
+     "5 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 15,
+    "orderedAnchors": [
+     {
+      "step": 13,
+      "anchor": "5 PSI"
+     }
+    ],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-022",
@@ -1767,7 +4232,17 @@
     "section": "Section 10 \u2014 Troubleshooting \u2014 Machine Systems",
     "question": "Hydraulic standby (load sense) pressure is fluctuating",
     "expectAnchors": [],
-    "sourceLine": 964
+    "sourceLine": 964,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 5,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "engine off",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-023",
@@ -1779,7 +4254,29 @@
      "400 PSI",
      "100 RPM"
     ],
-    "sourceLine": 980
+    "sourceLine": 980,
+    "requiredAnchors": [
+     "400 PSI",
+     "100 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 5,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "400 PSI"
+     },
+     {
+      "step": 2,
+      "anchor": "100 RPM"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-024",
@@ -1788,7 +4285,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Overlap or heavy material in the center when hoppers are fully extended",
     "expectAnchors": [],
-    "sourceLine": 1017
+    "sourceLine": 1017,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-025",
@@ -1797,7 +4304,17 @@
     "section": "Section 11 \u2014 Troubleshooting \u2014 Output Quality Problems",
     "question": "Streak or void in the center of the road",
     "expectAnchors": [],
-    "sourceLine": 1025
+    "sourceLine": 1025,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-026",
@@ -1810,7 +4327,34 @@
      "5/8\"",
      "3/8\""
     ],
-    "sourceLine": 1035
+    "sourceLine": 1035,
+    "requiredAnchors": [
+     "100 RPM",
+     "5/8\"",
+     "3/8\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "5/8\""
+     },
+     {
+      "step": 1,
+      "anchor": "3/8\""
+     },
+     {
+      "step": 4,
+      "anchor": "100 RPM"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-027",
@@ -1822,7 +4366,29 @@
      "1/2\"",
      "1/16\""
     ],
-    "sourceLine": 1047
+    "sourceLine": 1047,
+    "requiredAnchors": [
+     "1/2\"",
+     "1/16\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 4,
+    "orderedAnchors": [
+     {
+      "step": 2,
+      "anchor": "1/2\""
+     },
+     {
+      "step": 4,
+      "anchor": "1/16\""
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-028",
@@ -1834,7 +4400,29 @@
      "100 RPM",
      "0.900 amps"
     ],
-    "sourceLine": 1059
+    "sourceLine": 1059,
+    "requiredAnchors": [
+     "100 RPM",
+     "0.900 amps"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 3,
+    "orderedAnchors": [
+     {
+      "step": 1,
+      "anchor": "100 RPM"
+     },
+     {
+      "step": 2,
+      "anchor": "0.900 amps"
+     }
+    ],
+    "stepOrderCheckable": true,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-029",
@@ -1843,7 +4431,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine is being used for shoulder work \u2014 how do I limit spread width?",
     "expectAnchors": [],
-    "sourceLine": 1071
+    "sourceLine": 1071,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-030",
@@ -1852,7 +4450,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine is being used on steep downgrades \u2014 special precautions?",
     "expectAnchors": [],
-    "sourceLine": 1082
+    "sourceLine": 1082,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-031",
@@ -1864,7 +4472,20 @@
      "0.400 amps",
      "300 FPM"
     ],
-    "sourceLine": 1096
+    "sourceLine": 1096,
+    "requiredAnchors": [
+     "0.400 amps",
+     "300 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-HOW-032",
@@ -1873,7 +4494,17 @@
     "section": "Section 12 \u2014 Troubleshooting \u2014 Application-Specific Problems",
     "question": "Machine was just reassembled after hydraulic work \u2014 what must I do before driving?",
     "expectAnchors": [],
-    "sourceLine": 1102
+    "sourceLine": 1102,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-033",
@@ -1882,7 +4513,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the difference between the FHRC36 and FHRC28?",
     "expectAnchors": [],
-    "sourceLine": 1331
+    "sourceLine": 1331,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-034",
@@ -1891,7 +4532,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What serial numbers does this manual cover?",
     "expectAnchors": [],
-    "sourceLine": 1334
+    "sourceLine": 1334,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-035",
@@ -1902,7 +4553,19 @@
     "expectAnchors": [
      "1,300 FPM"
     ],
-    "sourceLine": 1337
+    "sourceLine": 1337,
+    "requiredAnchors": [
+     "1,300 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-036",
@@ -1914,7 +4577,20 @@
      "200 FPM",
      "400 FPM"
     ],
-    "sourceLine": 1340
+    "sourceLine": 1340,
+    "requiredAnchors": [
+     "200 FPM",
+     "400 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-037",
@@ -1923,7 +4599,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What hydraulic oil should I use?",
     "expectAnchors": [],
-    "sourceLine": 1343
+    "sourceLine": 1343,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-038",
@@ -1932,7 +4618,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What gear lube is required for axle differentials?",
     "expectAnchors": [],
-    "sourceLine": 1346
+    "sourceLine": 1346,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-039",
@@ -1941,7 +4637,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What grease is specified?",
     "expectAnchors": [],
-    "sourceLine": 1349
+    "sourceLine": 1349,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-040",
@@ -1953,7 +4659,20 @@
      "60 PSI",
      "65 PSI"
     ],
-    "sourceLine": 1352
+    "sourceLine": 1352,
+    "requiredAnchors": [
+     "60 PSI",
+     "65 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-041",
@@ -1966,7 +4685,21 @@
      "3/8\"",
      "5/8\""
     ],
-    "sourceLine": 1355
+    "sourceLine": 1355,
+    "requiredAnchors": [
+     "1/4\"",
+     "3/8\"",
+     "5/8\""
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-042",
@@ -1975,7 +4708,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "How many memory presets are available?",
     "expectAnchors": [],
-    "sourceLine": 1358
+    "sourceLine": 1358,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-043",
@@ -1987,7 +4730,20 @@
      "4.00 inches",
      "5.00 inches"
     ],
-    "sourceLine": 1361
+    "sourceLine": 1361,
+    "requiredAnchors": [
+     "4.00 inches",
+     "5.00 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-044",
@@ -1998,7 +4754,19 @@
     "expectAnchors": [
      "100 RPM"
     ],
-    "sourceLine": 1364
+    "sourceLine": 1364,
+    "requiredAnchors": [
+     "100 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-045",
@@ -2010,7 +4778,20 @@
      "400 PSI",
      "420 PSI"
     ],
-    "sourceLine": 1367
+    "sourceLine": 1367,
+    "requiredAnchors": [
+     "400 PSI",
+     "420 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-046",
@@ -2023,7 +4804,21 @@
      "6,500 PSI",
      "400 PSI"
     ],
-    "sourceLine": 1370
+    "sourceLine": 1370,
+    "requiredAnchors": [
+     "7,000 PSI",
+     "6,500 PSI",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-047",
@@ -2035,7 +4830,20 @@
      "3,000 PSI",
      "400 PSI"
     ],
-    "sourceLine": 1373
+    "sourceLine": 1373,
+    "requiredAnchors": [
+     "3,000 PSI",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-048",
@@ -2046,7 +4854,19 @@
     "expectAnchors": [
      "1,500 PSI"
     ],
-    "sourceLine": 1376
+    "sourceLine": 1376,
+    "requiredAnchors": [
+     "1,500 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-049",
@@ -2058,7 +4878,20 @@
      "2,000 PSI",
      "2,100 PSI"
     ],
-    "sourceLine": 1379
+    "sourceLine": 1379,
+    "requiredAnchors": [
+     "2,000 PSI",
+     "2,100 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-050",
@@ -2069,7 +4902,19 @@
     "expectAnchors": [
      "1,200 PSI"
     ],
-    "sourceLine": 1382
+    "sourceLine": 1382,
+    "requiredAnchors": [
+     "1,200 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-051",
@@ -2080,7 +4925,19 @@
     "expectAnchors": [
      "250 PSI"
     ],
-    "sourceLine": 1385
+    "sourceLine": 1385,
+    "requiredAnchors": [
+     "250 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-052",
@@ -2092,7 +4949,20 @@
      "2,200 RPM",
      "900 RPM"
     ],
-    "sourceLine": 1388
+    "sourceLine": 1388,
+    "requiredAnchors": [
+     "2,200 RPM",
+     "900 RPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-053",
@@ -2100,8 +4970,22 @@
     "kind": "faq",
     "section": "Section 17 \u2014 General FAQ",
     "question": "How do I report a safety defect?",
-    "expectAnchors": [],
-    "sourceLine": 1391
+    "expectAnchors": [
+     "5 VDC"
+    ],
+    "sourceLine": 1391,
+    "requiredAnchors": [
+     "5 VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-054",
@@ -2110,7 +4994,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "Who do I call for parts and service?",
     "expectAnchors": [],
-    "sourceLine": 1443
+    "sourceLine": 1443,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    },
    {
     "id": "FHRC36-FAQ-055",
@@ -2119,7 +5013,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What information do I need to order parts?",
     "expectAnchors": [],
-    "sourceLine": 1446
+    "sourceLine": 1446,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-056",
@@ -2128,7 +5032,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "Where is Etnyre located?",
     "expectAnchors": [],
-    "sourceLine": 1449
+    "sourceLine": 1449,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-057",
@@ -2137,7 +5051,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What warranty is provided?",
     "expectAnchors": [],
-    "sourceLine": 1452
+    "sourceLine": 1452,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-058",
@@ -2146,7 +5070,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is covered by M-218-19?",
     "expectAnchors": [],
-    "sourceLine": 1457
+    "sourceLine": 1457,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-059",
@@ -2157,7 +5091,19 @@
     "expectAnchors": [
      "12VDC"
     ],
-    "sourceLine": 1460
+    "sourceLine": 1460,
+    "requiredAnchors": [
+     "12VDC"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-060",
@@ -2166,7 +5112,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the Sonic Bin Switch setup procedure?",
     "expectAnchors": [],
-    "sourceLine": 1466
+    "sourceLine": 1466,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "FHRC36-FAQ-061",
@@ -2175,7 +5131,17 @@
     "section": "Section 17 \u2014 General FAQ",
     "question": "What is the Emergency Driveline Disengage procedure?",
     "expectAnchors": [],
-    "sourceLine": 1469
+    "sourceLine": 1469,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": true,
+    "escalationEvidence": "888-586-1899"
    }
   ],
   "general": [
@@ -2187,11 +5153,30 @@
     "question": "Speed sensor error alarm is sounding; machine is not moving as expected",
     "expectAnchors": [
      "P1-PIN 21",
+     "P3-PIN 10",
+     "6703670",
      "12 volts",
      "10 volts",
      "7 volts"
     ],
-    "sourceLine": 247
+    "sourceLine": 247,
+    "requiredAnchors": [
+     "P1-PIN 21",
+     "P3-PIN 10",
+     "6703670",
+     "12 volts",
+     "10 volts",
+     "7 volts"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-002",
@@ -2205,9 +5190,30 @@
      "68 gallons",
      "140 ohms",
      "32 gallons",
-     "94 ohms"
+     "94 ohms",
+     "18 gallons",
+     "63 ohms"
     ],
-    "sourceLine": 285
+    "sourceLine": 285,
+    "requiredAnchors": [
+     "P2-PIN 19",
+     "250 ohms",
+     "68 gallons",
+     "140 ohms",
+     "32 gallons",
+     "94 ohms",
+     "18 gallons",
+     "63 ohms"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-003",
@@ -2221,9 +5227,30 @@
      "5 PSI",
      "1,400 RPM",
      "10 PSI",
-     "30 PSI"
+     "30 PSI",
+     "65 PSI",
+     "0 PSI"
     ],
-    "sourceLine": 314
+    "sourceLine": 314,
+    "requiredAnchors": [
+     "P2-PIN 18",
+     "P2-PIN 2",
+     "5 PSI",
+     "1,400 RPM",
+     "10 PSI",
+     "30 PSI",
+     "65 PSI",
+     "0 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-004",
@@ -2232,9 +5259,35 @@
     "section": "Problem 4 \u2014 Water Temperature Alarm",
     "question": "Water temperature alarm is active",
     "expectAnchors": [
-     "P2-PIN 20"
+     "P2-PIN 20",
+     "100 ohms",
+     "73 ohms",
+     "54 ohms",
+     "40 ohms",
+     "27 ohms",
+     "160\u00b0F",
+     "180\u00b0F"
     ],
-    "sourceLine": 355
+    "sourceLine": 355,
+    "requiredAnchors": [
+     "P2-PIN 20",
+     "100 ohms",
+     "73 ohms",
+     "54 ohms",
+     "40 ohms",
+     "27 ohms",
+     "160\u00b0F",
+     "180\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "caution",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-005",
@@ -2246,7 +5299,20 @@
      "P2-PIN 17",
      "180\u00b0F"
     ],
-    "sourceLine": 396
+    "sourceLine": 396,
+    "requiredAnchors": [
+     "P2-PIN 17",
+     "180\u00b0F"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-006",
@@ -2255,12 +5321,35 @@
     "section": "Problem 6 \u2014 Gate Sensor Failure Alarm (Rexroth Computer)",
     "question": "Gate sensor failure alarm \u2014 the digital display will indicate which side has the failure",
     "expectAnchors": [
+     "P1-PIN 10",
+     "P1-PIN 18",
+     "P1-PIN 6",
+     "P1-PIN 11",
+     "P1-PIN 19",
+     "P1-PIN 7",
      "7050350",
-     "5.0 volts",
-     "1.5 volts",
-     "1.0 volt"
+     "5.0 volts"
     ],
-    "sourceLine": 432
+    "sourceLine": 432,
+    "requiredAnchors": [
+     "P1-PIN 10",
+     "P1-PIN 18",
+     "P1-PIN 6",
+     "P1-PIN 11",
+     "P1-PIN 19",
+     "P1-PIN 7",
+     "7050350",
+     "5.0 volts"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-007",
@@ -2274,9 +5363,28 @@
      "1.5 volts",
      "1.0 volt",
      "3 volts",
-     "1 volt"
+     "1 volt",
+     "4 volts"
     ],
-    "sourceLine": 484
+    "sourceLine": 484,
+    "requiredAnchors": [
+     "7050350",
+     "5 volts",
+     "1.5 volts",
+     "1.0 volt",
+     "3 volts",
+     "1 volt",
+     "4 volts"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-008",
@@ -2291,7 +5399,23 @@
      "P4-PIN 4",
      "1.2 amps"
     ],
-    "sourceLine": 509
+    "sourceLine": 509,
+    "requiredAnchors": [
+     "P4-PIN 5",
+     "P4-PIN 6",
+     "P4-PIN 3",
+     "P4-PIN 4",
+     "1.2 amps"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-009",
@@ -2300,7 +5424,17 @@
     "section": "Problem 9 \u2014 Air Gates Out of Adjustment (Very Loud Noise When Master Power Turns On or Off)",
     "question": "Very loud noise when master power is switched on or off",
     "expectAnchors": [],
-    "sourceLine": 543
+    "sourceLine": 543,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-010",
@@ -2309,7 +5443,17 @@
     "section": "Problem 10 \u2014 Spreadroll Speed Fluctuating",
     "question": "The spread roll motor speed is not steady",
     "expectAnchors": [],
-    "sourceLine": 568
+    "sourceLine": 568,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-011",
@@ -2320,7 +5464,19 @@
     "expectAnchors": [
      "0.040 inches"
     ],
-    "sourceLine": 594
+    "sourceLine": 594,
+    "requiredAnchors": [
+     "0.040 inches"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-012",
@@ -2329,7 +5485,17 @@
     "section": "Problem 12 \u2014 Overlap or Streak in Center When Hoppers Are Fully Extended",
     "question": "Material is either too heavy in the middle (overlap) or leaving a void down the center of the road (streak)",
     "expectAnchors": [],
-    "sourceLine": 619
+    "sourceLine": 619,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-013",
@@ -2341,7 +5507,20 @@
      "2,200 RPM",
      "200 FPM"
     ],
-    "sourceLine": 631
+    "sourceLine": 631,
+    "requiredAnchors": [
+     "2,200 RPM",
+     "200 FPM"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 2,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-014",
@@ -2350,7 +5529,17 @@
     "section": "Problem 14 \u2014 Auxiliary Hydraulic Pressure Will Not Relieve",
     "question": "Pressure does not relieve after reaching main pressure. This creates heat, torque loss, and a hard start condition",
     "expectAnchors": [],
-    "sourceLine": 665
+    "sourceLine": 665,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": true,
+    "safetyEvidence": "Shut off the machine",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-015",
@@ -2359,7 +5548,17 @@
     "section": "Problem 15 \u2014 Gates Will Not Operate (Hydraulic Buss Bar)",
     "question": "Gates do not respond to controls",
     "expectAnchors": [],
-    "sourceLine": 698
+    "sourceLine": 698,
+    "requiredAnchors": [],
+    "anchorSource": "none",
+    "structuralOnly": true,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-016",
@@ -2370,7 +5569,19 @@
     "expectAnchors": [
      "12 volts"
     ],
-    "sourceLine": 731
+    "sourceLine": 731,
+    "requiredAnchors": [
+     "12 volts"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    },
    {
     "id": "GENERAL-PRB-017",
@@ -2383,7 +5594,21 @@
      "3181497",
      "400 PSI"
     ],
-    "sourceLine": 754
+    "sourceLine": 754,
+    "requiredAnchors": [
+     "9410200",
+     "3181497",
+     "400 PSI"
+    ],
+    "anchorSource": "extracted",
+    "structuralOnly": false,
+    "stepCount": 0,
+    "orderedAnchors": [],
+    "stepOrderCheckable": false,
+    "safetyRequired": false,
+    "safetyEvidence": "",
+    "escalate": false,
+    "escalationEvidence": ""
    }
   ]
  }

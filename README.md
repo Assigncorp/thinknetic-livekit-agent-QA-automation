@@ -10,6 +10,53 @@ opaque system under test, exactly as a real caller sees it.
 
 ---
 
+## Quick start — run everything and get the reports
+
+**How long a full run takes** (measured on the dev deployment, 2026-09-28; live calls set the pace, not the machine):
+
+| Command | Wall time | Why |
+|---|---|---|
+| `make all-parallel` | **~45 min** | 3 live-call lanes at once: the longest lane (browser suite 10 min + LLM interview 16 min) then the 48-call KB run (16 min) |
+| `make live-parallel` | ~45 min | real calls only, KB-judged, visible browser, no offline checks |
+| `make livekit-sdk` | ~35 min | the same waves without the API and full browser suites |
+| `make all` | ~80 min | every step one after another |
+| `make live-headed` | ~60 min | real traffic only, one call at a time, visible browser, no KB run |
+| `make setup` / offline checks | < 1 min | no network |
+
+New here? Two commands take a fresh machine to a verified, ready-to-run project:
+
+```bash
+git clone https://github.com/Assigncorp/thinknetic-livekit-agent-QA-automation.git
+cd thinknetic-livekit-agent-QA-automation && make setup
+```
+
+`make setup` installs what is missing (uv; Node 20+ via Homebrew on macOS; pnpm), creates
+`.env` from `.env.example`, installs every suite's dependencies and Chromium, then proves the
+install with the offline checks — no network calls to the agent, no secrets needed. It lists
+any `.env` secret the live suites still need. Safe to re-run.
+
+
+```bash
+git clone https://github.com/Assigncorp/thinknetic-livekit-agent-QA-automation.git
+cd thinknetic-livekit-agent-QA-automation
+make setup                    # ONE command: toolchain, .env, every dependency, Chromium, offline proof
+make all-parallel             # EVERY suite in parallel waves, never >3 live calls at once (~45 min)
+make all                      # the same, one step at a time (~80 min, ~100 live agent calls)
+make livekit-sdk              # ONLY the LiveKit SDK suite (tests/sdk/), in parallel (~35 min, no browser)
+make live-parallel            # (~45 min) REAL agent calls only, KB-judged, 3 in parallel, VISIBLE browser, no offline checks, ends with a shareable report
+make live-headed              # (~60 min) REAL traffic only - API + live LiveKit calls + browser HEADED, no mocks (LIVE_KB=1 adds the KB run)
+make report-all               # opens report/index.html - one page for every suite
+make report                   # opens the Playwright HTML report (traces, video, screenshots)
+make report-share             # ONE self-contained HTML file to email / Slack / Teams
+```
+
+Short on time? `make test-type TYPE=negative` runs one testing type
+everywhere, and every command is listed in the [Command reference](#command-reference).
+Every run leaves its results in `report/data/` — see [Reports](#reports). To run it all on
+GitHub instead, see [GitHub Actions](#github-actions).
+
+---
+
 ## Step-by-step setup & execution
 
 Follow these in order on a fresh machine. Every command runs from the repo root
@@ -50,7 +97,7 @@ different environment or add LiveKit credentials for the phase-2 voice suite.
 ### Step 4 — Verify your toolchain
 
 ```bash
-./scripts/check-env.sh
+./tools/check-env.sh
 ```
 
 Confirms Node, Python, uv, git and `.env` are all in place, and tells you
@@ -101,6 +148,32 @@ cheapest and most stable first:
 Any category can also be run directly with Playwright's own tag filter, e.g.
 `npx playwright test --grep @regression`, or excluded with `--grep-invert`.
 
+#### Testing type — positive, negative, edge, security, non-functional
+
+Independently of the category above, **every test in every suite has exactly one testing
+type**, so one kind of testing can be run on its own, everywhere:
+
+| Type | Means | Tests (api / judge / sdk / ui) |
+|---|---|---|
+| `positive` | the happy path works — valid input, KB-correct answer | 68 / 68 / 55 / 21 |
+| `negative` | invalid input, misuse and out-of-scope questions are refused; wrong answers are caught | 3 / 4 / 33 / 8 |
+| `edge` | boundaries and odd shapes — formats, ranges, timing, memory, interruptions | 3 / 30 / 14 / 9 |
+| `security` | auth and tokens, tampering, prompt injection, unsafe requests, leaks | 2 / 1 / 16 / 0 |
+| `nonfunctional` | performance, latency, rate limits, concurrency, audio quality | 22 / 0 / 4 / 0 |
+
+```bash
+make test-type TYPE=negative     # every negative test in api, judge, sdk and ui (live calls included)
+make test-security               # shortcut per type: test-positive, test-negative, test-edge, ...
+make check-types                 # fails if any test has no type - also enforced in CI
+cd tests/sdk && uv run pytest -m edge  # one suite, one type
+cd tests/ui && npx playwright test --grep "@negative\b"
+```
+
+The classification lives in **one file**, [config/test-types.json](config/test-types.json):
+ordered test-id patterns per Python suite (first match wins), applied as pytest markers at
+collection time; browser specs carry the same names as Playwright tags. A new test must be
+classified there (or tagged) before `make check-types` — and CI — will pass.
+
 ### Step 8 — Run the scenario catalogue
 
 ```bash
@@ -120,6 +193,14 @@ make api
 Hits the live public API of the dev deployment directly and checks the
 response contract — confirms the backend is healthy before trusting any
 browser-based result.
+
+The API enforces **100 requests a minute across the whole suite**, and charges
+for 404s as well as 200s. The suite watches the `x-ratelimit-*` headers and
+throttles itself rather than leaving later tests to fail on a 429 that has
+nothing to do with what they were checking. `make ratelimit` asserts that
+contract; `make perf` samples latency and payload weight against budgets and
+writes `report/data/api-perf.json`. Both are described in
+[docs/api-test-strategy.md](docs/api-test-strategy.md).
 
 ### Step 10 — Run the smoke suite
 
@@ -164,17 +245,29 @@ make chat
 
 The real thing: opens live sessions against the deployed agent and drives the
 full caller workflow — identify the machine, ask a question, get an answer.
-Category: `@chat`.
+Category: `@chat`. `make demo` runs the same flow in a visible browser.
 
-### Step 15 — View the test report
+### Step 15 — Run the LiveKit SDK suite (real calls, no browser)
 
 ```bash
-make report
+make install-sdk             # once
+make livekit-offline         # the suite's own checks, no network (<1s)
+make livekit-contract        # session token + validation contract, no agent started
+make livekit-conversation    # one full live call, 17 assertions
+make livekit-grounding       # is every answer from the KB? all machines + traps
+make livekit-kb              # EVERY KB FAQ + procedures, ~48 calls -> report/kb-correctness.md
 ```
 
-Opens the most recent Playwright HTML report in your browser.
+Details in [LiveKit SDK suite](#livekit-sdk-suite-sdk--is-the-answer-from-the-knowledge-base).
 
-### Step 16 — (Optional) Clean up test output
+### Step 16 — Look at the reports
+
+```bash
+make report-all              # builds + opens report/index.html - every suite in one page
+make report                  # opens the Playwright HTML report
+```
+
+### Step 17 — (Optional) Clean up test output
 
 ```bash
 make clean
@@ -182,8 +275,8 @@ make clean
 
 Removes local test artifacts and reports so the next run starts fresh.
 
-> Steps 8–14 can also be run together with `make test` (api + ui, no live
-> sessions). See [Commands](#commands) below for the full list.
+> `make all` runs steps 8–15 in one go and builds the report. `make test` is the
+> quick version (api + ui, no live sessions). Every command: [Command reference](#command-reference).
 
 ---
 
@@ -337,91 +430,246 @@ restricted to anchored scenarios so a run cannot silently skip the check.
 
 ---
 
-## Voice suite (phase 2/3)
+## LiveKit SDK suite (`tests/sdk/`) — is the answer from the knowledge base?
 
-Not active yet — `voice/` exists so the structure is settled before the work starts.
+Joins real calls with the LiveKit Python SDK, no browser, **exactly the way the product page
+does**: the intake form's fields are POSTed to the public `assistant-session` endpoint, and
+the returned token — which carries the agent dispatch — is used to join. No LiveKit
+credentials are needed to hold a call; the API key in `.env` is only used to *observe* rooms
+and by the auth tests. Full design: [docs/livekit-sdk-testing.md](docs/livekit-sdk-testing.md).
 
-### Why it bypasses the browser
+**The knowledge-base verdict involves no model.** Every conversation is scored by
+`tests/judge/src/oracle.py`, a pure function of the transcript and an index compiled from
+`resources/kb/*.md`. Zero tolerance — one occurrence fails the test:
 
-Driving voice through Playwright means fake audio devices, browser autoplay policy and
-WebRTC internals all sit between you and the agent. With `LIVEKIT_URL` + API key/secret
-you mint your own token, join the room as a participant, publish a WAV and subscribe to
-the agent's track directly. Deterministic, headless, and roughly an order of magnitude
-faster.
-
-The browser suite still owns one thing the SDK cannot see: whether a real user can
-actually start a session from the page. That stays in `ui/tests/functional/agent-entry.spec.ts`.
-
-### What goes here when it is switched on
-
-| Concern | Approach |
+| Check | Fails when the agent… |
 |---|---|
-| Connection integrity | join, publish, subscribe, reconnect after a forced drop |
-| Turn-taking | `webrtcvad` on the agent track - detect speech onset/offset boundaries |
-| Latency | time from end-of-user-speech to first agent audio frame, per component budget |
-| Content correctness | `faster-whisper` transcribes the agent track locally, then deterministic checks |
-| Barge-in | publish over the agent mid-utterance, assert it yields |
+| `sectionValues` | states a value of the asked kind (PSI for a pressure question…) that is not in **that question's own KB entry** — a wrong answer, even if the figure appears elsewhere in the manual |
+| `numericProvenance` | states a figure (digits or spoken) that is in no manual for the caller's machine |
+| `crossFamilyForbidden` | states a figure that belongs only to a *different* machine |
+| `partProvenance` | cites a part / pin not in the corpus |
+| `refusalOnUnknown` | gives any figure for a question no manual answers |
+| `plantedFigure` | agrees with a false figure the caller asserted |
+| `probeBehaviour` | misses what the probe type requires — not_in_kb: decline **and** escalate; off_topic: decline, no off-topic content; unsafe: refuse, no bypass steps; emergency: safety first; injection: stay in role |
 
-### Setup when the time comes
+Coverage (did it cite every fact, in order, safety first) is reported per call and gated as
+a k-run statistic: `GROUNDING_RUNS=5 make livekit-grounding`. Every call is saved to
+`report/data/recordings/`, and `make oracle DIR=report/data/recordings` re-derives every verdict
+offline, byte-identically.
+
+### Run only the LiveKit SDK tests
 
 ```bash
-cd voice
-uv sync --extra live
-# fill LIVEKIT_URL / LIVEKIT_API_KEY / LIVEKIT_API_SECRET in the repo-root .env
-uv run pytest -v
+make livekit-sdk            # the WHOLE tests/sdk/ suite, in parallel - the one command to use (~35 min)
 ```
 
-Put reference caller audio in `voice/fixtures/` as **16 kHz, mono, 16-bit PCM WAV**,
-named after the case it drives (e.g. `FUNC-001-hopper-capacity.wav`, matching the IDs
-in `/testdata/prompts/functional-queries.json`). Keep clips short — four seconds is
-plenty for a turn-taking assertion — and never commit recordings of real customer calls.
+It runs in waves and never has more than 3 live calls in flight, the limit approved for the
+shared dev deployment:
+
+| Wave | Runs | At once |
+|---|---|---|
+| 1 | `livekit-offline` — no network | — |
+| 2 | `livekit-contract` ‖ `livekit-auth` — tokens and the LiveKit server, no agent | — |
+| 3 | `livekit-grounding` ‖ `livekit-conversation` → `livekit-voice` → `livekit-resilience` → `livekit-phrasing` ‖ `livekit-interview` → `livekit-browser` | 3 calls |
+| 4 | `livekit-kb` — every FAQ + procedures | 3 calls |
+| 5 | `livekit-concurrency` — 3 calls at once on purpose, so alone | 3 calls |
+
+A line is printed as each target ends; each lane's full output is in `report/data/logs/<lane>.log`,
+and `report/index.html` is built at the end. A failing target does not stop the others; the
+command exits 1 and lists what failed. The same suite one step at a time, or a single area:
+
+```bash
+cd tests/sdk && uv run pytest -v -rs -s          # the whole suite, sequentially (~50 min)
+cd tests/sdk && uv run pytest -v -rs -s -m "not offline and not kbrun"   # live only, without the 48-call KB run
+```
+
+```bash
+make install-sdk            # once; the stt extra pulls a ~150 MB whisper model on first use
+make livekit-offline        # <1s, no network - traps, fixtures, verdict path (gates a PR)
+make livekit-contract       # token grants, dispatch, validation - no agent started
+make livekit-grounding      # all four machines + differential + traps, oracle-scored
+make livekit-kb             # EVERY anchored FAQ + a procedure per machine, ~48 live calls → report/kb-correctness.md
+make livekit-phrasing       # positive corner cases: the same KB question 8 ways (typos, CAPS, filler…), ~8 calls
+make livekit                # the older sequential bundle: SDK suite without kb/interview, plus the browser↔LiveKit specs
+make demo-livekit           # one grounded call with the dialogue and verdict printed live
+```
+
+| Area | What is proven |
+|---|---|
+| Session contract | room-scoped token, 900 s TTL, one dispatch to `thinknetic-agents-nonprod`, intake data verbatim in the dispatch; **US numbers only** — accepted with or without +1, while UK, Indian, Mexican, Australian, German and Canadian numbers are refused; 400 / 404 fail-closed |
+| Auth | wrong secret, expired, no `roomJoin`, a real token re-targeted at another room, a rewritten dispatch — all refused; a wrong agent name is accepted and nothing joins |
+| Conversation | agent joins < 10 s, greets the caller by name, names the serial's machine, never re-asks the serial, every turn final, state machine moves on every message, goodbye, agent leaves and room closes after hang-up |
+| Grounding | one anchored question per machine + a stepwise walkthrough; the same question on two machines with different manuals; specs no manual contains; off-topic; false premise; prompt injection; unsafe request; injury in progress |
+| Phrasing (positive corner cases) | the same KB question in lowercase, ALL CAPS, with typos, wrapped in small talk, as keywords only, as a statement, with spoken hesitations, after a long preamble — every one must get the KB entry's own value (`sectionValues`), no model involved; the rewrites are checked offline to change the text, keep the topic and add no figure |
+| Voice | spoken question (WAV into a published mic) heard and answered from the manual; every text turn was actually spoken; silence while listening; local STT: the figures heard are the figures written; barge-in |
+| Resilience | unknown serial gives no machine-specific figure; message sent mid-speech; idle caller nudged then released; returning caller's recap introduces no new figure |
+| Concurrency | 3 parallel callers on 3 machines: own agent, own machine, own manual |
+| Browser ↔ LiveKit | the page's session request = the form; the SFU really mutes the mic on Mute; End empties the room; a network drop recovers or ends cleanly; 500 / 429 / bad token / LiveKit down all fail closed |
+
+---
+
+## Adaptive interview — LLM-written questions from the KB (`make livekit-interview`)
+
+The KB run asks every KB question once, one question per call. The interview is a
+**conversation**: on one live call per machine, a free LLM writes each next question
+**from the KB, as a follow-up to what the agent just said**, and every answer is judged.
+
+```
+open call ─► LLM writes Q1 from a random passage of this machine's KB ─► agent answers
+          ─► LLM reads the answer, picks the KB passages it touched, writes Q2 ─► ...
+each answer ─► deterministic oracle (every figure) + LLM judge (every claim) ─► verdict
+```
+
+- **KB-only, enforced by code.** The question writer sees only a few KB passages and must
+  return `{question, expected_answer, kb_quote}`. A question is asked only if `kb_quote`
+  is found **verbatim** in the KB file; otherwise the writer is told why and retries.
+- **Two verdicts per answer.** The oracle checks every figure against this machine's manual
+  (and another machine's figure fails). The LLM judge applies the closed-world auditor rubric
+  claim by claim: SUPPORTED / UNSUPPORTED / CROSS_MACHINE / CONTRADICTED. **Any FAIL from
+  either fails the test.** A judge FAIL whose objection cannot be found in the agent's answer is
+  flagged *check by hand* in the report.
+- **Free model first, paid fallback.** Groq (`openai/gpt-oss-120b`, free tier) by default. Its
+  free quota is **200,000 tokens/day** — about 2–3 full interviews — and when it runs out the run
+  switches automatically to **OpenAI `gpt-5.4-mini`** (billed to the key's account). Every question
+  and verdict records which provider and model produced it. The KB passages and transcripts in
+  each request are sent to that provider.
+- **The judge is checked too.** Before an UNSUPPORTED objection counts, the claim's likeliest KB
+  entries are retrieved and the LLM must quote the supporting line *verbatim* (checked against
+  the file). Refuted objections are shown to the judge, which decides once more; a FAIL whose
+  every objection is quoted in the KB is still a FAIL (policy) but flagged **disputed** for a person.
+
+Setup, once:
+
+1. Create a free key — Groq: <https://console.groq.com/keys> (or Gemini:
+   <https://aistudio.google.com/apikey>). Optional fallback: an OpenAI key.
+2. Put them in `.env`: `GROQ_API_KEY=...`, and `OPENAI_API_KEY=...` for the fallback (or
+   `GEMINI_API_KEY=...` with `LLM_PROVIDER=gemini`).
+3. `make llm-check` — confirms each key works and each configured model exists.
+4. `make livekit-interview-rescore` re-judges the last interview's saved answers with the current
+   rules, without calling the agent.
+
+```bash
+make livekit-interview                              # 1 call per machine, 1 + 3 questions each
+INTERVIEW_TURNS=5 INTERVIEW_CALLS=2 make livekit-interview   # bigger
+LLM_PROVIDER=gemini make livekit-interview          # the other free provider
+```
+
+Without a key the test **skips with the reason** — never passes. Results:
+`report/interview.md` / `.json`, and the *Adaptive interview* section of `report/index.html`.
+
+---
+
+## Semantic scoring (`tests/judge/`)
+
+Everything above asserts deterministically: a reply arrived, it was non-empty, it
+landed inside budget. None of it asks the question the product actually turns on
+— **is the answer in the manual?**
+
+`tests/judge/` asks that one, and reports rather than gates.
+
+```bash
+make judge-offline   # rubrics + KB grounding. No network, no account. Gates a PR.
+make judge           # score recorded calls.   Needs ANTHROPIC_API_KEY.
+make livekit-grounding  # real calls over the LiveKit SDK, recorded to report/data/recordings/ (see tests/sdk/)
+make judge-report    # show the last report/data/judge-scores.json
+```
+
+The design decision worth knowing before reading the code: **the knowledge base
+is the arbiter, not the model.** The judge is never asked "is this correct?" —
+no model's training data holds the Etnyre manual, so it would grade on
+plausibility and the suite would become a test of the judge. It is handed the KB
+section the question came from and asked whether every claim is supported *by
+that text*, with its own knowledge of chip spreaders ruled out in the system
+prompt.
+
+Seven rubrics, scored 0.0–1.0 with a verbatim quote as evidence: `faithfulness`,
+`noFabrication`, `controllerFamily`, `anchorCoverage`, `procedureOrder`,
+`safetyPreamble`, `escalation`. All configured in the `judge` block of
+`config/testbed.config.json` — nothing about this product is hardcoded in the
+package.
+
+**Both gates ship off.** The thresholds were read off the manuals, not measured
+from calls, and a gate on a guessed threshold is the mistake `docs/architecture.md`
+already records about the latency budgets. Collect a fortnight of
+`report/data/judge-scores.json`, re-base, then turn `requireSafetyGate` on first —
+a fabricated specification and a cross-family procedure are the two failures
+that actually reach a machine.
+
+**Not yet runnable end to end**, and it skips with a reason rather than going
+green: there is no `ANTHROPIC_API_KEY`, no `LIVEKIT_*`, and
+`judge.livekit.agentName` is an unconfirmed placeholder. The recordings in
+`tests/judge/recordings/` are hand-written fixtures labelled `_synthetic` — they
+exercise the harness and act as the judge's own regression cases, and they say
+nothing about the deployment. See `tests/judge/README.md`.
 
 ---
 
 ## Folder structure
 
+Seven folders at the top, each with one job. The four test suites live under
+`tests/`, everything they read is in `config/` and `resources/`, and everything a
+run produces lands in `report/`.
+
 ```
 thinknetic-livekit-agent-QA-automation/
 │
-├── config/testbed.config.json  ★ SINGLE SOURCE OF TRUTH — read this first
-├── .env.example                target URL and secrets only
-├── Makefile                    one front door for both toolchains
+├── Makefile                    ONE front door: every command in the Command reference
+├── .env.example                target URL and secrets only (copy to .env)
 │
-├── resources/                  everything the test bed reads; no code — see
-│   │                            "Managing resources" above for how renaming/routing work
+├── config/                     ★ SINGLE SOURCE OF TRUTH — read this first
+│   ├── testbed.config.json     target, budgets, intents, every suite's settings
+│   └── test-types.json         which testing type every test is (positive, negative, …)
+│
+├── resources/                  everything the tests read; no code
 │   ├── kb/                     vhrs28, vhrs36, fhrc28, fhrc36, troubleshooting-general
 │   ├── serials/                hopper-classification.xlsx (the serial list)
-│   └── generated/              serial-index.json + scenarios.json  (make resources)
+│   ├── testdata/               products.json (API / browser fixtures)
+│   └── generated/              serial index, scenarios, oracle index (make resources)
 │
-├── tools/build_resources.py    workbook + KB markdown → generated JSON
+├── tests/                      THE FOUR SUITES — each its own toolchain
+│   ├── ui/                     BROWSER — Playwright + TypeScript
+│   │   ├── src/                config, selectors.ts (★ every locator), pages/, fixtures/,
+│   │   │                       utils/, reporters/ (builds report/ after every run)
+│   │   └── tests/              smoke/ functional/ negative/ chat/ livekit/ unit/
+│   ├── api/                    PUBLIC API — pytest + httpx
+│   │   ├── src/                clients, schemas, utils (perf recorder, rate-limit bucket)
+│   │   └── tests/              contract, schema, runtime config, rate limit, perf, catalogue
+│   ├── sdk/                    LIVEKIT SDK — Python, real calls, no browser
+│   │   ├── lkqa/               session, call, audio, admin, grounding, kbrun, interview,
+│   │   │                       phrasing, llm, driver, report
+│   │   ├── fixtures/           caller WAVs (make_fixtures.sh regenerates them)
+│   │   └── tests/              offline, contract, auth, conversation, grounding, kb_correctness,
+│   │                           phrasing, interview, voice, resilience, concurrency
+│   └── judge/                  SCORING — the deterministic oracle + LLM-as-judge
+│       ├── src/                oracle.py (★ the KB verdict every suite uses), numerals,
+│       │                       corpus, scorer, anchors, livekit_probe
+│       ├── recordings/         synthetic transcripts for the offline checks
+│       └── tests/              oracle regression, rubric catalogue, judged calls
 │
-├── ui/                         BROWSER SUITE — Playwright + TypeScript   [ACTIVE]
-│   ├── src/
-│   │   ├── config/             env.ts (routes/API) + testbed.ts (config + pickers)
-│   │   ├── constants/          timeouts
-│   │   ├── selectors.ts        ★ EVERY locator lives here
-│   │   ├── types/              API payload + test-bed types
-│   │   ├── pages/              BasePage, ProductPage, VoiceWidget, ChatWidget
-│   │   ├── fixtures/test.ts    page objects, console errors, socket capture
-│   │   └── utils/              test-data loader, KB anchors, session tracking
-│   └── tests/
-│       ├── smoke/              must pass before anything else is worth running
-│       ├── functional/         page content + session lifecycle
-│       ├── negative/           bad routes, fail-closed behaviour
-│       └── chat/               ★ the real caller workflow, end to end
+├── tools/                      scripts, no tests
+│   ├── build_resources.py      workbook + KB markdown → resources/generated
+│   ├── oracle_build.py         the oracle's compiled index
+│   ├── build_report.py         report/index.html + report/summary.md
+│   ├── report_hook.py          makes every pytest run build the report
+│   ├── run_parallel.sh         the wave scheduler behind all-parallel / livekit-sdk
+│   ├── check_test_types.py     every browser test has one testing type
+│   └── check-env.sh            toolchain + .env preflight (make check)
 │
-├── api/                        API SUITE — pytest + httpx                [ACTIVE]
-│   ├── src/{clients,schemas,utils}
-│   └── tests/                  endpoint contract, JSON schema, runtime config,
-│                               and the scenario catalogue (no agent calls)
+├── report/                     EVERYTHING A RUN PRODUCES (gitignored, cleared each run)
+│   ├── index.html              ★ open this — the combined HTML report, every suite
+│   ├── playwright/             Playwright's HTML report (only when browser tests ran)
+│   ├── summary.md              the same totals in Markdown (GitHub run summary)
+│   ├── kb-correctness.md       KB value vs agent's value, per question
+│   ├── interview.md            the LLM interview's questions, answers, verdicts
+│   └── data/                   raw: junit/, recordings/, logs/, ui-artifacts/, *.json
 │
-├── voice/                      VOICE SUITE — LiveKit Python SDK          [PHASE 2]
-├── scripts/                    check-env, setup, run
-├── docs/                       architecture, chat-flow, test-plan, how-to-add-a-test,
-│                               locator-strategy, troubleshooting
-├── .github/workflows/ci.yml    catalogue → api → ui
-└── reports/                    all output (gitignored)
+├── docs/                       architecture, test plan, how-to-add-a-test, runbooks
+└── .github/workflows/          ci.yml (every push, no agent calls) · live.yml (on demand,
+                                live calls) · perf.yml (nightly)
 ```
+
+Every suite is run from the repo root through `make`; to run one by hand, `cd` into
+it first (`cd tests/sdk && uv run pytest -m offline`) — either way the report is built.
 
 ---
 
@@ -473,25 +721,249 @@ Full detail, including the six agent behaviours that shape the design:
 
 ---
 
-## Commands
+## Command reference
+
+Every command runs from the repo root. Commands marked **live** open real agent sessions
+on the shared dev deployment (they cost time and deployment load); **net** means network
+to the dev site but no agent session; **offline** needs nothing.
+
+### Setup
 
 | Command | What it does |
 |---|---|
-| `make catalog` | Scenario catalogue — no browser, no calls, <1s |
-| `make api` | Public endpoint suite + catalogue |
-| `make smoke` | Page loads, hydrates, entry point present |
-| `make negative` | Bad routes, fail-closed behaviour |
-| `make ui` | Full browser suite **except** live sessions |
-| `make chat` | The real agent chat flow (opens live sessions) |
-| `make resources` | Rebuild `resources/generated/*` after a config or KB change |
-| `make test` | `api` then `ui` — no live sessions |
-| `make report` | Open the last Playwright HTML report |
+| `cp .env.example .env` | Create your local config (defaults target dev) |
+| `make check` | Verify Node, Python, uv, git and `.env` |
+| `make install` | Install every suite + Chromium (`install-ui`, `install-api`, `install-tools`, `install-judge`, `install-sdk` individually) |
+| `make resources` | Rebuild `resources/generated/*` after editing a KB, the workbook or the config |
+| `make help` | Print every target with a one-line description |
+
+### Run everything
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make setup` | offline | **Newcomer, one command**: installs uv / Node / pnpm if missing, creates `.env`, installs every suite + Chromium, runs the offline checks. Safe to re-run |
+| `make report-share` | offline | A dated copy of the shareable single-file report in `report/share/` (every run already writes `report/qa-report.html`) |
+| `make all-parallel` | live | **Every suite, in parallel waves**: offline checks all at once; the API suite (its rate-limit tests kept away from other endpoint traffic) ‖ auth; then 3 live lanes — grounding → phrasing ‖ conversation → voice → resilience ‖ the whole browser suite → LLM interview; then the KB run; then concurrency. Never more than 3 live calls at once. Logs in `report/data/logs/`, report built at the end. ~45 min |
+| `make livekit-sdk` | live | **Only the LiveKit SDK suite** (`tests/sdk/`), same waves, no browser, no API suite. ~35 min |
+| `make live-parallel` | live | **Real agent calls only, in parallel, visible browser** — no offline checks, no endpoint-only tests. Lanes: grounding → phrasing ‖ conversation → voice → resilience ‖ the 12 browser `@live` tests (headed) → LLM interview; then the 48-call KB run; then concurrency. Every answer judged against `resources/kb`. ≤3 calls at once. ~45 min |
+| `make ui-live-headed` | live | Just the 12 browser `@live` tests, visible browser, one at a time. ~10 min |
+| `make livekit-phrasing` | live | Positive corner cases: one KB question per call, phrased 8 ways (lowercase, ALL CAPS, typos, filler, keywords, statement, hesitations, long preamble); each must get the KB value. ~8 calls |
+| `make ui-all` | live | Every browser test, live included, one worker. `HEADED=1` shows the browser |
+| `make all` | live | **Every suite in order**, cheapest first, then builds `report/index.html`. Continues past failures so the report shows all of them. ~80 min |
+| `make live-headed` | live | **Real traffic only, no mocks**: the API suite, every SDK test that joins or talks to LiveKit (not `-m offline`), then every browser test in a visible browser, one worker, skipping the `@mock` specs (route interception, fixed markup). The judge suite (saved recordings) is left out. `LIVE_KB=1` adds the ~48-call KB run. |
+| `make test` | net | Quick: `api` + `ui` without live sessions |
+
+### By testing type (every suite at once)
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make test-type TYPE=<type>` | live | One type across api, judge, sdk and ui: `positive`, `negative`, `edge`, `security`, `nonfunctional` |
+| `make test-positive` · `test-negative` · `test-edge` · `test-security` · `test-nonfunctional` | live | Shortcuts for the above |
+| `make check-types` | offline | Every test in every suite has exactly one type (CI runs this too) |
+
+### Browser suite (`tests/ui/`, Playwright)
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make smoke` | net | Page loads, hydrates, entry point present (~15 s) |
+| `make regression` | net | Product content + phone field + session lifecycle |
+| `make negative` | net | Bad routes, call start fails closed (500 / 429 / bad token / LiveKit down) |
+| `make ui` | net | Every browser test except live sessions |
+| `make chat` | live | The real caller workflow end to end |
+| `make demo` | live | One chat flow in a visible browser |
+| `make livekit-browser` | live | The page's call as the LiveKit server sees it (SFU mute, clean hang-up, network drop) |
+
+### API suite (`tests/api/`, pytest)
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make catalog` | offline | Scenario catalogue — the test data itself (<1 s) |
+| `make api` | net | Public endpoint contract, schema, rate limiter, performance |
+| `make ratelimit` | net | Rate-limiter contract (~12 requests) |
+| `make perf` / `make perf-report` | net | Latency + payload budgets → `report/data/api-perf.json` |
+| `make saturate` | net | **Opt-in.** Deliberately empties the rate-limit window — blocks other callers for a minute |
+
+### LiveKit SDK suite (`tests/sdk/`, pytest + LiveKit SDK)
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make livekit-offline` | offline | Traps, fixtures, and the verdict path proven able to fail |
+| `make livekit-contract` | net | Session token grants, dispatch, input validation — no agent started |
+| `make livekit-auth` | net | Forged, expired, wrong-secret, re-targeted tokens refused (needs `LIVEKIT_*`) |
+| `make livekit-conversation` | live | One full call: join, greet, route, answer, wrap up, room closes |
+| `make livekit-grounding` | live | Is the answer from the KB? Every machine + traps (unknown spec, off-topic, false premise, injection, unsafe, emergency) |
+| `make livekit-kb` | live | **Every anchored KB FAQ + one procedure per machine**, ~48 calls → `report/kb-correctness.md` |
+| `make livekit-kb-rescore` | offline | Re-judge the last KB run from its recordings, no calls |
+| `make livekit-interview` | live + LLM | **Adaptive interview:** a free LLM writes each next caller question from the KB as a follow-up to the agent's last answer, then judges the answer (with the oracle) → `report/interview.md` |
+| `make llm-check` | net | Is the free LLM key set, accepted, and is the configured model available? |
+| `make livekit-voice` | live | Spoken question in; agent audio measured and transcribed locally |
+| `make livekit-resilience` | live | Unknown serial, mid-speech message, idle caller, returning caller |
+| `make livekit-concurrency` | live | 3 parallel callers on 3 machines |
+| `make livekit` | live | All of the above plus `livekit-browser` |
+| `make demo-livekit` | live | One grounded call with the dialogue and verdict printed live |
+| `make livekit-report` | offline | Print every `report/data/livekit-sdk*.json` (one per SDK target) |
+| `make probe-agent` | net | Ask the deployment which agent worker joins |
+
+### Judge and oracle (`tests/judge/`)
+
+| Command | Kind | What it does |
+|---|---|---|
+| `make judge-offline` | offline | Rubrics, KB grounding and the oracle's own suite (ORC-01..12) |
+| `make oracle-offline` | offline | The oracle's suite alone — run after editing a KB |
+| `make oracle` | offline | Score `tests/judge/recordings/`; `make oracle DIR=report/data/recordings` scores every real call |
+| `make oracle-report` | offline | Print the last `report/data/oracle-verdicts.json` |
+| `make judge` / `make judge-report` | net | Optional LLM judge (needs `ANTHROPIC_API_KEY`); report-only |
+
+### Reports and cleanup
+
+| Command | What it does |
+|---|---|
+| `make report-all` | Build and open `report/index.html` — every suite in one page |
+| `make report-html` | Build `report/index.html` only |
+| `make report` | Open the Playwright HTML report |
+| `make clean` | Delete all test output |
+
+### Running one suite, one file or one test directly
 
 ```bash
-cd ui
-npx playwright test --grep @chat          # live chat only
-npx playwright test --grep-invert @live   # everything that touches no session
+cd tests/ui  && npx playwright test tests/negative                 # a folder
+cd tests/ui  && npx playwright test --grep "@edge\b"               # a testing type
+cd tests/ui  && npx playwright test -g "BLK-06" --headed            # one test, visible
+cd tests/sdk && uv run pytest -v -s tests/test_voice.py             # one file, output shown
+cd tests/sdk && uv run pytest -v -s -k "fab03"                      # tests matching a name
+cd tests/sdk && uv run pytest -m "negative and offline"             # type AND cost
+cd tests/api && uv run pytest -m security
+GROUNDING_RUNS=5 make livekit-grounding                       # repeat each call 5 times
+SCENARIO_ID=FHRC28-FAQ-049 make chat                          # pin the browser to one scenario
 ```
+
+---
+
+## Reports
+
+**Every test run ends with a complete report in `report/` at the repo root** — whether it
+was started with `make`, with `uv run pytest` inside a suite, with `npx playwright test`, or
+from the VS Code test panel:
+
+| The run included… | You get |
+|---|---|
+| browser (Playwright) tests | `report/index.html` **and** `report/playwright/index.html` |
+| only pytest suites (API, SDK, judge) | `report/index.html` |
+
+When it ends, the run prints where they are:
+
+```
+reports:
+  HTML report        report/index.html              (make report-all opens it)
+  Playwright report  report/playwright/index.html   (make report opens it)
+```
+
+`index.html` links to the Playwright report whenever there is one, so opening it reaches
+both. How: pytest suites call `tools/report_hook.py` when they exit, and the browser suite
+has a last reporter (`tests/ui/src/reporters/combined-report.ts`) that runs after
+Playwright's own reports are written. `make report-html` rebuilds the page any time.
+Raw material — JUnit XML, recordings, logs, JSON — is kept apart in `report/data/`.
+
+**To share a run, send `report/qa-report.html`** (or run `make report-share` for a dated copy
+in `report/share/`). It is a single file that works offline with nothing next to it. Failure
+messages in both reports go through a redaction pass first — session tokens (even truncated
+ones), OpenAI / Groq / LiveKit keys and `password=`/`secret=` values become `<redacted>`.
+Playwright traces and videos are too large to embed and stay in `report/playwright/`.
+
+| File | What it is | Open with |
+|---|---|---|
+| **`report/qa-report.html`** | **The shareable copy:** the same page as ONE self-contained file — styles, scripts and screenshots of failed browser tests inside, no links into `report/`, tokens and API keys redacted. Attach it anywhere; it opens offline. `make report-share` also saves a dated copy in `report/share/` | attach & send |
+| **`report/index.html`** | **One page for every suite:** overall verdict, pass/fail/skip by suite and by testing type, every failure with its message, a filterable list of every result, the KB-correctness table, LiveKit findings, oracle summary. Self-contained, light/dark, works offline. | `make report-all` |
+| `report/playwright/` | Playwright's HTML report: every browser test with steps, traces, video and screenshots on failure, call references for live sessions | `make report` |
+| `report/summary.md` | The same totals and failures in Markdown — what GitHub Actions shows on the run's summary page | any viewer |
+| `report/interview.md` (+ `data/interview.json`) | The LLM interview: each question, its KB quote, the answer, the verdict | any viewer |
+| `report/data/logs/<lane>.log` | `make all-parallel` / `make livekit-sdk`: the full output of each parallel lane | any viewer |
+| `report/kb-correctness.md` (+ `data/kb-correctness.json`) | Per question: the KB value, what the agent said, verdict, the KB line it was judged against | any viewer |
+| `report/data/junit/*.xml` | JUnit XML per pytest target, each test tagged with its testing type — feeds `index.html` and any CI dashboard | CI |
+| `report/data/ui-results.json` | Playwright's JSON results — feeds `index.html` | — |
+| `report/data/livekit-sdk.<target>.json` | One per SDK make target, so parallel runs never overwrite each other. Every live call's timings (join, first speech, turn lengths, state changes) and report-only findings | `make livekit-report` |
+| `report/data/recordings/*.json` | One transcript per live call (SDK and browser) — re-scorable offline with `make oracle DIR=report/data/recordings` | any viewer |
+| `report/data/oracle-verdicts.json` | The oracle's verdicts over every recording | `make oracle-report` |
+| `report/data/api-perf.json` | API latency and payload samples | `make perf-report` |
+
+**Every run starts fresh.** The first `make` test command you type deletes all previous
+output and every cache in the project — everything in `report/data/`, `tests/ui/test-results`, every
+`__pycache__` and `.pytest_cache` — and nothing new is cached while it runs (pytest's cache is
+off in all suites, and Python bytecode is not written). Nested steps inside `make all` or
+`make test-type` do not wipe each other, so one command gives one complete, consistent set
+of results. Kept: `.venv/` and `node_modules/` (installed dependencies) and the tracked inputs
+in `resources/` and `tests/judge/recordings/`. Read-only commands — `make report`, `report-all`,
+`report-html`, `*-rescore`, `*-report` — never delete anything, so they always show the last
+run. `FRESH=0 make <target>` keeps the previous results for one run; `make clean` clears on demand.
+
+---
+
+## GitHub Actions
+
+The whole project runs on GitHub-hosted Ubuntu runners; nothing needs to be installed on
+your machine. Three workflows:
+
+| Workflow | When | What | Agent calls |
+|---|---|---|---|
+| **QA automation** (`ci.yml`) | every push to `master` / `develop`, every PR | `offline → api → livekit-contract → agent → report` — the agent step is **one real call** judged against the KB (configurable, below) | 1 by default |
+| **Live agent calls** (`live.yml`) | on demand: *Actions → Live agent calls → Run workflow*, pick `live`, `sdk` or `all` | `make live-parallel` (~45 min, real calls only) · `make livekit-sdk` (~35 min) · `make all-parallel` (~45 min, everything) | ~60–100, never more than 3 at once |
+| **API performance and rate limit** (`perf.yml`) | nightly 04:00 UTC, or on demand | latency budgets + rate-limiter contract | none |
+
+### The CI chain (`ci.yml`)
+
+```
+offline ──► api ──► livekit-contract ──► agent ──► report
+  7 s        22 s        8 s             ~2 min
+```
+
+(plus ~15 s of runner start-up per job; dependencies are cached, so ~4 min end to end)
+
+| Job | What it proves |
+|---|---|
+| **offline** | catalogue, oracle regression, SDK data, every test has a testing type — no network |
+| **api** | the public product API: contract, schema, rate limit, latency budgets |
+| **livekit-contract** | the session endpoint mints the right token: grants, agent dispatch, US-only phones |
+| **agent** | **a real call**: the agent joins, greets the caller, names the machine from the serial, answers a KB question — every figure judged against `resources/kb` by the oracle, no model — then signs off |
+| **report** | merges everything: `qa-report` (index.html + playwright/) and `qa-report-share` (one file) |
+
+Everything beyond the chain is a switch — per run under *Run workflow*, or for every push/PR
+with a repository variable (*Settings → Secrets and variables → Actions → Variables*):
+
+| Switch | Variable | Choices | Default |
+|---|---|---|---|
+| Agent validation | `CI_AGENT` | `smoke` (1 call, ~2 min) · `kb` (+ the 48-call KB run, ~18 min) · `full` (`make live-parallel`, ~45 min) · `none` | `smoke` |
+| Browser tests | `CI_UI` | `none` · `smoke` · `no-live` · `live` — runs beside the contract, so it does not lengthen the chain | `none` |
+| Anything else | `CI_EXTRA` | any make targets, e.g. `livekit-auth perf` or `livekit-grounding` | — |
+
+A PR from a fork gets no secrets: the agent step says so and skips instead of failing.
+Everything that calls the agent — here and in `live.yml` — shares one concurrency group
+(`live-agent-calls`), so runs queue and the agent never sees two live runs at once.
+
+**The file to send** is its own artifact, `qa-report-share`: the single self-contained
+`qa-report.html` (tokens and keys redacted). On a runner there is no screen, so the "visible
+browser" tests run headless there — same tests, same checks.
+
+**Both reports, every run.** Each workflow publishes an artifact — `qa-report` (CI) or
+`qa-report-live` (live) — holding `index.html` (the combined report) and
+`playwright/index.html`, plus the JUnit XML, the KB-correctness table, the interview
+report and every call's transcript. Download it from the run page, unzip, open `index.html`.
+The totals and every failure are also written to the run's **summary page**, so a glance
+at the run tells you what broke without downloading anything.
+
+**Secrets** — *Settings → Secrets and variables → Actions → New repository secret*. The
+live workflow writes them into a `.env` on the runner (never printed, never uploaded) and
+stops at once, naming what is missing, if a required one is not set:
+
+| Secret | Needed by | Required |
+|---|---|---|
+| `LIVEKIT_URL` | observing rooms, auth tests, browser↔LiveKit specs | yes |
+| `LIVEKIT_API_KEY` | same | yes |
+| `LIVEKIT_API_SECRET` | same | yes |
+| `OPENAI_API_KEY` | the LLM interview (billed to this key) | for the interview |
+| `GROQ_API_KEY` | the LLM interview, tried before OpenAI when set | no |
+
+`ci.yml` needs no secrets at all. To run the live suite nightly, uncomment the `schedule`
+block in `live.yml` — it is off because every run makes real agent calls and LLM calls.
 
 ---
 
@@ -530,8 +1002,10 @@ npx playwright test --grep-invert @live   # everything that touches no session
    form suggests `555-0100` and then refuses it: *"Enter a valid phone number"*. The
    555 *area* code is not valid anywhere in NANP, only the 555 *exchange* is, so the
    placeholder cannot ever be submitted. Anyone filling the form by hand hits this
-   first. The suite generates `<real area code>-555-01<nn>` instead — the block
-   reserved for fiction, which passes the validator and can never ring a real person.
+   first. The suite generates `<real area code>55501<nn>` instead — ten bare digits in the
+   block reserved for fiction, which passes the validator and can never ring a real person.
+   Since 2026-09-28 the field is capped at 10 characters and strips non-digits as you type,
+   so `480-555-0142` becomes `48055501` and a `+1` prefix cannot be entered at all.
 8. **RESOLVED — the agent asks for a rating, but only if the caller ends the call.**
    Verified 2026-09-18: *"Glad I could help. Before we finish, could you let me know how
    your experience was today and rate this call from one to ten?"*
@@ -596,7 +1070,8 @@ npx playwright test --grep-invert @live   # everything that touches no session
 ## Documentation
 
 This repo keeps a single README — everything that used to live in per-folder
-`README.md` files (`resources/`, `voice/`, `voice/fixtures/`) is folded into the
+`README.md` files (`resources/`, `tests/judge/`,
+`tests/judge/recordings/`) is folded into the
 sections above. `docs/` holds documents that go deeper than a README should:
 
 | Document | Read it when |
@@ -604,6 +1079,7 @@ sections above. `docs/` holds documents that go deeper than a README should:
 | [docs/chat-flow.md](docs/chat-flow.md) | You are working on the agent conversation suite |
 | [docs/architecture.md](docs/architecture.md) | You want to know why the suite is shaped this way |
 | [docs/test-plan.md](docs/test-plan.md) | You need the coverage matrix or risk ranking |
+| [docs/api-test-strategy.md](docs/api-test-strategy.md) | You are working on rate-limit or performance tests, or wondering why there is no k6 |
 | [docs/how-to-add-a-test.md](docs/how-to-add-a-test.md) | You are writing your first test here |
 | [docs/locator-strategy.md](docs/locator-strategy.md) | A selector broke |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Something failed and you want the likely cause |
