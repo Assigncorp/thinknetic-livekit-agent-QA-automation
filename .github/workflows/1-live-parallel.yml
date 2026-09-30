@@ -1,8 +1,8 @@
 name: "▶ 1 · Live calls in parallel + report"
 
 # ONE CLICK: Actions -> "▶ 1 · Live calls in parallel + report" -> Run workflow -> Run.
-# Real calls with the agent only, 3 at a time, every answer checked against the
-# knowledge base (make live-parallel, ~45 min). Download "shareable-report".
+# Real calls with the agent only, 8 at a time, every answer checked against the
+# knowledge base (make live-parallel, ~25 min). Download "shareable-report".
 
 on:
   workflow_dispatch:

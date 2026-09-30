@@ -27,7 +27,7 @@ import pytest
 
 from lkqa import cases, interview, llm
 from lkqa.bridge import testbed
-from lkqa.call import Call
+from lkqa.call import AgentHungUp, Call
 from lkqa.session import request_session
 
 pytestmark = [pytest.mark.live, pytest.mark.interview]
@@ -69,7 +69,16 @@ async def test_int01_llm_follow_up_questions_from_the_kb_get_kb_correct_answers(
                                            kb=kb["id"], turn=n + 1, reason=str(exc))
                             break
                         print(f"[int]  Q{n + 1} ({q.entry.id}): {q.question}")
-                        q.answer, _ = await call.ask(q.question)
+                        try:
+                            q.answer, _ = await call.ask(q.question)
+                        except AgentHungUp as exc:
+                            # The agent left mid-interview (VERIFIED 2026-09-30,
+                            # no goodbye, after correct answers). A finding, not a
+                            # crash: the answers already judged stand.
+                            print(f"[int]  agent left the call: {exc}")
+                            report.finding("INT-01", "the agent left the call mid-interview, without a goodbye",
+                                           kb=kb["id"], turn=n + 1, room=grant.room)
+                            break
                         q.oracle = interview.answer_figures_check(kb["id"], q)
                         q.judge = interview.judge(kb["id"], q) if q.answer.strip() else {"verdict": "INCONCLUSIVE", "objections": []}
                         q.verdict = interview.verdict_of(q)

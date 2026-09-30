@@ -178,6 +178,10 @@
         "edge"
       ],
       [
+        "tests/test_offline.py::test_a_question_back_about_the_planted_figure_is_not_agreement",
+        "edge"
+      ],
+      [
         "tests/test_offline.py::test_a_correct_answer_followed_by_a_harness_induced_detour_passes",
         "edge"
       ],

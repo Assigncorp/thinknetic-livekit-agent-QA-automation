@@ -16,6 +16,7 @@ every wrong call with its evidence and KB citation, not just the first.
 from __future__ import annotations
 
 import asyncio
+import os
 import random
 from typing import Any
 
@@ -35,7 +36,8 @@ async def test_kb_every_value_the_agent_gives_matches_the_knowledge_base(report,
     scenarios, excluded = plan()
     assert scenarios, "nothing to call - run `make resources`"
     machine_kbs = [kb["id"] for kb in cases.serial_routed_kbs()]
-    sem = asyncio.Semaphore(int(RUN["parallel"]))
+    # KB_PARALLEL overrides the config: `make live-parallel` runs 8 at a time.
+    sem = asyncio.Semaphore(int(os.getenv("KB_PARALLEL") or RUN["parallel"]))
     rows: list[dict[str, Any]] = []
 
     # Serials rotate through each KB's pool without repeats, because the agent

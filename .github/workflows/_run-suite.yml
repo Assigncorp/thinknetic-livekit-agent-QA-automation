@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.minutes }}
     # One live run at a time across the repo - shared with ci.yml's agent step,
-    # so the shared agent never sees more than 3 calls. Runs queue, never cancel.
+    # so two live runs never load the shared agent at once. Runs queue, never cancel.
     concurrency:
       group: live-agent-calls
       cancel-in-progress: false

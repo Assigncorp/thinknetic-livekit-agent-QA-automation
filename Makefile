@@ -366,11 +366,11 @@ livekit-sdk: fresh
 all-parallel: fresh
 	@tools/run_parallel.sh all
 
-# REAL CALLS ONLY, IN PARALLEL, VISIBLE BROWSER - no offline checks, no
-# endpoint-only tests. Every answer judged against resources/kb: grounding +
-# phrasing | conversation + voice + resilience | browser @live (headed) + LLM
-# interview, then the 48-call KB run, then concurrency. Never >3 calls at once.
-# ~45 min.
+# REAL CALLS ONLY, 8 AT A TIME, VISIBLE BROWSER - no offline checks, no
+# endpoint-only tests. Every answer judged against resources/kb. Every step its
+# own lane (grounding, phrasing, interview, browser @live headed, conversation,
+# voice, resilience: 7 calls at once), then the 48-call KB run 8 at a time, then
+# concurrency (3 callers, by design). ~25 min. LIVE_PARALLEL=3 for the old pace.
 live-parallel: fresh
 	@tools/run_parallel.sh live
 

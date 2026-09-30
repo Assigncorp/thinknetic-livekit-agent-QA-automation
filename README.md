@@ -17,7 +17,7 @@ opaque system under test, exactly as a real caller sees it.
 | Command | Wall time | Why |
 |---|---|---|
 | `make all-parallel` | **~45 min** | 3 live-call lanes at once: the longest lane (browser suite 10 min + LLM interview 16 min) then the 48-call KB run (16 min) |
-| `make live-parallel` | ~45 min | real calls only, KB-judged, visible browser, no offline checks |
+| `make live-parallel` | ~25 min | real calls only, **8 at a time**, KB-judged, visible browser, no offline checks |
 | `make livekit-sdk` | ~35 min | the same waves without the API and full browser suites |
 | `make all` | ~80 min | every step one after another |
 | `make live-headed` | ~60 min | real traffic only, one call at a time, visible browser, no KB run |
@@ -43,7 +43,7 @@ make setup                    # ONE command: toolchain, .env, every dependency, 
 make all-parallel             # EVERY suite in parallel waves, never >3 live calls at once (~45 min)
 make all                      # the same, one step at a time (~80 min, ~100 live agent calls)
 make livekit-sdk              # ONLY the LiveKit SDK suite (tests/sdk/), in parallel (~35 min, no browser)
-make live-parallel            # (~45 min) REAL agent calls only, KB-judged, 3 in parallel, VISIBLE browser, no offline checks, ends with a shareable report
+make live-parallel            # (~25 min) REAL agent calls only, 8 at a time, KB-judged, VISIBLE browser, no offline checks, ends with a shareable report
 make live-headed              # (~60 min) REAL traffic only - API + live LiveKit calls + browser HEADED, no mocks (LIVE_KB=1 adds the KB run)
 make report-all               # opens report/index.html - one page for every suite
 make report                   # opens the Playwright HTML report (traces, video, screenshots)
@@ -745,7 +745,7 @@ to the dev site but no agent session; **offline** needs nothing.
 | `make report-share` | offline | A dated copy of the shareable single-file report in `report/share/` (every run already writes `report/qa-report.html`) |
 | `make all-parallel` | live | **Every suite, in parallel waves**: offline checks all at once; the API suite (its rate-limit tests kept away from other endpoint traffic) ‖ auth; then 3 live lanes — grounding → phrasing ‖ conversation → voice → resilience ‖ the whole browser suite → LLM interview; then the KB run; then concurrency. Never more than 3 live calls at once. Logs in `report/data/logs/`, report built at the end. ~45 min |
 | `make livekit-sdk` | live | **Only the LiveKit SDK suite** (`tests/sdk/`), same waves, no browser, no API suite. ~35 min |
-| `make live-parallel` | live | **Real agent calls only, in parallel, visible browser** — no offline checks, no endpoint-only tests. Lanes: grounding → phrasing ‖ conversation → voice → resilience ‖ the 12 browser `@live` tests (headed) → LLM interview; then the 48-call KB run; then concurrency. Every answer judged against `resources/kb`. ≤3 calls at once. ~45 min |
+| `make live-parallel` | live | **Real agent calls only, in parallel, visible browser** — no offline checks, no endpoint-only tests. **8 calls at a time**: every step in its own lane — grounding ‖ phrasing ‖ LLM interview ‖ the 12 browser `@live` tests (headed) ‖ conversation ‖ voice ‖ resilience (7 at once); then the 48-call KB run 8 at a time; then concurrency (3 callers, by design). Every answer judged against `resources/kb`. `LIVE_PARALLEL=3 make live-parallel` for the gentler pace. ~25 min |
 | `make ui-live-headed` | live | Just the 12 browser `@live` tests, visible browser, one at a time. ~10 min |
 | `make livekit-phrasing` | live | Positive corner cases: one KB question per call, phrased 8 ways (lowercase, ALL CAPS, typos, filler, keywords, statement, hesitations, long preamble); each must get the KB value. ~8 calls |
 | `make ui-all` | live | Every browser test, live included, one worker. `HEADED=1` shows the browser |
@@ -906,18 +906,18 @@ your machine. These workflows:
 | Workflow | When | What | Agent calls |
 |---|---|---|---|
 | **QA automation** (`ci.yml`) | every push to `master` / `develop`, every PR | `offline → api → livekit-contract → agent → report` — the agent step is **one real call** judged against the KB (configurable, below) | 1 by default |
-| **▶ 1 · Live calls in parallel + report** (`1-live-parallel.yml`) | one click, on demand | `make live-parallel` — real calls only, KB-judged, 3 at a time (~45 min) | ~60 |
+| **▶ 1 · Live calls in parallel + report** (`1-live-parallel.yml`) | one click, on demand | `make live-parallel` — real calls only, KB-judged, 8 at a time (~25 min) | ~60 |
 | **▶ 2 · Everything (make all) + report** (`2-everything.yml`) | one click, on demand | `make all` — every test in the project (~80 min) | ~100 |
-| **▶ 3 · Live calls, browser recorded (headed, parallel) + shareable report** (`3-live-recorded.yml`) | one click, on demand | `make live-parallel` with the browser headed on a virtual screen and **every browser call on video** (~45 min) | ~60 |
+| **▶ 3 · Live calls, browser recorded (headed, parallel) + shareable report** (`3-live-recorded.yml`) | one click, on demand | `make live-parallel` with the browser headed on a virtual screen and **every browser call on video** (8 calls at a time, ~25 min) | ~60 |
 | **API performance and rate limit** (`perf.yml`) | nightly 04:00 UTC, or on demand | latency budgets + rate-limiter contract | none |
 
 ### Running a test pipeline — one click, no setup (for anyone)
 
 1. Open the repository on GitHub → **Actions** (top menu).
 2. In the list on the left, click the pipeline you want:
-   - **▶ 1 · Live calls in parallel + report** — is the agent answering from the manuals? (~45 min)
+   - **▶ 1 · Live calls in parallel + report** — is the agent answering from the manuals? 8 calls at a time (~25 min)
    - **▶ 2 · Everything (make all) + report** — every test there is (~80 min)
-   - **▶ 3 · Live calls, browser recorded …** — like 1, and you can watch every browser call on video (~45 min)
+   - **▶ 3 · Live calls, browser recorded …** — like 1, and you can watch every browser call on video (~25 min)
 3. Click **Run workflow** (right side) → **Run workflow**. Nothing to fill in.
 4. When it finishes (green ✅ or red ❌), open the run, scroll to **Artifacts**, download
    **shareable-report**, unzip, and double-click the `.html` file. That file can be forwarded
@@ -928,7 +928,7 @@ For the full detail — every call's transcript, Playwright traces, and (pipelin
 download **full-report** and open `index.html` or `playwright/index.html`.
 
 Only one of these runs at a time; if you press Run while another is going, yours waits its turn
-(the shared test agent must never get more than 3 calls at once). All three pipelines share one
+(two live runs at once would double the load on the shared test agent). All three pipelines share one
 definition, `_run-suite.yml`, so they can never drift apart.
 
 ### The CI chain (`ci.yml`)
@@ -953,7 +953,7 @@ with a repository variable (*Settings → Secrets and variables → Actions → 
 
 | Switch | Variable | Choices | Default |
 |---|---|---|---|
-| Agent validation | `CI_AGENT` | `smoke` (1 call, ~2 min) · `kb` (+ the 48-call KB run, ~18 min) · `full` (`make live-parallel`, ~45 min) · `none` | `smoke` |
+| Agent validation | `CI_AGENT` | `smoke` (1 call, ~2 min) · `kb` (+ the 48-call KB run, ~18 min) · `full` (`make live-parallel`, ~25 min) · `none` | `smoke` |
 | Browser tests | `CI_UI` | `none` · `smoke` · `no-live` · `live` — runs beside the contract, so it does not lengthen the chain | `none` |
 | Anything else | `CI_EXTRA` | any make targets, e.g. `livekit-auth perf` or `livekit-grounding` | — |
 

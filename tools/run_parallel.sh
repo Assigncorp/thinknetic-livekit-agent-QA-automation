@@ -20,7 +20,8 @@
 # Continues past failures; exits 1 if any target failed.
 #
 #   tools/run_parallel.sh all   everything (api, judge, sdk, browser)
-#   tools/run_parallel.sh live  real agent calls only (KB-judged), visible browser, no offline
+#   tools/run_parallel.sh live  real agent calls only (KB-judged), visible browser, no offline,
+#                               LIVE_PARALLEL (default 8) calls at a time
 #   tools/run_parallel.sh sdk   the LiveKit SDK suite (sdk/), plus the two browser
 #                               specs that watch the page's call from the LiveKit
 #                               server (ui/tests/livekit) - so it has a Playwright
@@ -95,12 +96,25 @@ sdk)
 live)
   # Real agent calls only, each answer judged against resources/kb - no offline
   # checks, no endpoint-only tests. The browser lane runs HEADED (visible).
-  wave "1 live calls (3 lanes)" \
-    "lane-a livekit-grounding livekit-phrasing" \
-    "lane-b livekit-conversation livekit-voice livekit-resilience" \
-    "lane-c ui-live-headed livekit-interview"
-  wave "2 KB run (3 calls at a time)" "kb livekit-kb"
-  wave "3 concurrency (3 calls at once)" "conc livekit-concurrency"
+  # LIVE_PARALLEL calls at a time (default 8, set 2026-09-30): with 7 or more,
+  # every step gets its own lane (7 calls at once), then the KB run takes
+  # LIVE_PARALLEL at a time. Below 7, the steps share 3 lanes.
+  PAR=${LIVE_PARALLEL:-8}
+  echo "=== live calls in flight: up to $PAR"
+  if [ "$PAR" -ge 7 ]; then
+    wave "1 live calls (7 lanes)" \
+      "grounding livekit-grounding" "phrasing livekit-phrasing" "interview livekit-interview" \
+      "browser ui-live-headed" "conversation livekit-conversation" "voice livekit-voice" \
+      "resilience livekit-resilience"
+  else
+    wave "1 live calls (3 lanes)" \
+      "lane-a livekit-grounding livekit-phrasing" \
+      "lane-b livekit-conversation livekit-voice livekit-resilience" \
+      "lane-c ui-live-headed livekit-interview"
+  fi
+  export KB_PARALLEL=$PAR
+  wave "2 KB run ($PAR calls at a time)" "kb livekit-kb"
+  wave "3 concurrency (3 calls at once, by design)" "conc livekit-concurrency"
   make --no-print-directory oracle DIR=report/data/recordings >"$LOGS/oracle.log" 2>&1 || true
   ;;
 *)

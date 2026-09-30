@@ -9,7 +9,7 @@ name: QA automation
 #          names the serial's machine, answers a KB question - every figure it
 #          states judged against resources/kb by the oracle, no model - and hangs up
 #   kb     smoke + the KB run: every anchored FAQ + procedures, ~48 calls (~18 min)
-#   full   make live-parallel: every live test, KB-judged (~45 min)
+#   full   make live-parallel: every live test, 8 calls at a time, KB-judged (~25 min)
 #   none   skip (e.g. a docs-only change)
 #
 # Optional, configurable, off by default:
