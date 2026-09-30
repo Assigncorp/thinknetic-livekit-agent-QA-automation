@@ -210,7 +210,8 @@
         "id": "farewell",
         "_note": "The agent's own sign-off, once the rating is in. Nothing to say back - the suite reads it, checks it is a real closing rather than silence, and ends the call. Phrases cover both the thank-you form and the give-up form ('I haven't heard back, so I'll let you go'), because both end a call.",
         "_matchNote": "Deliberately excludes 'glad I could help' and the like. The agent opens its RATING request that way ('Glad I could help! Before we wrap up...'), and an answer turn can easily say it too - matching on it would classify a real answer as a goodbye and lose it.",
-        "match": ["i'll let you go", "thanks for calling", "thank you for calling", "take care", "have a great day", "have a good one"],
+        "match": ["i'll let you go", "thanks for calling", "thank you for calling", "take care, and", "take care!", "have a great day", "have a good one", "have a great one"],
+        "_takeCareNote": "Not bare \"take care\": VERIFIED 2026-09-30 it matched the safety advice \"so take care when removing or inspecting valves\" inside a real answer, the answer was read as a goodbye, and the call failed on the idle prompt that followed. The sign-off is \"Take care, and have a great one\". No regex metacharacters here - the SDK compiles these as patterns, the browser suite matches them literally.",
         "reply": null
       }
     ],

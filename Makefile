@@ -375,9 +375,11 @@ live-parallel: fresh
 	@tools/run_parallel.sh live
 
 # The browser tests that hold a real agent call, in a visible browser, one at a time.
-# On CI (no display; GitHub sets CI=true) the same tests run headless.
+# On CI (no display; GitHub sets CI=true) the same tests run headless, unless
+# FORCE_HEADED=1 - the "recorded browser" pipeline runs them headed on a virtual
+# display (xvfb) with every call on video (PW_VIDEO=on).
 ui-live-headed: fresh
-	cd tests/ui && npx playwright test --grep @live --workers 1 $(if $(CI),,--headed)
+	cd tests/ui && npx playwright test --grep @live --workers 1 $(if $(CI),$(if $(FORCE_HEADED),--headed,),--headed)
 
 # Every browser test, live included, one worker (live tests must not overlap).
 # HEADED=1 shows the browser.

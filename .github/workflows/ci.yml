@@ -23,7 +23,7 @@ name: QA automation
 #   3. none
 #
 # Everything that calls the agent (agent, `ui: live`, live `extra` targets)
-# shares one concurrency group with live.yml, so the shared agent never sees
+# shares one concurrency group with the one-click pipelines (_run-suite.yml), so the shared agent never sees
 # more than one live run; runs queue rather than cancel. A PR from a fork gets
 # no secrets - the agent job then says so and skips instead of failing.
 #
@@ -221,7 +221,7 @@ jobs:
     needs: api
     timeout-minutes: 30
     concurrency:
-      # Only `live` touches the shared agent - it queues behind live.yml runs.
+      # Only `live` touches the shared agent - it queues behind the one-click pipelines.
       group: ${{ (inputs.ui || vars.CI_UI) == 'live' && 'live-agent-calls' || format('ui-{0}', github.run_id) }}
       cancel-in-progress: false
     env:
@@ -275,7 +275,7 @@ jobs:
           if-no-files-found: ignore
 
   # OPTIONAL. Any make targets - `make help` lists them. Live ones (livekit-*,
-  # chat, all-parallel ...) need the secrets and queue behind live.yml.
+  # chat, all-parallel ...) need the secrets and queue behind the one-click pipelines.
   extra:
     name: Extra (${{ inputs.extra || vars.CI_EXTRA }})
     if: (inputs.extra || vars.CI_EXTRA || '') != ''

@@ -664,7 +664,7 @@ thinknetic-livekit-agent-QA-automation/
 │   └── data/                   raw: junit/, recordings/, logs/, ui-artifacts/, *.json
 │
 ├── docs/                       architecture, test plan, how-to-add-a-test, runbooks
-└── .github/workflows/          ci.yml (every push, no agent calls) · live.yml (on demand,
+└── .github/workflows/          ci.yml (every push, 1 agent call) · 1-/2-/3-*.yml (one-click
                                 live calls) · perf.yml (nightly)
 ```
 
@@ -901,13 +901,35 @@ run. `FRESH=0 make <target>` keeps the previous results for one run; `make clean
 ## GitHub Actions
 
 The whole project runs on GitHub-hosted Ubuntu runners; nothing needs to be installed on
-your machine. Three workflows:
+your machine. These workflows:
 
 | Workflow | When | What | Agent calls |
 |---|---|---|---|
 | **QA automation** (`ci.yml`) | every push to `master` / `develop`, every PR | `offline → api → livekit-contract → agent → report` — the agent step is **one real call** judged against the KB (configurable, below) | 1 by default |
-| **Live agent calls** (`live.yml`) | on demand: *Actions → Live agent calls → Run workflow*, pick `live`, `sdk` or `all` | `make live-parallel` (~45 min, real calls only) · `make livekit-sdk` (~35 min) · `make all-parallel` (~45 min, everything) | ~60–100, never more than 3 at once |
+| **▶ 1 · Live calls in parallel + report** (`1-live-parallel.yml`) | one click, on demand | `make live-parallel` — real calls only, KB-judged, 3 at a time (~45 min) | ~60 |
+| **▶ 2 · Everything (make all) + report** (`2-everything.yml`) | one click, on demand | `make all` — every test in the project (~80 min) | ~100 |
+| **▶ 3 · Live calls, browser recorded (headed, parallel) + shareable report** (`3-live-recorded.yml`) | one click, on demand | `make live-parallel` with the browser headed on a virtual screen and **every browser call on video** (~45 min) | ~60 |
 | **API performance and rate limit** (`perf.yml`) | nightly 04:00 UTC, or on demand | latency budgets + rate-limiter contract | none |
+
+### Running a test pipeline — one click, no setup (for anyone)
+
+1. Open the repository on GitHub → **Actions** (top menu).
+2. In the list on the left, click the pipeline you want:
+   - **▶ 1 · Live calls in parallel + report** — is the agent answering from the manuals? (~45 min)
+   - **▶ 2 · Everything (make all) + report** — every test there is (~80 min)
+   - **▶ 3 · Live calls, browser recorded …** — like 1, and you can watch every browser call on video (~45 min)
+3. Click **Run workflow** (right side) → **Run workflow**. Nothing to fill in.
+4. When it finishes (green ✅ or red ❌), open the run, scroll to **Artifacts**, download
+   **shareable-report**, unzip, and double-click the `.html` file. That file can be forwarded
+   as it is — keys and tokens are removed. The run page itself also says in plain words what
+   passed and what failed.
+
+For the full detail — every call's transcript, Playwright traces, and (pipeline 3) the videos —
+download **full-report** and open `index.html` or `playwright/index.html`.
+
+Only one of these runs at a time; if you press Run while another is going, yours waits its turn
+(the shared test agent must never get more than 3 calls at once). All three pipelines share one
+definition, `_run-suite.yml`, so they can never drift apart.
 
 ### The CI chain (`ci.yml`)
 
@@ -936,7 +958,7 @@ with a repository variable (*Settings → Secrets and variables → Actions → 
 | Anything else | `CI_EXTRA` | any make targets, e.g. `livekit-auth perf` or `livekit-grounding` | — |
 
 A PR from a fork gets no secrets: the agent step says so and skips instead of failing.
-Everything that calls the agent — here and in `live.yml` — shares one concurrency group
+Everything that calls the agent — here and in the one-click pipelines — shares one concurrency group
 (`live-agent-calls`), so runs queue and the agent never sees two live runs at once.
 
 **The file to send** is its own artifact, `qa-report-share`: the single self-contained
@@ -962,8 +984,7 @@ stops at once, naming what is missing, if a required one is not set:
 | `OPENAI_API_KEY` | the LLM interview (billed to this key) | for the interview |
 | `GROQ_API_KEY` | the LLM interview, tried before OpenAI when set | no |
 
-`ci.yml` needs no secrets at all. To run the live suite nightly, uncomment the `schedule`
-block in `live.yml` — it is off because every run makes real agent calls and LLM calls.
+`ci.yml` runs without secrets too (its agent step then skips with a warning). To run a pipeline nightly, add a `schedule:` trigger to its file (e.g. `1-live-parallel.yml`) — none has one, because every run makes real agent calls and LLM calls.
 
 ---
 

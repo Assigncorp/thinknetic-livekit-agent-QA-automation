@@ -1,0 +1,148 @@
+name: _run-suite (shared - do not run directly)
+
+# The one definition behind the one-click pipelines:
+#   1-live-parallel.yml   2-everything.yml   3-live-recorded.yml
+# Each of those only says WHICH make target and whether the browser is recorded.
+# Everything else - secrets, install, the run, both reports, the shareable file,
+# the plain-language summary - lives here, so the pipelines can never drift.
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: make target to run
+        type: string
+        required: true
+      recorded:
+        description: run browser tests headed on a virtual display, every call on video
+        type: boolean
+        default: false
+      minutes:
+        description: job timeout
+        type: number
+        default: 120
+
+env:
+  BASE_URL: https://etnyre-dev.thinknetic.app
+  ORG_SLUG: e
+  PRODUCT_SLUG: chip-spreader
+  PYTHONDONTWRITEBYTECODE: '1'
+
+jobs:
+  run:
+    name: make ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.minutes }}
+    # One live run at a time across the repo - shared with ci.yml's agent step,
+    # so the shared agent never sees more than 3 calls. Runs queue, never cancel.
+    concurrency:
+      group: live-agent-calls
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'tests/*/uv.lock'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: tests/ui/pnpm-lock.yaml
+
+      # Values go straight from secrets into .env (gitignored, never uploaded).
+      - name: Check the keys are set
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          missing=""
+          for k in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET; do [ -n "${!k}" ] || missing="$missing $k"; done
+          if [ -n "$missing" ]; then
+            echo "::error::Ask the repository admin to add these secrets (Settings -> Secrets and variables -> Actions):$missing"
+            exit 1
+          fi
+          [ -n "$OPENAI_API_KEY$GROQ_API_KEY" ] || echo "::warning::no OPENAI_API_KEY or GROQ_API_KEY - the LLM interview step will be skipped"
+          : > .env
+          for k in BASE_URL ORG_SLUG PRODUCT_SLUG LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET OPENAI_API_KEY GROQ_API_KEY; do
+            [ -n "${!k}" ] && printf '%s=%s\n' "$k" "${!k}" >> .env
+          done
+
+      - name: Install everything
+        run: |
+          make install
+          (cd tests/ui && npx playwright install-deps chromium)
+          if [ "${{ inputs.recorded }}" = "true" ]; then sudo apt-get install -y -qq xvfb > /dev/null; fi
+
+      - name: Run the tests (make ${{ inputs.target }})
+        id: run
+        continue-on-error: true
+        env:
+          FORCE_HEADED: ${{ inputs.recorded && '1' || '' }}
+          PW_VIDEO: ${{ inputs.recorded && 'on' || '' }}
+        run: |
+          if [ "${{ inputs.recorded }}" = "true" ]; then
+            xvfb-run -a --server-args="-screen 0 1440x900x24" make ${{ inputs.target }}
+          else
+            make ${{ inputs.target }}
+          fi
+
+      - name: Make the shareable report
+        if: always()
+        run: |
+          [ -f report/index.html ] || python3 tools/build_report.py
+          make --no-print-directory report-share || true
+          ls report/share/ 2>/dev/null
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            if [ "${{ steps.run.outcome }}" = "success" ]; then
+              echo "# ✅ Every test passed"
+            else
+              echo "# ❌ Some tests failed"
+            fi
+            echo
+            echo "**How to open the report:** scroll down to **Artifacts** on this page and download"
+            echo "**shareable-report**. Unzip it and double-click the \`.html\` file - it opens in any"
+            echo "browser, needs nothing else, and can be forwarded as it is (keys and tokens are removed)."
+            echo
+            echo "For the full detail (every call's transcript, Playwright traces and videos), download **full-report**"
+            echo "and open \`index.html\`."
+            echo
+            cat report/summary.md 2>/dev/null
+            if [ -f report/kb-correctness.md ]; then
+              echo; echo "<details><summary>Knowledge-base answers, one row per question</summary>"; echo
+              cat report/kb-correctness.md; echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the shareable report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shareable-report
+          path: report/share/*.html
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload the full report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-report
+          path: report/
+          retention-days: 30
+
+      - name: Fail the run if a test failed
+        if: steps.run.outcome != 'success'
+        run: |
+          echo "::error::Some tests failed - the summary above lists them; the shareable report explains each one"
+          exit 1

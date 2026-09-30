@@ -2,6 +2,12 @@ import { expect, type Page } from '@playwright/test';
 import { sel } from '../selectors.js';
 import { testbed, anyOf } from '../config/testbed.js';
 import type { TranscriptMessage } from '../types/testbed.js';
+
+/** An agent idle nudge, or the first word(s) of one still being drawn. */
+const isIdleFragment = (turn: string): boolean => {
+  const t = turn.trim().toLowerCase().replace(/[?.!,]+$/, '');
+  return t.length > 0 && testbed.chatFlow.agentIdlePrompts.some((p) => p.toLowerCase().startsWith(t));
+};
 import { BasePage } from './BasePage.js';
 
 /** Values a configured reply may interpolate. */
@@ -399,6 +405,13 @@ export class ChatWidget extends BasePage {
       const started = Date.now();
       const turn = await this.waitForNewAgentTurn(seen, opts.turnTimeoutMs);
       const ms = Date.now() - started;
+      // An idle nudge caught mid-render ("Are" of "Are you still there?") is
+      // not a turn - VERIFIED 2026-09-30, it was taken for the answer. Mark it
+      // read and wait for the next one.
+      if (isIdleFragment(turn)) {
+        seen = [...seen, turn];
+        continue;
+      }
       let intent = intents.find(
         (candidate) => !(candidate.once && answered.has(candidate.id)) && anyOf(candidate.match).test(turn),
       );

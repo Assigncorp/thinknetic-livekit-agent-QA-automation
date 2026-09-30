@@ -37,7 +37,8 @@ export default defineConfig({
     navigationTimeout: 30_000,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    // PW_VIDEO=on records EVERY test (the recorded-browser pipeline), not just failures.
+    video: process.env.PW_VIDEO === 'on' ? 'on' : 'retain-on-failure',
     // The agent widget asks for the microphone. Granting it here means no
     // human has to click the Chrome permission bubble mid-run.
     permissions: ['microphone'],
