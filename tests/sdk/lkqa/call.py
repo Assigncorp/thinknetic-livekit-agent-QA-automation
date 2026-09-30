@@ -85,6 +85,12 @@ def _intents() -> list[tuple[str, list[re.Pattern[str]], str | None]]:
     ]
 
 
+def is_holding(text: str) -> bool:
+    """A short "let me check" turn: the agent is still looking the answer up."""
+    t = text.strip().lower().replace("\u2019", "'")
+    return len(t) <= 60 and any(p in t for p in testbed.config()["chatFlow"]["holdingPhrases"])
+
+
 def match_intent(text: str) -> tuple[str, str | None] | None:
     for intent_id, patterns, reply in _intents():
         if any(p.search(text) for p in patterns):
@@ -445,6 +451,13 @@ class Call:
                 steps.append(Step("idle", turn.text, None, waited))
                 continue
 
+            if asked and is_holding(turn.text):
+                # "Let me check." - still looking it up. Keep the full answer
+                # budget rather than the short follow-up window.
+                turn.intent = "holding"
+                steps.append(Step("holding", turn.text, None, waited))
+                continue
+
             matched = match_intent(turn.text)
             lowered = turn.text.lower()
 
@@ -594,6 +607,9 @@ class Call:
                 break
             if turn.idle:
                 turn.intent = "idle"
+                continue
+            if is_holding(turn.text):
+                turn.intent = "holding"
                 continue
             matched = match_intent(turn.text)
             intent_id = matched[0] if matched else None

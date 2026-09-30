@@ -134,6 +134,8 @@
   },
   "chatFlow": {
     "_comment": "The conversation contract, verified on etnyre-dev. Phrases are matched case-insensitively as regex fragments - keep them short and structural, never full sentences.",
+    "holdingPhrases": ["let me check", "let me look", "let me pull", "let me find", "one moment", "just a moment", "give me a moment", "give me a second", "hold on", "bear with me"],
+    "_holdingNote": "A SHORT agent turn (60 characters or less) with one of these is the agent still looking the answer up, not the answer. VERIFIED 2026-09-30: 'Let me check.' was taken as the answer, the SDK waited only answerFollowUpMs and the call scored NOT SCORED. Both callers keep waiting the full answerMs after one.",
     "agentIdlePrompts": [
       "are you still there",
       "still here whenever you're ready"

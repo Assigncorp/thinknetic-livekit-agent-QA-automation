@@ -68,6 +68,8 @@ export interface TestbedConfig {
   };
   chatFlow: {
     agentIdlePrompts: string[];
+    /** Short "let me check" turns: still working, not the answer. */
+    holdingPhrases: string[];
     intents: ChatIntent[];
     /** Mute the caller's mic once the session connects; it opens live. */
     muteMicOnStart: boolean;

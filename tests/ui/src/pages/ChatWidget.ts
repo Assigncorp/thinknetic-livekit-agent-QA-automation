@@ -3,6 +3,12 @@ import { sel } from '../selectors.js';
 import { testbed, anyOf } from '../config/testbed.js';
 import type { TranscriptMessage } from '../types/testbed.js';
 
+/** A short "let me check" turn: the agent is still looking the answer up. */
+const isHolding = (turn: string): boolean => {
+  const t = turn.trim().toLowerCase().replace(/\u2019/g, "'");
+  return t.length <= 60 && testbed.chatFlow.holdingPhrases.some((p) => t.includes(p));
+};
+
 /** An agent idle nudge, or the first word(s) of one still being drawn. */
 const isIdleFragment = (turn: string): boolean => {
   const t = turn.trim().toLowerCase().replace(/[?.!,]+$/, '');
@@ -409,6 +415,12 @@ export class ChatWidget extends BasePage {
       // not a turn - VERIFIED 2026-09-30, it was taken for the answer. Mark it
       // read and wait for the next one.
       if (isIdleFragment(turn)) {
+        seen = [...seen, turn];
+        continue;
+      }
+      // "Let me check." - the agent is still looking it up; the answer follows.
+      if (asked && isHolding(turn)) {
+        steps.push({ intent: 'holding', agentTurn: turn, reply: null, ms });
         seen = [...seen, turn];
         continue;
       }
