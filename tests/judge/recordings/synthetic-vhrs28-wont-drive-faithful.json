@@ -1,0 +1,54 @@
+{
+  "_synthetic": "NOT A REAL CALL. Hand-written from vhrs28.md Section 8 to exercise the harness and to act as the judge's own regression case - see judge/tests/test_judge_agreement.py. It is a deliberately GOOD answer: every fact traceable to the section, the Step 3 warning carried, the escalation number given. A judge that does not score this highly is misconfigured, and that is what the agreement test asserts. Replace this file with real recordings as soon as calls can be captured.",
+  "_expect": "high",
+  "scenarioId": "VHRS28-HOW-003",
+  "kbId": "vhrs28",
+  "serial": "K7170",
+  "controller": "RC28",
+  "question": "The machine will not move / won't drive",
+  "room": "synthetic",
+  "recordedAt": "2026-09-21T09:00:00+00:00",
+  "turns": [
+    {
+      "speaker": "agent",
+      "text": "Hi, this is Jason with Etnyre Customer Support. I have your Chip Spreader Variable Hopper pulled up here. What can I help you with today?",
+      "elapsedMs": 5200,
+      "intent": "readyForQuestion"
+    },
+    { "speaker": "caller", "text": "The machine will not move / won't drive" },
+    {
+      "speaker": "agent",
+      "text": "Sorry to hear that. Before we start pulling things apart, let's rule out the simple causes. Is the display showing any alarm at the moment?",
+      "elapsedMs": 6100,
+      "intent": "clarifying"
+    },
+    { "speaker": "caller", "text": "Yes, that is correct. No alarms showing. What does the manual say I should check?" },
+    {
+      "speaker": "agent",
+      "text": "Alright. Here's the first step. The computer has a start-latch safety that stops the machine moving after the computer starts up. Put the Park Drive switch into park, then put the joystick in neutral. Now move the Park Drive switch across to drive, and try the joystick again. Let me know when you've done that and I'll walk you through the next step.",
+      "elapsedMs": 9800,
+      "intent": null
+    },
+    { "speaker": "caller", "text": "Done. What is the next step?" },
+    {
+      "speaker": "agent",
+      "text": "Second thing to check is the speed setpoint - it may simply be set too low. Push the speed toggle switch up, or press one of the memory buttons. The display will show you the new setpoint while it's changing. Tell me what it reads.",
+      "elapsedMs": 7400,
+      "intent": null
+    },
+    { "speaker": "caller", "text": "Done. What is the next step?" },
+    {
+      "speaker": "agent",
+      "text": "Next is the brake pressure switch, and I need to give you a safety warning before you do this one. Shut the machine off. Unplug the electrical connector on the brake pressure switch - it's on the hose coming off the foot pedal. Now, with that connector unplugged, the service brake on its own will not stop the machine, so make sure you have clear ground around you before you start it again. Start it up and try to move. If it moves now, that switch has failed and needs replacing.",
+      "elapsedMs": 11200,
+      "intent": null
+    },
+    { "speaker": "caller", "text": "Done. What is the next step?" },
+    {
+      "speaker": "agent",
+      "text": "The last thing on my list is the charge pressure. You'll want to install a one thousand PSI gauge in port G on the drive pump. With the engine at low idle, that should read approximately four hundred PSI. If it's sitting near zero, the charge pump has failed and that's not a roadside repair - give Etnyre service a call on eight eight eight, five eight six, one eight nine nine and they'll sort you out.",
+      "elapsedMs": 10600,
+      "intent": null
+    }
+  ]
+}

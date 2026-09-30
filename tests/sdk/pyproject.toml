@@ -1,0 +1,52 @@
+[project]
+name = "thinknetic-livekit-qa-sdk"
+version = "0.1.0"
+description = "Black-box tests of the deployed agent over the LiveKit SDK: session, auth, conversation, KB grounding, voice"
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "python-dotenv>=1.0",
+    "livekit>=1.0",
+    "livekit-api>=1.0",
+    "numpy>=2.1",
+    # python.org's macOS build ships no CA bundle; see judge/src/testbed.py.
+    "certifi>=2024.1",
+]
+
+[project.optional-dependencies]
+# Local speech-to-text of the AGENT's audio, for the audio/text consistency
+# check. Pulls a ~150MB model on first use, so it is opt-in and that one test
+# skips without it.
+stt = [
+    "faster-whisper>=1.0",
+]
+
+[tool.pytest.ini_options]
+# No .pytest_cache in the project: every run starts from nothing (2026-09-28).
+addopts = "-p no:cacheprovider"
+# xunit1 keeps per-test <properties> (the testing type) in the JUnit XML that
+# tools/build_report.py turns into report/index.html.
+junit_family = "xunit1"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "positive: testing type - the happy path works (config/test-types.json)",
+    "negative: testing type - invalid input / misuse refused, wrong answers caught",
+    "edge: testing type - boundaries, odd formats, timing, memory, parser corner cases",
+    "security: testing type - auth, tampering, injection, unsafe requests, leaks",
+    "nonfunctional: testing type - performance, rate limits, concurrency, audio quality",
+    "offline: no network - validates the suite's own data and helpers",
+    "contract: hits the public session endpoint only; issues tokens, never joins, starts no agent",
+    "auth: talks to the LiveKit server with the project's API key; starts no agent",
+    "live: joins a real agent session on the shared dev deployment",
+    "grounding: live, and scores the agent's answer against the compiled knowledge base",
+    "interview: live + a free LLM - adaptive, LLM-written KB follow-up questions, LLM-judged",
+    "kbrun: the big KB-correctness run - every anchored FAQ + procedures, many calls",
+    "phrasing: live - positive corner cases: the same KB question phrased the way callers type it",
+    "voice: live, and publishes or analyses audio",
+    "concurrency: live, several sessions at once",
+    "slow: live, and deliberately waits out a timeout (idle, memory)",
+]

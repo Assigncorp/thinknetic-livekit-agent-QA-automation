@@ -1,0 +1,17 @@
+name: "▶ 2 · Everything (make all) + report"
+
+# ONE CLICK: Actions -> "▶ 2 · Everything (make all) + report" -> Run workflow -> Run.
+# Every test in the project, one step after another: offline checks, API,
+# LiveKit SDK (all live calls), the full browser suite (make all, ~80 min).
+# Download "shareable-report".
+
+on:
+  workflow_dispatch:
+
+jobs:
+  suite:
+    uses: ./.github/workflows/_run-suite.yml
+    with:
+      target: all
+      minutes: 150
+    secrets: inherit

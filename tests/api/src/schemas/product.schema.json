@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public product payload",
+  "description": "Contract confirmed against etnyre-dev on 2026-09-16. Only fields the UI actually depends on are marked required - over-specifying turns every harmless backend addition into a false failure.",
+  "type": "object",
+  "required": ["id", "organization_id", "name", "slug", "has_assistant", "assets"],
+  "properties": {
+    "id": { "type": "string" },
+    "organization_id": { "type": "string" },
+    "organization_name": { "type": ["string", "null"] },
+    "name": { "type": "string", "minLength": 1 },
+    "short_description": { "type": ["string", "null"] },
+    "description": { "type": ["string", "null"] },
+    "slug": { "type": "string", "minLength": 1 },
+    "brand": { "type": ["string", "null"] },
+    "company_logo": { "type": ["string", "null"] },
+    "has_assistant": { "type": "boolean" },
+    "assets": { "type": "array" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,19 @@
+name: "▶ 3 · Live calls, browser recorded (headed, parallel) + shareable report"
+
+# ONE CLICK: Actions -> "▶ 3 · Live calls, browser recorded ..." -> Run workflow -> Run.
+# The same real calls as pipeline 1 (make live-parallel, 8 calls at a time, ~25 min), with the
+# browser tests run HEADED on a virtual screen and EVERY browser call recorded
+# on video - open the Playwright report inside "full-report" to watch them.
+# The file to forward: "shareable-report".
+
+on:
+  workflow_dispatch:
+
+jobs:
+  suite:
+    uses: ./.github/workflows/_run-suite.yml
+    with:
+      target: live-parallel
+      recorded: true
+      minutes: 90
+    secrets: inherit

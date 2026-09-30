@@ -1,0 +1,32 @@
+# node
+node_modules/
+tests/ui/node_modules/
+*.tsbuildinfo
+
+# python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# secrets & local config
+.env
+.env.local
+*.local.json
+
+# test output
+report/**
+!report/.gitkeep
+tests/ui/test-results/
+tests/ui/playwright-report/
+tests/ui/blob-report/
+**/traces/
+**/*.webm
+**/*.zip
+allure-results/
+allure-report/
+
+# os
+.DS_Store
