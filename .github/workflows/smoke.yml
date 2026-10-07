@@ -1,0 +1,150 @@
+# The agent smoke test: unit checks, the product-page UI test, then one live
+# LiveKit KB-steps call - and a published HTML report on every run, pass or fail.
+#
+# Same steps as `make smoke`. Secrets come from repository secrets
+# (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) and are never printed.
+# GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
+name: smoke
+
+on:
+  push:
+    branches: [develop-phase1_basic]
+  workflow_dispatch:
+    inputs:
+      kb_seed:
+        description: "KB_SEED - reproduce a run's model and question (blank = random)"
+        required: false
+      kb_model:
+        description: "KB_MODEL - pin the model: VHRS28, FHRC28, VHRS36 or FHRC36 (blank = random)"
+        required: false
+      kb_question_id:
+        description: "KB_QUESTION_ID - pin one question bank entry (blank = random)"
+        required: false
+
+# One smoke run at a time: the live call uses the shared dev agent.
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+      LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+      LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+      AGENT_NAME: thinknetic-agents-nonprod
+      BASE_URL: https://etnyre-dev.thinknetic.app
+      KB_SEED: ${{ inputs.kb_seed }}
+      KB_MODEL: ${{ inputs.kb_model }}
+      KB_QUESTION_ID: ${{ inputs.kb_question_id }}
+      KB_RETRIES: "1"
+      PW_WITH_DEPS: "1"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the clock
+        run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Clean slate (no caches, no old report)
+        run: |
+          rm -rf ~/.cache/ms-playwright
+          uv cache clean || true
+          rm -rf "$(pnpm store path 2>/dev/null || echo /nonexistent)"
+          find report -mindepth 1 ! -name .gitkeep -exec rm -rf {} + 2>/dev/null || true
+          mkdir -p report/data
+
+      - name: Install fresh (uv sync, pnpm install, Playwright chromium + OS deps)
+        run: make install
+
+      - name: Unit checks (routing, validator, question bank)
+        id: unit
+        continue-on-error: true
+        run: make unit
+
+      - name: UI test (product page)
+        id: ui
+        if: steps.unit.outcome == 'success'
+        continue-on-error: true
+        run: make ui
+
+      - name: LiveKit KB-steps call
+        id: kb
+        if: steps.ui.outcome == 'success'
+        continue-on-error: true
+        run: make kb
+
+      - name: Build the HTML report
+        if: always()
+        run: make report
+
+      - name: Keep this run's report as an artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report-${{ github.run_number }}
+          path: report/
+          if-no-files-found: warn
+
+      - name: Stage the report for GitHub Pages
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: report/
+
+      - name: Verdict
+        if: always()
+        run: |
+          echo "unit=${{ steps.unit.outcome }} ui=${{ steps.ui.outcome }} kb=${{ steps.kb.outcome }}"
+          {
+            echo "## Smoke test"
+            echo "| Stage | Result |"
+            echo "|---|---|"
+            echo "| Unit checks | ${{ steps.unit.outcome }} |"
+            echo "| UI test | ${{ steps.ui.outcome }} |"
+            echo "| LiveKit KB-steps call | ${{ steps.kb.outcome }} |"
+            echo ""
+            echo "Report: see the **publish** job below for the link, or download the \`smoke-report-${{ github.run_number }}\` artifact."
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "${{ steps.unit.outcome }}" = success
+          test "${{ steps.ui.outcome }}" = success
+          test "${{ steps.kb.outcome }}" = success
+
+  publish:
+    needs: smoke
+    if: always() && needs.smoke.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the report (latest run only)
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Link the report in the job summary
+        run: |
+          {
+            echo "## Smoke test report"
+            echo ""
+            echo "**[Open the report](${{ steps.deployment.outputs.page_url }})** - smoke run ${{ needs.smoke.result == 'success' && 'PASSED' || 'FAILED' }}"
+          } >> "$GITHUB_STEP_SUMMARY"

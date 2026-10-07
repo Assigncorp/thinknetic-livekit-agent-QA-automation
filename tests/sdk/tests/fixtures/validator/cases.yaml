@@ -1,0 +1,260 @@
+# Transcripts for tests/test_validator.py, all against entry.yaml.
+#
+# Each case is the list of agent turns after the question, worded the way the
+# deployed agent speaks (numbers and units as words, one step per turn, a hazard
+# said before its step). `expect` is every item that must FAIL, with its result;
+# every other step and caution must pass. An empty `expect` means the whole
+# answer passes.
+#
+# Per rule there is a near-miss that must pass and a real violation that must fail.
+
+cases:
+
+  # ------------------------------------------------------------------ baseline
+  - name: correct answer, one step per turn
+    rule: baseline
+    expect: {}
+    turns: &correct
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground. Let me know when that's done."
+      - "Next, disconnect the fifty pin connector at the engine, so the engine can only crank and not start."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve in the suction tube is fully open, turned counterclockwise."
+      - "Crank the engine with the starter until you see forty to sixty P S I of charge pressure on the gauge. Do not crank for more than thirty seconds, and wait at least two minutes before cranking again."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes. The charge pressure may surge between fifty and five hundred P S I while the system fills, that's normal."
+      - "Finally, shut the engine down, remove the gauges, replace the plugs and caps, and recheck your fluid levels after fifteen minutes."
+
+  - name: reworded but correct
+    rule: reworded
+    expect: {}
+    turns:
+      - "Quick safety point first. If you crank it while the gate valve is closed you will wreck the pumps, so don't."
+      - "Okay, first thing: use a jack to raise the machine and put it on jack stands with all four tires off the ground."
+      - "Then unplug the fifty-pin plug at the engine. That way it can crank but can't start."
+      - "After that, take the stroker off the pump."
+      - "Put a six-hundred PSI gauge into port G on the drive pump."
+      - "Heads up - starting it with that gate valve closed causes cavitation damage. So check the gate valve in the suction tube is all the way open, counterclockwise."
+      - "Now crank it on the starter until the gauge reads forty to sixty pounds per square inch of charge pressure. Thirty seconds of cranking at most, then give it two minutes before you crank again."
+      - "Plug back in the fifty pin connector."
+      - "Fire it up normally and let it idle ten minutes; it can surge fifty to five hundred PSI while it fills, which is fine."
+      - "Last, shut it down, pull the gauges, put the plugs and caps back, and after fifteen minutes recheck the fluid levels."
+
+  # ------------------------------------------------------------------ missing step
+  - name: step spoken over two sentences, no step markers (still found)
+    rule: missing
+    expect: {}
+    turns:
+      - "Never crank the engine with the gate valve closed, it damages the hydraulic pumps."
+      - "Jack the machine up. Then set it on stands with all four wheels off the ground."
+      - "Disconnect the fifty pin connector at the engine."
+      - "Disconnect the pump stroker at the pump."
+      - "Install a six hundred PSI gauge in port G."
+      - "Starting it with the gate valve closed causes cavitation damage. Check the gate valve is fully open."
+      - "Crank it until you see forty to sixty PSI charge pressure. Don't crank more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start it and let it idle for ten minutes."
+      - "Shut it down and recheck the fluid levels after fifteen minutes."
+
+  - name: step 3 never given
+    rule: missing
+    expect: {"Step 3": missing}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine, so the engine can only crank and not start."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve in the suction tube is fully open."
+      - "Crank the engine with the starter until you see forty to sixty P S I of charge pressure on the gauge. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down, remove the gauges, and recheck your fluid levels after fifteen minutes."
+
+  # ------------------------------------------------------------------ out of order
+  - name: holding and clarifying turns between steps (order intact)
+    rule: out_of_order
+    expect: {}
+    turns:
+      - "Let me check."
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Got it. Next, disconnect the fifty pin connector at the engine."
+      - "Are you still there?"
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: gauge installed before the stroker is disconnected
+    rule: out_of_order
+    expect: {"Step 4": out_of_order}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Now disconnect the pump stroker at the pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  # ------------------------------------------------------------------ merged
+  - name: two numbered steps in one turn (separate parts, not merged)
+    rule: merged
+    expect: {}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Step two: disconnect the fifty pin connector at the engine. Step three: disconnect the pump stroker at the pump."
+      - "Step four: install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Step five: make sure the gate valve is fully open."
+      - "Step six: crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Step seven: reconnect the fifty pin connector."
+      - "Step eight: start the engine normally and let it idle for ten minutes."
+      - "Step nine: shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: connector and stroker collapsed into one line
+    rule: merged
+    expect: {"Step 2": merged, "Step 3": merged}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine and the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  # ------------------------------------------------------------------ missing caution
+  - name: procedure caution condensed into the preface in other words
+    rule: missing_caution
+    expect: {}
+    turns:
+      - "One thing up front: the gate valve has to be open - cranking with it closed damages the hydraulic pumps."
+      - "Step one: jack the machine up and set it on stands with all four wheels off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Starting with the gate valve closed causes cavitation damage, so make sure the gate valve is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Never crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: thirty-second cranking limit never said
+    rule: missing_caution
+    expect: {"Caution C3 (step 6)": missing_caution}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine with the starter until you see forty to sixty P S I of charge pressure on the gauge."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  # ------------------------------------------------------------------ misplaced caution
+  - name: step caution in its own turn right before the step
+    rule: misplaced_caution
+    expect: {}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "A warning before the next step: starting with the gate valve closed causes cavitation damage."
+      - "Make sure the gate valve in the suction tube is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: cavitation warning only at the very end
+    rule: misplaced_caution
+    expect: {"Caution C2 (step 5)": misplaced_caution}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Make sure the gate valve in the suction tube is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+      - "Oh, and one more thing - starting with the gate valve closed causes cavitation damage."
+
+  # ------------------------------------------------------------------ wrong value
+  - name: values inside the KB range and an extra gauge size (not contradictions)
+    rule: wrong_value
+    expect: {}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine on the six hundred P S I gauge until charge pressure reaches forty to sixty P S I, typically around fifty P S I. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: crank limit stated as sixty seconds
+    rule: wrong_value
+    expect: {"Caution C3 (step 6)": wrong_value}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than sixty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: engine left at RUN instead of IDLE, gate valve closed instead of OPEN
+    rule: wrong_value
+    expect: {"Step 5": wrong_value, "Step 8": wrong_value}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "A warning first: starting it the wrong way causes cavitation damage."
+      - "Make sure the gate valve in the suction tube is fully closed."
+      - "Crank the engine until you see forty to sixty P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it run for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."
+
+  - name: charge pressure given as eighty to a hundred PSI
+    rule: wrong_value
+    expect: {"Step 6": wrong_value}
+    turns:
+      - "Before we start, one safety note: never crank the engine with the gate valve closed, or you'll damage the hydraulic pumps."
+      - "Step one: jack the machine up and set it securely on stands so all four wheels are off the ground."
+      - "Next, disconnect the fifty pin connector at the engine."
+      - "Now disconnect the pump stroker at the pump."
+      - "Install a six hundred P S I gauge in port G on the drive pump."
+      - "Do not try to start it with the gate valve closed, that causes cavitation damage. Make sure the gate valve is fully open."
+      - "Crank the engine until you see eighty to one hundred P S I of charge pressure. Do not crank for more than thirty seconds."
+      - "Reconnect the fifty pin connector."
+      - "Start the engine normally and let it idle for ten minutes."
+      - "Finally, shut the engine down and recheck your fluid levels after fifteen minutes."

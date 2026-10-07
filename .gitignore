@@ -1,7 +1,5 @@
-# node
+# node (left over from the old UI suite)
 node_modules/
-tests/ui/node_modules/
-*.tsbuildinfo
 
 # python
 .venv/
@@ -14,19 +12,18 @@ __pycache__/
 # secrets & local config
 .env
 .env.local
-*.local.json
 
 # test output
 report/**
 !report/.gitkeep
-tests/ui/test-results/
-tests/ui/playwright-report/
-tests/ui/blob-report/
-**/traces/
-**/*.webm
-**/*.zip
-allure-results/
-allure-report/
 
 # os
 .DS_Store
+
+# playwright
+tests/ui/test-results/
+
+# question bank intermediates (tools/build_question_bank.py, hand-review); the
+# reviewed kb/question_bank.yaml is what is committed
+kb/question_bank.draft.yaml
+kb/review/

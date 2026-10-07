@@ -1,0 +1,4076 @@
+# Reviewed question bank - what the live KB call asks and checks against.
+# Generated from the KBs by tools/build_question_bank.py, then hand-reviewed.
+# Every step/caution text is verbatim from the KB; make check-bank enforces it.
+entries:
+- id: VHRS28-STARTUP-SEQUENCE
+  model: VHRS28
+  kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+  kb_section: Step-by-Step Startup Sequence
+  question: My walk-around checks are done. Can you take me through starting the machine up, in the right order?
+  steps:
+  - n: 1
+    text: Verify Park/Drive switch (item 2 on panel) is in the **PARK** position. The engine will not start if the switch is in the Drive position.
+    keywords:
+    - term: PARK position
+      kind: term
+      synonyms:
+      - in park
+      - to park
+      - on park
+      - at park
+      - into park
+  - n: 2
+    text: Verify the Speed/Direction joystick (item 9) is in the **neutral** position. If started without the joystick in neutral, the machine will not move until the joystick is returned to neutral.
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - speed direction lever
+      - speed and direction lever
+      - control lever
+    - term: neutral
+      kind: position
+      synonyms: []
+  - n: 3
+    text: Turn the Throttle Run/Idle switch (item 37) to the **IDLE** position.
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms:
+      - run idle switch
+      - run/idle switch
+    - term: IDLE position
+      kind: term
+      synonyms:
+      - to idle
+      - low idle
+      - in idle
+      - on idle
+      - at idle
+      - into idle
+  - n: 4
+    text: Turn the Power/Ignition switch (item 1) to the **ON** position to supply power to all systems.
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+      - power switch
+    - term: 'ON'
+      kind: position
+      synonyms: []
+  - n: 5
+    text: Rotate the ignition switch further right to the **START** position to engage the starter. Release when the engine fires.
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+      - starter
+      - crank
+    - term: START
+      kind: position
+      synonyms:
+      - crank
+      - cranking
+  - n: 6
+    text: Observe computer display — the main screen should appear showing application rate setpoint, aggregate size, and speed setpoint.
+    keywords:
+    - term: display
+      kind: term
+      synonyms:
+      - screen
+      - monitor
+  - n: 7
+    text: Allow engine to idle for a brief warm-up (especially in cold weather).
+    keywords:
+    - term: warm-up
+      kind: term
+      synonyms:
+      - warm
+      - warmup
+      - warming
+  - n: 8
+    text: Move Throttle Run/Idle switch (item 37) to the **RUN** position to bring engine to high idle. The hydrostatic system is designed to operate at high idle.
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms:
+      - run idle switch
+      - run/idle switch
+    - term: RUN position
+      kind: term
+      synonyms:
+      - to run
+      - into run
+      - in run
+      - on run
+      - high idle
+  - n: 9
+    text: Before moving, move Park/Drive switch to **DRIVE**, then verify the joystick responds correctly.
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - speed direction lever
+      - speed and direction lever
+      - control lever
+    - term: to DRIVE
+      kind: term
+      synonyms:
+      - into drive
+      - in drive
+      - on drive
+      - drive position
+      - select drive
+      - selecting drive
+      - over to drive
+  cautions:
+  - id: C1
+    text: 'WARNING: Turning the ignition switch to "off" results in a violent stop. SHUT MACHINE OFF AND WAIT FOR ALL MOVEMENT TO STOP BEFORE LEAVING OPERATOR''S SEAT OR SERVICING. FAILURE TO DO SO COULD RESULT IN UNEXPECTED MOVEMENT AND CAUSE SERIOUS INJURY OR DEATH.'
+    step: procedure
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+    - term: violent stop
+      kind: term
+      synonyms:
+      - violent
+      - violently
+      - sudden stop
+      - abrupt stop
+      - abruptly
+      - hard stop
+    - term: 'off'
+      kind: position
+      synonyms: []
+  - id: C2
+    text: 'WARNING: Selecting "park" while the chipspreader is moving results in a violent stop. Do not select "Park" unless the chipspreader is at a full stop.'
+    step: procedure
+    keywords:
+    - term: park
+      kind: term
+      synonyms: []
+    - term: violent stop
+      kind: term
+      synonyms:
+      - violent
+      - violently
+      - sudden stop
+      - abrupt stop
+      - abruptly
+      - hard stop
+- id: VHRS28-HYDROSTATIC-WORK-STARTUP
+  model: VHRS28
+  kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+  kb_section: After Hydrostatic System Work — Special Startup Procedure
+  question: We just had a repair done that opened up the hydrostatic drive circuit. How do I get the machine started back up safely?
+  steps:
+  - n: 1
+    text: Jack the machine up and support securely on stands with all four wheels off the ground.
+    keywords:
+    - term: jack
+      kind: term
+      synonyms:
+      - jacked
+      - jacking
+      - lift
+      - lifted
+      - raise
+      - raised
+    - term: off the ground
+      kind: term
+      synonyms:
+      - in the air
+      - off the floor
+      - clear of the ground
+  - n: 2
+    text: Disconnect the 50-pin connector at the engine so engine can only be cranked, not started.
+    keywords:
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - 50 pin
+    - term: disconnect
+      kind: term
+      synonyms:
+      - disconnecting
+      - unplug
+      - unplugging
+      - unhook
+      - detach
+  - n: 3
+    text: Disconnect pump stroker at the pump.
+    keywords:
+    - term: stroker
+      kind: term
+      synonyms: []
+    - term: disconnect
+      kind: term
+      synonyms:
+      - disconnecting
+      - unplug
+      - unplugging
+      - unhook
+      - detach
+  - n: 4
+    text: Install 600 PSI gauge in port "G" on the drive pump.
+    keywords:
+    - term: gauge
+      kind: term
+      synonyms:
+      - gage
+    - term: 600 PSI
+      kind: value
+      synonyms: []
+  - n: 5
+    text: Verify gate valve in suction tube is fully OPEN (counterclockwise). Do NOT attempt to start with gate valve closed — this causes cavitation damage.
+    keywords:
+    - term: gate valve
+      kind: term
+      synonyms:
+      - suction valve
+      - suction gate valve
+      - suction tube valve
+      - shutoff valve
+    - term: OPEN
+      kind: position
+      synonyms:
+      - opened
+  - n: 6
+    text: Crank engine with starter until 40–60 PSI charge pressure is seen on gauge. Do NOT crank for more than 30 seconds. Wait at least 2 minutes before cranking again.
+    keywords:
+    - term: crank
+      kind: term
+      synonyms:
+      - cranking
+      - starter
+      - turn the engine over
+      - turn it over
+    - term: 40–60 PSI
+      kind: value
+      synonyms: []
+  - n: 7
+    text: Reconnect the 50-pin connector.
+    keywords:
+    - term: reconnect
+      kind: term
+      synonyms:
+      - reconnecting
+      - connect
+      - plug back in
+      - back in
+      - reattach
+      - hook back up
+      - hook up
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - 50 pin
+  - n: 8
+    text: Start engine normally; allow to idle for 10 minutes. Charge pressure may surge 50–500 PSI as system fills; this is normal. Pressure should settle to a steady reading.
+    keywords:
+    - term: idle
+      kind: term
+      synonyms:
+      - idling
+    - term: 10 minutes
+      kind: value
+      synonyms: []
+  - n: 9
+    text: Shut down engine; remove gauges; replace all plugs and caps. Recheck fluid levels after 15 minutes.
+    keywords:
+    - term: gauges
+      kind: term
+      synonyms:
+      - gauge
+      - gage
+    - term: fluid levels
+      kind: term
+      synonyms:
+      - fluid
+      - fluids
+      - oil level
+      - levels
+    - term: 15 minutes
+      kind: value
+      synonyms: []
+  cautions:
+  - id: C1
+    text: 'CAUTION: Do not crank engine with gate valve closed. Doing so will cause damage to the hydraulic pumps.'
+    step: procedure
+    keywords:
+    - term: gate valve
+      kind: term
+      synonyms:
+      - suction valve
+      - suction gate valve
+      - suction tube valve
+      - shutoff valve
+    - term: closed
+      kind: term
+      synonyms:
+      - shut
+      - close
+    - term: damage
+      kind: term
+      synonyms:
+      - damaging
+      - pump
+      - cavitation
+      - ruin
+      - wreck
+  - id: C2
+    text: Do NOT attempt to start with gate valve closed — this causes cavitation damage.
+    step: 5
+    keywords:
+    - term: gate valve
+      kind: term
+      synonyms:
+      - suction valve
+      - suction gate valve
+      - suction tube valve
+      - shutoff valve
+    - term: closed
+      kind: term
+      synonyms:
+      - shut
+      - close
+    - term: cavitation
+      kind: term
+      synonyms:
+      - damage
+      - damaging
+      - pump
+  - id: C3
+    text: Do NOT crank for more than 30 seconds.
+    step: 6
+    keywords:
+    - term: crank
+      kind: term
+      synonyms:
+      - cranking
+      - starter
+    - term: 30 seconds
+      kind: value
+      synonyms: []
+  - id: C4
+    text: Wait at least 2 minutes before cranking again.
+    step: 6
+    keywords:
+    - term: 2 minutes
+      kind: value
+      synonyms: []
+- id: VHRS28-MACHINE-WONT-MOVE
+  model: VHRS28
+  kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+  kb_section: 'Q: The machine will not move / won''t drive'
+  question: The engine's running fine but the spreader won't go anywhere when I push the joystick. What should I check?
+  steps:
+  - n: 1
+    text: 'Check start latch: The computer has a start-latch safety that prevents movement after computer startup. Place the Park/Drive switch in PARK, then place the joystick in neutral. Move Park/Drive switch to DRIVE. Now move the joystick — the machine should respond.'
+    keywords:
+    - term: start latch
+      kind: term
+      synonyms:
+      - latch
+      - lockout
+      - lock out
+      - locks out
+      - interlock
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - control lever
+    - term: neutral
+      kind: position
+      synonyms: []
+  - n: 2
+    text: 'Check speed setpoint: The speed setpoint may be set too low. Raise the setpoint by pushing the Speed Toggle Switch up or by pressing a Memory button. The display shows the new setpoint while changing.'
+    keywords:
+    - term: speed setpoint
+      kind: term
+      synonyms:
+      - setpoint
+      - set point
+      - speed setting
+      - set speed
+    - term: raise
+      kind: term
+      synonyms:
+      - raising
+      - increase
+      - turn up
+      - bump up
+      - higher
+      - too low
+  - n: 3
+    text: 'Check brake pressure switch: The brake pressure switch may be stuck or failed. To test: Turn machine off. Unplug the electrical connector on the brake pressure switch (located on the hose from the foot pedal). Start the machine and attempt to move. WARNING: with the brake pressure switch unplugged, the service brake alone will not stop the machine. If the machine moves after unplugging, replace the brake pressure switch.'
+    keywords:
+    - term: brake pressure switch
+      kind: term
+      synonyms:
+      - brake switch
+      - brake pressure sensor
+    - term: unplug
+      kind: term
+      synonyms:
+      - unplugged
+      - unplugging
+      - disconnect
+      - disconnected
+  - n: 4
+    text: 'Check for Joystick Fault: Check the display for "ALARM: JOYSTICK FAILURE." If shown, see the Joystick Fault section below.'
+    keywords:
+    - term: joystick failure
+      kind: term
+      synonyms:
+      - joystick fault
+      - joystick alarm
+      - joystick error
+  - n: 5
+    text: 'Check for pump solenoid fault: If the machine moves forward but the display shows "PUMP REVERSE SOL FAILURE" when attempting reverse, there is an electrical disconnect between the computer and pump or between pump and ground. If it moves reverse but shows "PUMP FORWARD SOL FAILURE," same diagnosis. Find and repair the loose or broken connection.'
+    keywords:
+    - term: pump
+      kind: term
+      synonyms: []
+    - term: solenoid
+      kind: term
+      synonyms:
+      - sol
+    - term: connection
+      kind: term
+      synonyms:
+      - wiring
+      - wire
+      - connector
+      - disconnect
+  - n: 6
+    text: 'Check charge pressure: Install a 1000 PSI gauge in port "G" on the drive pump. With engine at low idle, charge pressure should read approximately 400 PSI. If reading is near 0 PSI, the charge pump has failed. Contact Etnyre service at 888-586-1899.'
+    keywords:
+    - term: charge pressure
+      kind: term
+      synonyms: []
+    - term: 400 PSI
+      kind: value
+      synonyms: []
+  cautions:
+  - id: C1
+    text: 'WARNING: with the brake pressure switch unplugged, the service brake alone will not stop the machine.'
+    step: 3
+    keywords:
+    - term: service brake
+      kind: term
+      synonyms:
+      - brake pedal
+      - foot brake
+      - foot pedal
+      - brake alone
+      - brakes alone
+    - term: will not stop
+      kind: term
+      synonyms:
+      - won't stop
+      - not stop
+      - can't stop
+      - cannot stop
+      - won't be able to stop
+      - not be able to stop
+      - unable to stop
+- id: VHRS28-AUGER-WONT-MOVE
+  model: VHRS28
+  kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+  kb_section: 'Q: The auger won''t move'
+  question: My auger quit turning. What should I check to get it going again?
+  steps:
+  - n: 1
+    text: 'Check for stalled auger: You should hear noise from the hydraulic pump if the auger is jammed. Turn auger speed to 100%, then cycle the auger switch ON and OFF several times to break it free. WARNING: Do NOT attempt to clear a jam manually with the engine running.'
+    keywords:
+    - term: stalled
+      kind: term
+      synonyms:
+      - stall
+      - jammed
+      - jam
+      - stuck
+    - term: ON and OFF
+      kind: term
+      synonyms:
+      - off and on
+      - cycle
+      - cycling
+      - toggle
+    - term: 100%
+      kind: value
+      synonyms:
+      - 100 percent
+      - full speed
+      - maximum speed
+      - max speed
+  - n: 2
+    text: 'Check auger speed setting: Adjust auger speed to a higher percentage on the calibration screen. Normal use is around 75%.'
+    keywords:
+    - term: auger speed
+      kind: term
+      synonyms:
+      - speed
+      - calibration screen
+    - term: higher
+      kind: term
+      synonyms:
+      - raise
+      - raising
+      - increase
+      - increasing
+      - turn up
+      - turn it up
+      - bump up
+      - bump it up
+      - too low
+  - n: 3
+    text: 'Check for start latch: Move the joystick to neutral and place the Park/Drive switch in PARK. The auger should now function properly.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - control lever
+    - term: neutral
+      kind: position
+      synonyms: []
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - on park
+      - park position
+      - select park
+  - n: 4
+    text: 'Check auto switch (if in AUTO mode): Check the auto diaphragm switch for holes in the diaphragm (most common failure). Ensure material is not touching the switch. Check that the electrical signal from the auto switch is returning to the computer — inspect connections.'
+    keywords:
+    - term: diaphragm
+      kind: term
+      synonyms:
+      - auto switch
+    - term: holes
+      kind: term
+      synonyms:
+      - hole
+      - punctured
+      - puncture
+      - torn
+      - tear
+      - tears
+  cautions:
+  - id: C1
+    text: 'WARNING: Do NOT attempt to clear a jam manually with the engine running.'
+    step: 1
+    keywords:
+    - term: jam
+      kind: term
+      synonyms:
+      - jammed
+      - clear it
+      - clearing
+    - term: engine running
+      kind: term
+      synonyms:
+      - running
+      - engine on
+      - engine is on
+      - engine off
+      - shut the engine off
+      - shut off the engine
+- id: VHRS28-AUX-HYDRAULIC-PRESSURE-WONT-RELIEVE
+  model: VHRS28
+  kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+  kb_section: 'Q: Auxiliary hydraulic pressure will not relieve / engine is hard to start after shutdown'
+  question: After I shut down, the auxiliary hydraulic pressure doesn't bleed off and the engine is really hard to restart. How do I fix that?
+  steps:
+  - n: 1
+    text: Shut off machine and close main suction valve.
+    keywords:
+    - term: suction valve
+      kind: term
+      synonyms:
+      - suction
+    - term: close
+      kind: position
+      synonyms:
+      - closed
+      - shut the suction valve
+      - shut the main suction valve
+  - n: 2
+    text: Locate and cap the case drain at the pump.
+    keywords:
+    - term: case drain
+      kind: term
+      synonyms: []
+    - term: cap
+      kind: term
+      synonyms:
+      - capped
+      - plug it
+      - plug off
+  - n: 3
+    text: Remove the compensator from the hydraulic pump(s).
+    keywords:
+    - term: compensator
+      kind: term
+      synonyms: []
+    - term: hydraulic pump
+      kind: term
+      synonyms:
+      - pump
+  - n: 4
+    text: Remove the load sense compensator cartridge.
+    keywords:
+    - term: cartridge
+      kind: term
+      synonyms: []
+    - term: remove
+      kind: term
+      synonyms:
+      - removing
+      - take out
+      - pull out
+      - take the cartridge out
+      - pull the cartridge
+      - take off
+  - n: 5
+    text: Locate the 2mm Allen head orifice inside the compensator housing.
+    keywords:
+    - term: orifice
+      kind: term
+      synonyms: []
+    - term: Allen
+      kind: term
+      synonyms:
+      - 2mm
+      - 2 mm
+      - 2 millimeter
+      - hex
+  - n: 6
+    text: 'Remove the orifice and clean it: Use a strand of primary wire or a torch cleaning kit (if small enough) to clean the orifice passage. DO NOT enlarge the orifice.'
+    keywords:
+    - term: orifice
+      kind: term
+      synonyms: []
+    - term: clean
+      kind: term
+      synonyms:
+      - cleaning
+      - cleaned
+  - n: 7
+    text: Reinstall orifice, cartridge, and compensator.
+    keywords:
+    - term: reinstall
+      kind: term
+      synonyms:
+      - reinstalling
+      - reinstalled
+      - install
+      - put back
+      - back in
+      - back
+      - reassemble
+    - term: cartridge
+      kind: term
+      synonyms: []
+  - n: 8
+    text: Uncap and reinstall the case drain hose.
+    keywords:
+    - term: case drain
+      kind: term
+      synonyms: []
+    - term: uncap
+      kind: term
+      synonyms:
+      - reinstall
+      - reconnect
+      - remove the cap
+      - take the cap off
+      - hook back up
+      - back on
+  - n: 9
+    text: Open the suction valve.
+    keywords:
+    - term: suction valve
+      kind: term
+      synonyms:
+      - suction
+    - term: OPEN
+      kind: position
+      synonyms:
+      - opened
+  - n: 10
+    text: 'Pressurize the hydraulic tank: Install an air regulator to the hydraulic tank through the vent filter connection. Apply 3–5 PSI to push out any trapped air. Start the machine and operate all hydraulic functions to circulate oil. Check and adjust pressures per M-215-16 Appendix D.'
+    keywords:
+    - term: hydraulic tank
+      kind: term
+      synonyms:
+      - tank
+      - reservoir
+    - term: 3–5 PSI
+      kind: value
+      synonyms: []
+  cautions:
+  - id: C1
+    text: DO NOT enlarge the orifice.
+    step: 6
+    keywords:
+    - term: enlarge
+      kind: term
+      synonyms:
+      - enlarging
+      - bigger
+      - widen
+      - widening
+      - drill it out
+      - drill out
+      - ream
+- id: FHRC28-ENGINE-STARTUP-SEQUENCE
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: Engine Startup Sequence
+  question: What's the right order of switches to get the engine started and the machine ready to drive?
+  steps:
+  - n: 1
+    text: Place the **Park/Drive switch** in the **Park** position.
+    keywords:
+    - term: Park/Drive switch
+      kind: term
+      synonyms:
+      - park drive
+      - drive park
+      - mode selector
+      - selector
+    - term: Park position
+      kind: term
+      synonyms:
+      - in park
+      - to park
+      - into park
+      - on park
+      - at park
+      - park mode
+  - n: 2
+    text: Verify the **control joystick** is in the **neutral** (center) position.
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control stick
+      - control handle
+      - stick
+      - speed direction handle
+      - control lever
+      - handle
+    - term: neutral
+      kind: position
+      synonyms:
+      - center position
+      - centered
+      - centre position
+      - centred
+  - n: 3
+    text: Place the **Throttle Run/Idle switch** in the **Idle** position.
+    keywords:
+    - term: Throttle
+      kind: term
+      synonyms:
+      - run idle switch
+      - run idle
+    - term: Idle position
+      kind: term
+      synonyms:
+      - to idle
+      - in idle
+      - into idle
+      - on idle
+      - at idle
+      - low idle
+      - idle setting
+  - n: 4
+    text: Rotate the **Power/Ignition switch** from Off to On — all system power energizes.
+    keywords:
+    - term: Ignition
+      kind: term
+      synonyms:
+      - key
+      - power switch
+      - ignition key
+      - power ignition
+    - term: Off to On
+      kind: term
+      synonyms:
+      - on position
+      - key on
+      - key to on
+      - ignition on
+      - ignition to on
+      - switch to on
+      - it to on
+      - to the on
+      - turn on
+      - turn it on
+      - switch on
+      - switch it on
+      - power on
+      - power up
+      - powers up
+      - energize
+      - energizes
+  - n: 5
+    text: Wait for the **"Wait To Start"** indicator to clear on the engine display (if Tier 3/4/5 diesel equipped).
+    keywords:
+    - term: Wait To Start
+      kind: term
+      synonyms:
+      - wait-to-start
+  - n: 6
+    text: 'Rotate the ignition switch further right (spring-loaded) to the **Start** position to engage the starter. Release the key once the engine fires — the switch returns to On. CAUTION: Do not crank for more than 10 seconds at a time. Wait at least 2 minutes before attempting again.'
+    keywords:
+    - term: fires
+      kind: term
+      synonyms:
+      - fire
+      - fires up
+      - catches
+      - turns over
+      - engine starts
+      - starts up
+      - running
+      - let go
+      - release the key
+      - release it
+    - term: Start
+      kind: position
+      synonyms:
+      - start position
+  - n: 7
+    text: Allow engine to warm up at **low idle** for a few minutes.
+    keywords:
+    - term: warm up
+      kind: term
+      synonyms:
+      - warm
+      - warms up
+      - warming up
+      - warm-up
+    - term: low idle
+      kind: term
+      synonyms:
+      - idle
+      - idling
+  - n: 8
+    text: Once warmed up, switch **Throttle Run/Idle** to the **Run** position. The engine will run at high idle. The hydrostatic system is designed to run at high idle for all work.
+    keywords:
+    - term: Throttle
+      kind: term
+      synonyms:
+      - run idle switch
+      - run idle
+    - term: Run position
+      kind: term
+      synonyms:
+      - to run
+      - in run
+      - into run
+      - on run
+      - high idle
+      - run setting
+  - n: 9
+    text: Check the **computer display screen** — the main operator screen will show application rate set point, aggregate size, and speed set point.
+    keywords:
+    - term: display
+      kind: term
+      synonyms:
+      - screen
+    - term: application rate
+      kind: term
+      synonyms:
+      - rate set point
+      - app rate
+      - spread rate
+      - aggregate size
+      - speed set point
+      - set point
+      - set points
+  - n: 10
+    text: Confirm **charge pressure** is approximately 400 PSI (visible in service/setup screens if needed).
+    keywords:
+    - term: charge pressure
+      kind: term
+      synonyms: []
+    - term: 400 PSI
+      kind: value
+      synonyms: []
+  - n: 11
+    text: Move the **Park/Drive switch** to **Drive** to enable machine movement.
+    keywords:
+    - term: Park/Drive switch
+      kind: term
+      synonyms:
+      - park drive
+      - drive park
+      - mode selector
+      - selector
+    - term: to Drive
+      kind: term
+      synonyms:
+      - in drive
+      - into drive
+      - drive position
+      - drive mode
+      - on drive
+  cautions:
+  - id: C1
+    text: 'CAUTION: Do not crank for more than 10 seconds at a time.'
+    step: 6
+    keywords:
+    - term: crank
+      kind: term
+      synonyms:
+      - cranking
+      - cranks
+      - starter
+      - hold the key
+      - hold it in start
+      - try to start
+      - trying to start
+    - term: 10 seconds
+      kind: value
+      synonyms: []
+  - id: C1B
+    text: Wait at least 2 minutes before attempting again.
+    step: 6
+    keywords:
+    - term: 2 minutes
+      kind: value
+      synonyms: []
+  - id: C2
+    text: 'CAUTION: Auxiliary computer power is routed through the Park/Drive switch. When the engine is not running, place the switch in the Park position to avoid draining the batteries.'
+    step: procedure
+    keywords:
+    - term: batteries
+      kind: term
+      synonyms:
+      - battery
+    - term: Park
+      kind: position
+      synonyms: []
+  - id: C3
+    text: 'WARNING: Turning the ignition switch to "Off" results in a violent stop. Shut machine Off and wait for all movement to stop before leaving the operator''s seat or servicing.'
+    step: procedure
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+    - term: violent stop
+      kind: term
+      synonyms:
+      - sudden stop
+      - abrupt stop
+      - emergency stop
+      - hard stop
+      - stop violently
+      - stops violently
+      - stop suddenly
+      - stops suddenly
+      - stop abruptly
+      - slam to a stop
+      - slams to a stop
+- id: FHRC28-NORMAL-CHIP-SPREADING-WORK-CYCLE
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: Normal Chip Spreading Work Cycle
+  question: Can you walk me through a normal chip spreading run from start to finish?
+  steps:
+  - n: 1
+    text: '**Hook Up to Supply Truck:** Back the chipspreader into the truck; the hitch automatically closes and locks on contact. Place the truck gearshift in neutral as soon as the truck is connected.'
+    keywords:
+    - term: hitch
+      kind: term
+      synonyms:
+      - hitched
+      - coupler
+    - term: gearshift
+      kind: term
+      synonyms:
+      - gear shift
+      - neutral
+      - out of gear
+  - n: 2
+    text: '**Set Aggregate Size:** Press the **Aggregate Size Switch** (4) to select the aggregate being spread (Sand, 1/4", 3/8" Chips, 3/8" Gravel, 5/8" Chips, or 1" Chips). This must be set before adjusting application rate or calibrating.'
+    keywords:
+    - term: aggregate size
+      kind: term
+      synonyms:
+      - aggregate
+      - size switch
+      - chip size
+      - material size
+  - n: 3
+    text: '**Set Application Rate:** Use the **Application Rate Switch** (5) to set the desired lbs/yd² set point. Pressing up increases the rate; pressing down decreases it.'
+    keywords:
+    - term: application rate
+      kind: term
+      synonyms:
+      - rate switch
+      - app rate
+    - term: lbs/yd²
+      kind: term
+      synonyms:
+      - pounds per square yard
+      - per square yard
+      - set point
+      - setpoint
+  - n: 4
+    text: '**Set Travel Speed:** With the joystick in neutral and the machine stopped, use the **Speed Set Toggle Switch** (3) to set the desired FPM (feet per minute). Pressing up increases the speed set point; pressing down decreases it.'
+    keywords:
+    - term: Speed Set
+      kind: term
+      synonyms:
+      - speed toggle
+      - travel speed
+      - speed switch
+      - speed set point
+      - speed setpoint
+    - term: neutral
+      kind: position
+      synonyms: []
+  - n: 5
+    text: '**Load Memory (Optional):** If this combination of rate/size/speed has been saved to a memory preset, press the appropriate **Memory Selector Button** (1–5) to restore all parameters at once.'
+    keywords:
+    - term: memory
+      kind: term
+      synonyms:
+      - preset
+  - n: 6
+    text: '**Verify Gates Off:** Confirm the **Gate/Spreadroll Thumb Switch** (10) is in the Off (left) position.'
+    keywords:
+    - term: Thumb Switch
+      kind: term
+      synonyms:
+      - gate switch
+      - gate spreadroll switch
+    - term: 'Off'
+      kind: position
+      synonyms: []
+  - n: 7
+    text: '**Start Conveyors:** Set the Left and Right Conveyor Selector switches to AUTO or On to begin feeding material from the supply truck into the front hopper. Monitor the hopper level — when properly filled, conveyors should cycle on approximately 80% of the time.'
+    keywords:
+    - term: conveyor
+      kind: term
+      synonyms: []
+    - term: AUTO
+      kind: term
+      synonyms:
+      - automatic
+  - n: 8
+    text: '**Move to Starting Line:** Push the **joystick (9)** smoothly to the full forward position. The machine will accelerate to the set speed. Use the thumb switch detent and adjustable friction to hold desired positions.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control stick
+      - control handle
+      - stick
+      - speed direction handle
+      - handle
+    - term: full forward
+      kind: term
+      synonyms:
+      - fully forward
+      - all the way forward
+      - smoothly
+      - starting line
+      - start line
+      - accelerate
+    - term: forward
+      kind: position
+      synonyms: []
+  - n: 9
+    text: '**Activate Gates at Starting Line:** Approximately 10 feet before the start line, depress the RIGHT side of the **Gate/Spreadroll Thumb Switch** (10) to turn gates On. The spreadroll also activates. The computer opens the gate to the position required for the selected speed and application rate.'
+    keywords:
+    - term: Thumb Switch
+      kind: term
+      synonyms:
+      - gate switch
+      - gate spreadroll switch
+    - term: RIGHT
+      kind: position
+      synonyms: []
+    - term: 10 feet
+      kind: value
+      synonyms:
+      - 10 foot
+  - n: 10
+    text: '**Spread Material:** Drive at constant speed. The computer continuously adjusts the gate opening to maintain the selected application rate as speed changes.'
+    keywords:
+    - term: constant speed
+      kind: term
+      synonyms:
+      - steady speed
+      - consistent speed
+      - even speed
+      - same speed
+  - n: 11
+    text: '**Close Gates at End Line:** Depress the Left (center) side of the **Gate/Spreadroll Thumb Switch** (10) to close the gates. The spreadroll deactivates.'
+    keywords:
+    - term: Thumb Switch
+      kind: term
+      synonyms:
+      - gate switch
+      - gate spreadroll switch
+    - term: Left
+      kind: position
+      synonyms:
+      - center
+      - centre
+    - term: close
+      kind: position
+      synonyms:
+      - closed
+      - shut
+      - turn the gates off
+      - turn off the gates
+  - n: 12
+    text: '**Stop Machine:** Return the joystick to neutral. The parking brake is automatically applied once the speed sensor reads 0 FPM.'
+    keywords:
+    - term: Stop Machine
+      kind: term
+      synonyms:
+      - stop
+      - stopping
+      - parking brake
+      - park brake
+      - back to neutral
+      - return the joystick
+      - bring the joystick back
+    - term: neutral
+      kind: position
+      synonyms: []
+  - n: 13
+    text: '**Release from Truck (if needed):** Push the **Hitch Release Pushbutton** (17 or 50) while momentarily pulling the joystick slightly rearward to create slack in the hitch. Push joystick forward again while holding hitch release. Once the truck separates, release the pushbutton.'
+    keywords:
+    - term: Hitch Release
+      kind: term
+      synonyms:
+      - release button
+      - hitch button
+      - release pushbutton
+    - term: slack
+      kind: term
+      synonyms:
+      - rearward
+      - pull back
+      - pulling back
+      - pull the joystick back
+      - backward
+      - back slightly
+  - n: 14
+    text: '**Park Machine:** Place the **Park/Drive switch** in Park. Always install the locking control box cover and chock wheels when leaving the machine unattended.'
+    keywords:
+    - term: in Park
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - park position
+      - park mode
+    - term: chock
+      kind: term
+      synonyms:
+      - chocked
+      - chocking
+  cautions:
+  - id: C1
+    text: 'WARNING: Stay Off hopper while machine is moving. Machine movements could cause a fall resulting in injury or death.'
+    step: 8
+    keywords:
+    - term: Stay Off hopper
+      kind: term
+      synonyms:
+      - stay off the hopper
+      - off the hopper
+      - keep off the hopper
+      - off of the hopper
+      - not on the hopper
+      - nobody on the hopper
+      - no one on the hopper
+      - nobody rides the hopper
+    - term: moving
+      kind: term
+      synonyms:
+      - in motion
+      - move
+      - movement
+      - movements
+      - fall
+- id: FHRC28-GATE-POTENTIOMETER-ADJUSTMENT
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: Adjusting or Installing the Gate Potentiometer (Transducer)
+  question: Setting the gate in the setup screens didn't work, so I need to adjust the gate potentiometer itself - how do I do that?
+  steps:
+  - n: 1
+    text: Place the Drive/Park selector in "Park".
+    keywords:
+    - term: Drive/Park selector
+      kind: term
+      synonyms:
+      - drive park
+      - park drive
+      - mode selector
+      - selector
+    - term: in "Park"
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - park position
+      - on park
+      - park mode
+  - n: 2
+    text: Start the engine and run it at about 1000 RPM.
+    keywords:
+    - term: 1000 RPM
+      kind: value
+      synonyms: []
+  - n: 3
+    text: Check that the gate switch is turned off and the gates appear to be closed, and then shut the engine off.
+    keywords:
+    - term: gate switch
+      kind: term
+      synonyms:
+      - gate thumb switch
+      - thumb switch
+      - gate spreadroll switch
+    - term: closed
+      kind: position
+      synonyms:
+      - close
+  - n: 4
+    text: To ensure that the gates are fully closed, swap the connectors on the gate open and close valve and restart the engine. Depress the gate override button, which will fully close the gates. While holding the override button down, shut off the engine. There should be 1/16" between each gate and the spreadroll.
+    keywords:
+    - term: swap
+      kind: term
+      synonyms:
+      - swapping
+      - swap the connectors
+      - switch the connectors
+      - reverse the connectors
+      - trade the connectors
+      - swap the plugs
+    - term: 1/16"
+      kind: value
+      synonyms:
+      - sixteenth of an inch
+      - sixteenth inch
+  - n: 5
+    text: Replace the connectors in their correct positions.
+    keywords:
+    - term: connectors
+      kind: term
+      synonyms:
+      - connector
+      - plugs
+      - plug
+    - term: correct positions
+      kind: term
+      synonyms:
+      - correct position
+      - original position
+      - original positions
+      - original spots
+      - right positions
+      - where they were
+      - put them back
+      - swap them back
+      - swap back
+      - back the way they were
+  - n: 6
+    text: Enter the set up access screens by holding the "Cal" switch down while turning the key on. Do not start the engine. Scroll down to the left gate null setting, and set the null to zero by depressing the "Cal" switch. The screen should change to 0.0. Then scroll down to the save screen and save the value.
+    keywords:
+    - term: 'null'
+      kind: term
+      synonyms:
+      - gate null
+    - term: save
+      kind: term
+      synonyms: []
+    - term: zero
+      kind: value
+      synonyms:
+      - '0.0'
+      - zero,
+      - zero.
+  - n: 7
+    text: Using needle probes on a digital voltmeter, measure the voltage between the red and black wires at the gate transducer. The value should be 5.0 volts DC. Next, check the voltage between the blue and black wires. This value should be between 0.5 and 1.5 volts DC.
+    keywords:
+    - term: voltmeter
+      kind: term
+      synonyms:
+      - volt meter
+      - multimeter
+      - meter
+      - needle probe
+    - term: 5.0 volts DC
+      kind: value
+      synonyms:
+      - 5 volts
+    - term: 0.5 and 1.5 volts DC
+      kind: value
+      synonyms:
+      - 0.5 to 1.5 volts
+      - zero point five and one point five volts
+  - n: 8
+    text: If the value measured in step 7 is not within the specified tolerance, remove the transducer cover on the hopper.
+    keywords:
+    - term: transducer cover
+      kind: term
+      synonyms:
+      - cover
+    - term: remove
+      kind: term
+      synonyms:
+      - take off
+      - pull off
+      - removing
+      - take the cover off
+      - pull the cover
+  - n: 9
+    text: Loosen the transducer mounting bolts and rotate the transducer as necessary to get the 0.5–1.5 volt DC reading.
+    keywords:
+    - term: Loosen
+      kind: term
+      synonyms:
+      - loose
+      - back off
+    - term: rotate
+      kind: term
+      synonyms:
+      - rotating
+      - turn
+      - twist
+    - term: 0.5–1.5 volt DC
+      kind: value
+      synonyms:
+      - 0.5 to 1.5 volts
+      - zero point five and one point five volts
+  - n: 10
+    text: Retighten the mounting bolts.
+    keywords:
+    - term: Retighten
+      kind: term
+      synonyms:
+      - re-tighten
+      - tighten
+      - snug
+    - term: mounting bolts
+      kind: term
+      synonyms:
+      - bolts
+      - bolt
+  - n: 11
+    text: Recheck the reading.
+    keywords:
+    - term: Recheck the reading
+      kind: term
+      synonyms:
+      - re-check the reading
+      - recheck the voltage
+      - re-check the voltage
+      - recheck your reading
+      - re-check your reading
+      - check the reading again
+      - check the voltage again
+      - recheck it
+      - re-check it
+      - check it again
+      - check again
+      - measure again
+      - measure it again
+      - double-check the reading
+      - double-check the voltage
+      - double-check it
+      - verify the reading
+      - confirm the reading
+  - n: 12
+    text: Start the engine and depress the gate override button to fully open the gates. While depressing the override button, shut the engine off. The gates should remain fully open. Turn the key back on and measure the voltage between the blue and black wires. The voltage should be 3.5 to 4.5 volts DC. Restart the engine, let the gates close, and recheck that the closed value is still within the specified range of 0.5–1.5 volts. If it is, enter the set up screens while starting the engine and scroll down to the appropriate gate scale screen.
+    keywords:
+    - term: blue and black
+      kind: term
+      synonyms:
+      - blue to black
+      - blue wire
+      - blue and the black
+    - term: 3.5 to 4.5 volts DC
+      kind: value
+      synonyms:
+      - 3.5 to 4.5 volts
+      - three point five and four point five volts
+  - n: 13
+    text: Depress the override button to fully open the gates and then depress the Cal switch. The reading should change to 4.00.
+    keywords:
+    - term: override
+      kind: term
+      synonyms: []
+    - term: Cal
+      kind: term
+      synonyms:
+      - calibrate
+      - calibration switch
+    - term: '4.00'
+      kind: value
+      synonyms:
+      - four,
+      - four.
+  - n: 14
+    text: Release the override button and scroll up to the "Gate Null" screen to check the reading. If it is no longer at "0", depress the override button and scroll down to the "Gate Scale" screen. Depress the override button, and while depressing the override button, depress the "Cal" button to set the scale.
+    keywords:
+    - term: Gate Null
+      kind: term
+      synonyms:
+      - 'null'
+    - term: Gate Scale
+      kind: term
+      synonyms:
+      - scale
+  - n: 15
+    text: Repeat these two steps as required until the readings get to "0" and "4", or until they no longer change.
+    keywords:
+    - term: Repeat
+      kind: term
+      synonyms:
+      - again
+      - redo
+    - term: no longer change
+      kind: term
+      synonyms:
+      - stop changing
+      - stops changing
+      - don't change
+      - zero and four
+      - zero and four,
+      - 0 and 4
+  - n: 16
+    text: Upon completion, scroll to the save screen and exit set up by depressing the "Save" button.
+    keywords:
+    - term: Save
+      kind: term
+      synonyms: []
+    - term: exit
+      kind: term
+      synonyms:
+      - exits
+      - leave set up
+      - leave setup
+      - out of set up
+      - out of setup
+  cautions:
+  - id: C1
+    text: Do not start the engine.
+    step: 6
+    keywords:
+    - term: Do not start the engine
+      kind: term
+      synonyms:
+      - not start the engine
+      - don't start the engine
+      - dont start the engine
+      - without starting the engine
+      - leave the engine off
+      - engine off
+      - engine not running
+      - not running
+      - don't start it
+- id: FHRC28-HYDROSTATIC-PUMP-PRESSURE-SETTINGS
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: Pressure Settings for Hydrostatic Drive Pump (Rexroth AA4VG125 Pump)
+  question: How do I check and set the pressures on the hydrostatic drive pump?
+  steps:
+  - n: 1
+    text: '**Install pressure gauges.** Install 10,000 PSI pressure gauges in ports MA and MB, located on the top side of the pump. These ports are -04 SAE O-ring. The pressure gauges should be installed with enough hose to see the gauge without getting under the machine.'
+    keywords:
+    - term: pressure gauges
+      kind: term
+      synonyms:
+      - gauge
+      - gauges
+    - term: 10,000 PSI
+      kind: value
+      synonyms: []
+  - n: 2
+    text: '**Turn the pressure override (POR) all the way in.** The pressure override (POR) should be turned all the way in to be able to obtain the highest possible pressure cut-off setting. Turn the screw in (clockwise) until resistance is encountered.'
+    keywords:
+    - term: pressure override
+      kind: term
+      synonyms:
+      - POR
+      - P O R
+      - pressure cut-off
+      - pressure cutoff
+    - term: all the way in
+      kind: term
+      synonyms:
+      - fully in
+      - turn it in
+      - screw in
+      - turn the screw in
+      - until resistance
+      - resistance
+      - bottom it out
+      - bottomed out
+    - term: clockwise
+      kind: position
+      synonyms: []
+  - n: 3
+    text: '**Set the forward and reverse high pressure cross-port relief valves (Relief Valves A & B) to approximately 7,000 PSI.**'
+    keywords:
+    - term: relief valves
+      kind: term
+      synonyms:
+      - relief
+      - reliefs
+      - cross-port relief
+      - cross port relief
+    - term: 7,000 PSI
+      kind: value
+      synonyms: []
+  - n: 4
+    text: '**Set the Pressure Override Valve to 6,500 PSI.** Once the two high pressure relief valves are set correctly for forward and reverse, set the Pressure Override Valve to 6,500 PSI. To do this, adjust the POR screw out (counterclockwise) until the high pressure reads 6,500 PSI.'
+    keywords:
+    - term: pressure override
+      kind: term
+      synonyms:
+      - POR
+      - P O R
+      - pressure cut-off
+      - pressure cutoff
+    - term: 6,500 PSI
+      kind: value
+      synonyms: []
+    - term: counterclockwise
+      kind: position
+      synonyms:
+      - counter-clockwise
+      - counter clockwise
+      - anticlockwise
+      - anti-clockwise
+  - n: 5
+    text: '**Remove the gauges.**'
+    keywords:
+    - term: Remove the gauges
+      kind: term
+      synonyms:
+      - remove the gauge
+      - remove gauges
+      - remove your gauges
+      - take the gauges off
+      - take off the gauges
+      - take the gauge off
+      - pull the gauges
+      - disconnect the gauges
+      - gauges off
+  cautions:
+  - id: C1
+    text: Do not force the adjustment past this point.
+    step: 2
+    keywords:
+    - term: force
+      kind: term
+      synonyms:
+      - forcing
+      - forced
+      - overtighten
+      - over-tighten
+  - id: C2
+    text: do not leave the pump on stroke for more than a few seconds.
+    step: 3
+    keywords:
+    - term: on stroke
+      kind: term
+      synonyms:
+      - stroke
+      - stroked
+    - term: few seconds
+      kind: term
+      synonyms:
+      - couple of seconds
+      - couple seconds
+      - several seconds
+      - briefly
+      - a second or two
+- id: FHRC28-EMERGENCY-DRIVELINE-DISENGAGE
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: 'Q: Emergency — Machine is broken down in the road and cannot move'
+  question: The machine broke down in the middle of the road and won't move - how do I get it off the road?
+  steps:
+  - n: 1
+    text: 'Install two 04MB x 04MJ fittings (Etnyre Part # 9410200) — one in each test port of the high-pressure distribution block bolted to the side of the drive pump (remove the 04MB plugs and install new fittings on both sides of the pump).'
+    keywords:
+    - term: fittings
+      kind: term
+      synonyms:
+      - fitting
+    - term: test port
+      kind: term
+      synonyms:
+      - test ports
+      - distribution block
+      - high-pressure block
+      - high pressure block
+  - n: 2
+    text: 'Install one 04 x 65-inch hydraulic hose with 04FJX fittings (Etnyre Part # 3181497) across between the two fittings. This creates a loop on the drive system, bypassing the pump and relief system.'
+    keywords:
+    - term: hose
+      kind: term
+      synonyms: []
+    - term: loop
+      kind: term
+      synonyms:
+      - bypass
+      - bypassing
+      - bypasses
+      - between the two fittings
+      - across
+  - n: 3
+    text: Disable or release the park brake unit (mounted in front of the drive motor on the front axle).
+    keywords:
+    - term: park brake
+      kind: term
+      synonyms:
+      - parking brake
+      - brake unit
+    - term: Disable or release
+      kind: term
+      synonyms:
+      - disable
+      - disabling
+      - release the park brake
+      - release the parking brake
+      - release park brake
+      - release parking brake
+      - disengage the park brake
+      - disengage the parking brake
+  - n: 4
+    text: 'If the engine does not run (or the pump cannot supply brake release pressure): use a porta-power modified with a 04 FJX connection to supply approximately **280–400 PSI** to the parking brake unit to release it.'
+    keywords:
+    - term: porta-power
+      kind: term
+      synonyms:
+      - porta power
+      - portapower
+      - porto power
+      - hand pump
+    - term: 280–400 PSI
+      kind: value
+      synonyms: []
+  - n: 5
+    text: 'If the engine RUNS: place controls in Drive mode, push joystick in direction of movement, and steer as needed. Move the machine VERY SLOWLY (crawl speed only) Off the road or onto the trailer.'
+    keywords:
+    - term: slowly
+      kind: term
+      synonyms:
+      - slow
+      - crawl
+      - crawl speed
+    - term: joystick
+      kind: term
+      synonyms:
+      - control stick
+      - control handle
+      - stick
+      - speed direction handle
+      - handle
+    - term: Drive
+      kind: position
+      synonyms:
+      - drive mode
+  cautions:
+  - id: C1
+    text: 'WARNING: This procedure is for emergency situations ONLY. Not intended for travel or long-distance movement. Damage can occur if not done correctly.'
+    step: procedure
+    keywords:
+    - term: emergency
+      kind: term
+      synonyms:
+      - emergencies
+    - term: travel
+      kind: term
+      synonyms:
+      - traveling
+      - travelling
+      - long-distance
+      - long distance
+      - distance
+      - roading
+- id: FHRC28-AUX-PRESSURE-WILL-NOT-RELIEVE
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: 'Q: Auxiliary hydraulic pressure will not relieve'
+  question: I was checking the auxiliary pump pressures and the pressure won't relieve - how do I fix that?
+  steps:
+  - n: 1
+    text: Shut Off machine.
+    keywords:
+    - term: Shut Off machine
+      kind: term
+      synonyms:
+      - shut off the machine
+      - shut the machine off
+      - shut the machine down
+      - shut down the machine
+      - machine off
+      - turn off the machine
+      - turn the machine off
+      - shut the engine off
+      - shut off the engine
+      - engine off
+      - turn off the engine
+      - turn the engine off
+      - shut down the engine
+      - shut it down
+      - shut it off
+      - turn it off
+      - shut everything off
+      - shut everything down
+      - shut down
+      - turn off
+      - switch off
+  - n: 2
+    text: Close and shut Off the main hydraulic suction valve.
+    keywords:
+    - term: suction valve
+      kind: term
+      synonyms:
+      - suction gate valve
+      - suction shutoff valve
+      - suction shut-off valve
+    - term: Close
+      kind: position
+      synonyms:
+      - closed
+      - shut off
+      - shut
+  - n: 3
+    text: Locate and cap Off the case drain at the auxiliary pump.
+    keywords:
+    - term: case drain
+      kind: term
+      synonyms: []
+    - term: cap
+      kind: term
+      synonyms:
+      - capped
+      - cap off
+      - plug
+  - n: 4
+    text: Remove the compensator from the hydraulic pump(s).
+    keywords:
+    - term: compensator
+      kind: term
+      synonyms: []
+    - term: pump
+      kind: term
+      synonyms: []
+    - term: Remove
+      kind: term
+      synonyms:
+      - take off
+      - take out
+      - pull
+      - pull off
+      - removing
+  - n: 5
+    text: Remove the load sense compensator cartridge.
+    keywords:
+    - term: load sense
+      kind: term
+      synonyms:
+      - load-sense
+      - load sensing
+    - term: cartridge
+      kind: term
+      synonyms: []
+    - term: Remove
+      kind: term
+      synonyms:
+      - take out
+      - pull
+      - pull out
+      - take off
+      - removing
+  - n: 6
+    text: Locate the 2mm allen head orifice inside the housing (see Figure 12 in M-218-11R). Remove the orifice.
+    keywords:
+    - term: orifice
+      kind: term
+      synonyms: []
+    - term: Remove
+      kind: term
+      synonyms:
+      - take out
+      - pull out
+      - unscrew
+      - removing
+  - n: 7
+    text: Clean the orifice using a strand of primary wire or a torch cleaning kit (if strand is small enough to fit).
+    keywords:
+    - term: orifice
+      kind: term
+      synonyms: []
+    - term: Clean
+      kind: term
+      synonyms:
+      - cleaning
+      - clean out
+  - n: 8
+    text: Re-install orifice, cartridge, and compensator in reverse order.
+    keywords:
+    - term: reverse order
+      kind: term
+      synonyms:
+      - opposite order
+      - reverse of how
+      - reverse of the order
+  - n: 9
+    text: Uncap and reinstall the case drain hose.
+    keywords:
+    - term: case drain
+      kind: term
+      synonyms: []
+    - term: Uncap
+      kind: term
+      synonyms:
+      - reinstall
+      - re-install
+      - reconnect
+      - remove the cap
+      - hook up
+      - hook it back up
+      - reattach
+      - put back
+  - n: 10
+    text: Open the suction valve.
+    keywords:
+    - term: suction valve
+      kind: term
+      synonyms:
+      - suction gate valve
+      - suction shutoff valve
+      - suction shut-off valve
+    - term: Open
+      kind: position
+      synonyms: []
+  - n: 11
+    text: Install an air regulator to the hydraulic tank through the vent filter connection. Apply **3–5 lbs of pressure** to the hydraulic system to push any trapped air out.
+    keywords:
+    - term: air regulator
+      kind: term
+      synonyms:
+      - regulator
+    - term: 3–5 lbs
+      kind: value
+      synonyms:
+      - 3 to 5 pounds
+      - 3 to 5 psi
+  - n: 12
+    text: Start machine and operate all hydraulic functions to ensure full oil circulation. Check and adjust pressures per the operation manual. Verify pressure relieves after main pressure is achieved.
+    keywords:
+    - term: hydraulic functions
+      kind: term
+      synonyms:
+      - hydraulic function
+      - all functions
+      - all the functions
+      - every function
+      - each function
+      - all the hydraulics
+      - all hydraulics
+    - term: Start
+      kind: term
+      synonyms:
+      - restart
+      - fire up
+      - start up
+  cautions:
+  - id: C1
+    text: Do not enlarge the orifice.
+    step: 7
+    keywords:
+    - term: enlarge
+      kind: term
+      synonyms:
+      - enlarging
+      - make it bigger
+      - make the hole bigger
+      - bigger
+      - widen
+      - drill out
+      - drill it out
+      - open up the hole
+- id: FHRC28-SPREADROLL-STRAIGHTENING
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: Spreadroll Straightening Procedure
+  question: My spreadroll is bent - how do I straighten it?
+  steps:
+  - n: 1
+    text: Loosen the bearing shaft set screws on both ends of the spreadroll.
+    keywords:
+    - term: set screws
+      kind: term
+      synonyms:
+      - setscrews
+      - set screw
+    - term: Loosen
+      kind: term
+      synonyms:
+      - loose
+      - back off
+      - back out
+  - n: 2
+    text: 'Determine the high place on the spreadroll at three places: 2 feet in from each end and the middle. This can be done by spinning the spreadroll and marking it with any suitable marker. 1/8" total is the maximum allowable movement for the spreadroll.'
+    keywords:
+    - term: high place
+      kind: term
+      synonyms:
+      - high spot
+      - high side
+      - high point
+      - high places
+      - high spots
+    - term: 1/8"
+      kind: value
+      synonyms:
+      - eighth of an inch
+      - eighth inch
+  - n: 3
+    text: Using an acetylene-oxygen torch with a small tip (or equivalent heating device), heat the spreadroll on the high side at the 3 places that are marked. Starting with the center, heat to cherry red about 3/4" in diameter, then heat the ends in the same manner as the center.
+    keywords:
+    - term: torch
+      kind: term
+      synonyms:
+      - acetylene
+      - oxy-acetylene
+      - oxyacetylene
+      - heating device
+    - term: cherry red
+      kind: term
+      synonyms: []
+  - n: 4
+    text: Let the spreadroll cool.
+    keywords:
+    - term: Let the spreadroll cool
+      kind: term
+      synonyms:
+      - let it cool
+      - let it cool down
+      - let the roll cool
+      - let the spreadroll cool down
+      - allow it to cool
+      - allow the spreadroll to cool
+      - cool down
+      - cools down
+      - cool off
+      - cools off
+  - n: 5
+    text: Re-check the straightness as in Step 2, and if it is still not straight within 1/8", repeat Steps 3 and 4. Do not heat in the same place; move approximately 2.00 inches to either side. Do not heat the spreadroll in more than a 3/4" diameter spot, or it will warp the roll beyond repair.
+    keywords:
+    - term: repeat
+      kind: term
+      synonyms:
+      - again
+      - redo
+    - term: 1/8"
+      kind: value
+      synonyms:
+      - eighth of an inch
+      - eighth inch
+  - n: 6
+    text: When letting the spreadroll cool, let it do so naturally. Do not force the cooling by using water or any other coolant.
+    keywords:
+    - term: naturally
+      kind: term
+      synonyms:
+      - natural
+      - on its own
+      - by itself
+      - air cool
+      - air-cool
+  cautions:
+  - id: C1
+    text: Do not heat in the same place; move approximately 2.00 inches to either side.
+    step: 5
+    keywords:
+    - term: same place
+      kind: term
+      synonyms:
+      - same spot
+    - term: 2.00 inches
+      kind: value
+      synonyms: []
+  - id: C2
+    text: Do not heat the spreadroll in more than a 3/4" diameter spot, or it will warp the roll beyond repair.
+    step: 5
+    keywords:
+    - term: warp
+      kind: term
+      synonyms:
+      - warping
+      - warped
+      - ruin
+    - term: 3/4"
+      kind: value
+      synonyms:
+      - three quarters of an inch
+      - three quarter of an inch
+      - three-quarter inch
+      - three quarter inch
+  - id: C3
+    text: Do not force the cooling by using water or any other coolant.
+    step: 6
+    keywords:
+    - term: water
+      kind: term
+      synonyms:
+      - coolant
+      - quench
+- id: FHRC28-STARTER-CRANKS-ENGINE-WONT-START
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: 'Q: The starter cranks but the engine will not start'
+  question: The starter turns the engine over but it just won't fire - what should I check?
+  steps:
+  - n: 1
+    text: '**Step 1 — Display Check:** Does the display show "ENGINE CAN" (no CAN bus communication)?'
+    keywords:
+    - term: ENGINE CAN
+      kind: term
+      synonyms:
+      - CAN bus
+      - engine C A N
+      - C A N bus
+  - n: 2
+    text: '**Step 2 — Emergency Stop Button:** Check the emergency stop button (Ref 40) — verify it was not accidentally bumped or pushed in. Twist it clockwise to pop out and release.'
+    keywords:
+    - term: emergency stop
+      kind: term
+      synonyms:
+      - e-stop
+      - e stop
+      - estop
+    - term: Twist
+      kind: term
+      synonyms:
+      - clockwise
+      - pop out
+      - pop it out
+      - pops out
+      - pull it out
+  - n: 3
+    text: '**Step 3 — Engine Controller:** Cummins QSB and Tier 3 engines have an Engine Controller that requires power to start. Check if this is present on the machine.'
+    keywords:
+    - term: Engine Controller
+      kind: term
+      synonyms:
+      - engine control module
+      - engine control unit
+      - engine computer
+    - term: power
+      kind: term
+      synonyms:
+      - powered
+  - n: 4
+    text: '**Step 4 — ECM Fuses:** Locate the Cummins ECM controller fuses near the power and ground distribution hub at the right rear corner of the Cummins engine. There may be up to 6 fuses depending on engine size.'
+    keywords:
+    - term: ECM
+      kind: term
+      synonyms:
+      - E C M
+      - engine control module
+      - engine controller
+    - term: fuses
+      kind: term
+      synonyms:
+      - fuse
+  - n: 5
+    text: '**Step 5 — E-Stop Switch Connections:** Check the E-Stop switch connections for a possible wiring issue related to the fuel solenoid circuit.'
+    keywords:
+    - term: E-Stop
+      kind: term
+      synonyms:
+      - emergency stop
+      - e stop
+      - estop
+    - term: connections
+      kind: term
+      synonyms:
+      - connection
+      - wiring
+      - wire
+      - wires
+      - wired
+  - n: 6
+    text: '**Step 6 — Fuel Solenoid:** Check for an issue with the fuel solenoid on the Cummins engine. If the solenoid is not energizing, fuel cannot reach the injectors.'
+    keywords:
+    - term: fuel solenoid
+      kind: term
+      synonyms: []
+    - term: energizing
+      kind: term
+      synonyms:
+      - energize
+      - energized
+      - energizes
+      - injectors
+      - injector
+  cautions:
+  - id: C1
+    text: Replace any blown fuse with one of the SAME rating — never use a larger fuse.
+    step: 4
+    keywords:
+    - term: larger
+      kind: term
+      synonyms:
+      - bigger
+      - higher rated
+      - higher-rated
+      - higher rating
+      - oversized
+      - larger fuse
+      - bigger fuse
+    - term: same rating
+      kind: term
+      synonyms:
+      - same rated
+      - same amp rating
+      - same amperage
+      - same size
+      - same value
+- id: FHRC28-MAIN-RELIEF-PRESSURE-MPT
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: I. Main Relief Pressure (MPT)
+  question: How do I check and adjust the main relief pressure that the steering runs on?
+  steps:
+  - n: 1
+    text: Install a 3000 PSI gauge in the port marked "MPT" on the hitch manifold, located under the center deck cover below the operator's station. This port is SAE 04 MB and requires a 1/4" allen wrench to remove the plug.
+    keywords:
+    - term: MPT
+      kind: term
+      synonyms:
+      - M P T
+      - hitch manifold
+    - term: 3000 PSI
+      kind: value
+      synonyms: []
+  - n: 2
+    text: With the engine at or above 1000 RPM, press the batwing lower switch until it hits the stop. While holding the switch in the "lower" position, monitor the gauge pressure.
+    keywords:
+    - term: batwing
+      kind: term
+      synonyms:
+      - bat wing
+    - term: 1000 RPM
+      kind: value
+      synonyms: []
+  - n: 3
+    text: If the pressure is low, remove the cap from the top of the relief valve using vise grips and adjust the set screw clockwise using a 1/4" allen wrench. If the pressure is high, adjust the set screw counterclockwise.
+    keywords:
+    - term: set screw
+      kind: term
+      synonyms:
+      - setscrew
+      - adjusting screw
+    - term: clockwise
+      kind: position
+      synonyms: []
+    - term: counterclockwise
+      kind: position
+      synonyms:
+      - counter-clockwise
+      - counter clockwise
+      - anticlockwise
+      - anti-clockwise
+  cautions:
+  - id: C1
+    text: The engine must not be running to adjust the set screw. When the cap is removed, oil will flow through the valve and spray out the top of the valve. Shut the engine off before proceeding to make any adjustment.
+    step: 2
+    keywords:
+    - term: Shut the engine off
+      kind: term
+      synonyms:
+      - shut off the engine
+      - turn the engine off
+      - turn off the engine
+      - engine off
+      - engine is off
+      - engine shut off
+      - not be running
+      - not running
+      - kill the engine
+      - shut it off
+      - shut down
+    - term: adjust
+      kind: term
+      synonyms:
+      - adjustment
+      - adjustments
+      - adjusting
+- id: FHRC28-PILOT-PRESSURE-PP
+  model: FHRC28
+  kb_file: 2026-09-24-fhrc28-voice-agent-knowledge-base.md
+  kb_section: II. Pilot Pressure (PP)
+  question: How do I check and set the pilot pressure that runs the hitch raise and lower?
+  steps:
+  - n: 1
+    text: Install a 600 PSI gauge in the port marked "PP" on the steering/hitch manifold. This port is SAE 04 MB and requires a 1/4" allen wrench to remove the plug.
+    keywords:
+    - term: PP
+      kind: term
+      synonyms:
+      - P P
+      - pilot pressure port
+      - steering/hitch manifold
+      - steering manifold
+      - hitch manifold
+    - term: 600 PSI
+      kind: value
+      synonyms: []
+  - n: 2
+    text: With the engine at or above 1000 RPM, monitor the pressure.
+    keywords:
+    - term: monitor
+      kind: term
+      synonyms:
+      - watch
+      - read
+      - check
+      - look at
+    - term: 1000 RPM
+      kind: value
+      synonyms: []
+  - n: 3
+    text: If the pressure is low, remove the cap from the top of the relief valve using vise grips and adjust the set screw clockwise using a 1/4" allen wrench. If the pressure is high, adjust the set screw counterclockwise.
+    keywords:
+    - term: set screw
+      kind: term
+      synonyms:
+      - setscrew
+      - adjusting screw
+    - term: clockwise
+      kind: position
+      synonyms: []
+    - term: counterclockwise
+      kind: position
+      synonyms:
+      - counter-clockwise
+      - counter clockwise
+      - anticlockwise
+      - anti-clockwise
+  - n: 4
+    text: Remove the gauge.
+    keywords:
+    - term: Remove the gauge
+      kind: term
+      synonyms:
+      - remove gauge
+      - remove your gauge
+      - take the gauge off
+      - take off the gauge
+      - pull the gauge
+      - disconnect the gauge
+      - gauge off
+  cautions:
+  - id: C1
+    text: The engine must not be running to adjust the set screw. When the cap is removed, oil will flow through the valve and spray out the top of the valve. Shut the engine off before proceeding to make any adjustment.
+    step: 2
+    keywords:
+    - term: Shut the engine off
+      kind: term
+      synonyms:
+      - shut off the engine
+      - turn the engine off
+      - turn off the engine
+      - engine off
+      - engine is off
+      - engine shut off
+      - not be running
+      - not running
+      - kill the engine
+      - shut it off
+      - shut down
+    - term: adjust
+      kind: term
+      synonyms:
+      - adjustment
+      - adjustments
+      - adjusting
+- id: VHRS36-STARTUP-SEQUENCE
+  model: VHRS36
+  kb_file: 2026-08-07-vhrs36-voice-agent-knowledge-base.md
+  kb_section: Startup Sequence (Normal Operation)
+  question: This is my first time running this machine. How do I get it started and ready to spread?
+  steps:
+  - n: 1
+    text: Place **Park/Drive switch** in **PARK** position.
+    keywords:
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - park position
+      - on park
+      - at park
+  - n: 2
+    text: Place **joystick** in **NEUTRAL** position.
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+    - term: NEUTRAL
+      kind: position
+      synonyms:
+      - center position
+      - centered
+  - n: 3
+    text: Place **Throttle Run/Idle switch** in **IDLE** position.
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms: []
+    - term: IDLE position
+      kind: term
+      synonyms:
+      - in idle
+      - to idle
+      - into idle
+      - at idle
+      - low idle
+      - on idle
+  - n: 4
+    text: Turn **Power/Ignition Switch** to **ON** — supplies power to all systems.
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+      - power switch
+    - term: 'ON'
+      kind: position
+      synonyms: []
+  - n: 5
+    text: Turn ignition key further right to **START** — release when engine fires.
+    keywords:
+    - term: key
+      kind: term
+      synonyms:
+      - ignition
+      - further right
+      - further to the right
+      - engine fires
+      - engine catches
+    - term: START
+      kind: position
+      synonyms:
+      - crank
+  - n: 6
+    text: Allow engine to warm up at idle.
+    keywords:
+    - term: warm
+      kind: term
+      synonyms:
+      - warm up
+      - warmed up
+      - warms up
+      - warming
+      - let it idle
+      - let the engine idle
+      - let it sit at idle
+  - n: 7
+    text: Move **Throttle Run/Idle switch** to **RUN** (high idle) before performing any work.
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms: []
+    - term: to RUN
+      kind: term
+      synonyms:
+      - high idle
+      - into run
+      - in run
+      - run position
+      - on run
+  - n: 8
+    text: Set **Speed Set Toggle Switch** to desired chipping speed.
+    keywords:
+    - term: chipping speed
+      kind: term
+      synonyms:
+      - speed set
+      - speed setpoint
+      - speed toggle
+      - chip speed
+      - spreading speed
+      - travel speed
+      - ground speed
+      - working speed
+  - n: 9
+    text: Set **Aggregate Size Switch** to the correct aggregate type.
+    keywords:
+    - term: aggregate
+      kind: term
+      synonyms:
+      - chip size
+      - stone size
+      - rock size
+      - material size
+  - n: 10
+    text: Set **Application Rate Switch** to the desired lbs/yd² setpoint.
+    keywords:
+    - term: application rate
+      kind: term
+      synonyms:
+      - rate switch
+      - spread rate
+      - pounds per square yard
+  - n: 11
+    text: Move **Park/Drive switch** to **DRIVE**.
+    keywords:
+    - term: to DRIVE
+      kind: term
+      synonyms:
+      - into drive
+      - in drive
+      - drive position
+      - on drive
+      - over to drive
+  - n: 12
+    text: Move **joystick** forward to begin moving.
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+    - term: forward
+      kind: position
+      synonyms: []
+  - n: 13
+    text: Activate **Gate/Spread Roll switch** (right side) when reaching the spreading start line.
+    keywords:
+    - term: gate
+      kind: term
+      synonyms:
+      - spread roll
+    - term: start line
+      kind: term
+      synonyms:
+      - starting line
+      - starting point
+      - start point
+      - start mark
+  cautions:
+  - id: C1
+    text: 'WARNING: Turning the ignition switch to "off" results in a violent stop. SHUT MACHINE OFF AND WAIT FOR ALL MOVEMENT TO STOP BEFORE LEAVING OPERATOR''S SEAT OR SERVICING. FAILURE TO DO SO COULD RESULT IN UNEXPECTED MOVEMENT AND CAUSE SERIOUS INJURY OR DEATH.'
+    step: procedure
+    keywords:
+    - term: movement
+      kind: term
+      synonyms:
+      - stop moving
+      - stops moving
+      - stopped moving
+      - all motion
+      - come to a stop
+      - comes to a stop
+      - come to a complete stop
+      - complete stop
+      - completely stopped
+      - fully stopped
+    - term: seat
+      kind: term
+      synonyms:
+      - leave the machine
+      - leaving the machine
+      - get off
+      - getting off
+      - climb off
+      - step off
+      - climb down
+      - servicing
+      - service it
+  - id: C2
+    text: 'WARNING: Do not reset the computer while the chipspreader is in motion. A violent stop will occur which could cause a fall resulting in injury or death.'
+    step: procedure
+    keywords:
+    - term: reset
+      kind: term
+      synonyms:
+      - resetting
+    - term: computer
+      kind: term
+      synonyms:
+      - controller
+    - term: motion
+      kind: term
+      synonyms:
+      - moving
+      - driving
+      - rolling
+  - id: C3
+    text: 'WARNING: Since all functions except power steering and rear brakes are electrically controlled, turning the key to "off" results in a violent stop.'
+    step: procedure
+    keywords:
+    - term: violent stop
+      kind: term
+      synonyms:
+      - sudden stop
+      - abrupt stop
+      - hard stop
+      - violent sudden stop
+      - stop violently
+      - stops violently
+      - stop abruptly
+      - stops abruptly
+      - slam to a stop
+      - slams to a stop
+    - term: 'off'
+      kind: position
+      synonyms: []
+  - id: C4
+    text: 'CAUTION: The front hoppers should be fully closed up and latched using the safety chains at the left side of the machine when the unit is traveling between job sites to avoid possible damage to the outer ends of the hoppers.'
+    step: procedure
+    keywords:
+    - term: hoppers
+      kind: term
+      synonyms:
+      - hopper
+    - term: latched
+      kind: term
+      synonyms:
+      - latch
+      - chain
+      - chained
+    - term: traveling
+      kind: term
+      synonyms:
+      - travel
+      - travelling
+      - transport
+      - transporting
+      - job site
+      - jobsite
+- id: VHRS36-HYDROSTATIC-WORK-STARTUP
+  model: VHRS36
+  kb_file: 2026-08-07-vhrs36-voice-agent-knowledge-base.md
+  kb_section: After Hydrostatic System Work (Special Startup Procedure)
+  question: We just had the hydrostatic drive lines opened up for a repair. How do I start the machine back up safely?
+  steps:
+  - n: 1
+    text: Jack machine up and support securely on stands with all four wheels off the ground.
+    keywords:
+    - term: jack
+      kind: term
+      synonyms:
+      - jacked
+      - raise
+      - lift
+    - term: stands
+      kind: term
+      synonyms:
+      - stand
+      - blocks
+      - blocking
+      - cribbing
+    - term: off the ground
+      kind: term
+      synonyms:
+      - off of the ground
+      - clear of the ground
+      - in the air
+  - n: 2
+    text: Disconnect the 50-pin connector at the engine so engine can only be cranked, not started.
+    keywords:
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - 50 pin
+    - term: disconnect
+      kind: term
+      synonyms:
+      - unplug
+      - disconnected
+      - unplugged
+  - n: 3
+    text: Disconnect pump stroker at the pump.
+    keywords:
+    - term: stroker
+      kind: term
+      synonyms: []
+    - term: disconnect
+      kind: term
+      synonyms:
+      - unplug
+      - disconnected
+      - unplugged
+  - n: 4
+    text: Insert 600 PSI gauge in port "G" on the drive pump.
+    keywords:
+    - term: gauge
+      kind: term
+      synonyms: []
+    - term: 600 PSI
+      kind: value
+      synonyms: []
+  - n: 5
+    text: Open gate valve in suction tube fully (counterclockwise).
+    keywords:
+    - term: gate valve
+      kind: term
+      synonyms:
+      - suction valve
+      - suction gate valve
+      - suction line valve
+    - term: open
+      kind: position
+      synonyms:
+      - opened
+  - n: 6
+    text: Turn ignition ON, throttle to IDLE, crank with starter until 40–60 PSI on charge pressure gauge. DO NOT CRANK MORE THAN 30 SECONDS. Wait 2 minutes before cranking again.
+    keywords:
+    - term: crank
+      kind: term
+      synonyms: []
+    - term: 40–60 PSI
+      kind: value
+      synonyms:
+      - between forty and sixty PSI
+    - term: IDLE
+      kind: position
+      synonyms: []
+  - n: 7
+    text: Reconnect 50-pin connector.
+    keywords:
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - 50 pin
+    - term: reconnect
+      kind: term
+      synonyms:
+      - reconnected
+      - connect
+      - plug
+      - back in
+      - reattach
+      - hook it back up
+      - hook back up
+  - n: 8
+    text: Start engine, let idle 10 minutes. Charge pressure may surge 50–500 PSI while system fills.
+    keywords:
+    - term: 10 minutes
+      kind: value
+      synonyms: []
+    - term: idle
+      kind: position
+      synonyms: []
+  - n: 9
+    text: Shut down engine, remove gauges, replace plugs. Recheck fluid levels after 15 minutes.
+    keywords:
+    - term: gauges
+      kind: term
+      synonyms: []
+    - term: fluid levels
+      kind: term
+      synonyms:
+      - fluid level
+      - fluids
+      - oil level
+      - oil levels
+      - hydraulic oil
+      - reservoir
+    - term: 15 minutes
+      kind: value
+      synonyms: []
+  cautions:
+  - id: C1
+    text: DO NOT CRANK MORE THAN 30 SECONDS.
+    step: 6
+    keywords:
+    - term: 30 seconds
+      kind: value
+      synonyms: []
+    - term: crank
+      kind: term
+      synonyms: []
+  - id: C2
+    text: Wait 2 minutes before cranking again.
+    step: 6
+    keywords:
+    - term: 2 minutes
+      kind: value
+      synonyms: []
+    - term: cranking
+      kind: term
+      synonyms:
+      - crank
+      - try again
+      - trying again
+      - another try
+      - next attempt
+- id: VHRS36-MACHINE-WILL-NOT-MOVE
+  model: VHRS36
+  kb_file: 2026-08-07-vhrs36-voice-agent-knowledge-base.md
+  kb_section: 'Q: The machine will not move'
+  question: The engine is running fine but the machine just won't move at all. What should I check?
+  steps:
+  - n: 1
+    text: 'Check Start Latch (Computer Lock): The computer locks the machine from moving after startup. Place Park/Drive switch in PARK and bring joystick to neutral. Move Park/Drive switch to DRIVE, then move joystick — machine should move.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+    - term: neutral
+      kind: position
+      synonyms:
+      - center position
+      - centered
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - park position
+      - on park
+      - at park
+    - term: to DRIVE
+      kind: term
+      synonyms:
+      - into drive
+      - in drive
+      - drive position
+      - on drive
+  - n: 2
+    text: 'Check speed setpoint: Raise the speed setpoint by moving the SPEED switch UP or pressing a memory button. The new setpoint is displayed while changing.'
+    keywords:
+    - term: speed setpoint
+      kind: term
+      synonyms:
+      - speed set
+      - set speed
+      - speed setting
+      - setpoint
+      - set point
+      - speed switch
+      - speed toggle
+    - term: raise
+      kind: term
+      synonyms:
+      - increase
+      - higher
+      - turn up
+      - bump up
+      - turn it up
+      - bump it up
+      - up
+  - n: 3
+    text: 'Check brake pressure switch: Turn off machine, unplug electrical connector on brake pressure switch, start machine, and attempt to move. NOTE: With brake pressure switch unplugged, the service brake alone will not stop the machine. If machine moves after unplugging, replace the brake pressure switch.'
+    keywords:
+    - term: brake pressure switch
+      kind: term
+      synonyms:
+      - brake pressure
+      - brake switch
+    - term: unplug
+      kind: term
+      synonyms:
+      - unplugged
+      - disconnect
+      - disconnected
+  - n: 4
+    text: 'Check for Joystick Failure: Inspect joystick calibration and connections. See Joystick Fault section.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+    - term: calibration
+      kind: term
+      synonyms:
+      - calibrate
+      - calibrated
+      - recalibrate
+  - n: 5
+    text: 'Check pump solenoid connections: If machine moves forward but "Pump Reverse Sol error" appears when trying reverse — there is an electrical disconnect between computer and pump (reverse side). If machine moves reverse but "Pump Forward Sol error" appears — electrical disconnect on forward side. Locate and repair.'
+    keywords:
+    - term: pump
+      kind: term
+      synonyms: []
+    - term: solenoid
+      kind: term
+      synonyms:
+      - sol
+      - coil
+  - n: 6
+    text: 'Check charge pump: Install a 1000 PSI gauge in port "G" on the drive pump. With engine at low idle, pressure should be around 400 PSI. If pressure reads near 0 PSI, the charge pump has a problem.'
+    keywords:
+    - term: charge pump
+      kind: term
+      synonyms:
+      - charge pressure
+    - term: 400 PSI
+      kind: value
+      synonyms: []
+  cautions:
+  - id: C1
+    text: With brake pressure switch unplugged, the service brake alone will not stop the machine.
+    step: 3
+    keywords:
+    - term: service brake
+      kind: term
+      synonyms:
+      - service brakes
+      - brake pedal
+      - foot brake
+      - brakes alone
+      - brake alone
+      - brakes by themselves
+      - brake by itself
+    - term: not stop
+      kind: term
+      synonyms:
+      - won't stop
+      - will not stop
+      - wouldn't stop
+      - can't stop
+      - cannot stop
+      - won't be able to stop
+      - not be able to stop
+      - unable to stop
+      - not going to stop
+      - won't hold
+- id: VHRS36-NO-AUGER-MOVEMENT
+  model: VHRS36
+  kb_file: 2026-08-07-vhrs36-voice-agent-knowledge-base.md
+  kb_section: 'Q: No auger movement'
+  question: One of my augers isn't turning at all. What should I check?
+  steps:
+  - n: 1
+    text: 'Auger stalled: Turn auger speed to 100%. Cycle auger switch ON and OFF several times to break free. (Note: audible noise from hydraulic pump should be heard if auger is stalled against material.)'
+    keywords:
+    - term: 100%
+      kind: value
+      synonyms:
+      - 100 percent
+      - full speed
+      - maximum speed
+      - max speed
+    - term: cycle
+      kind: term
+      synonyms:
+      - on and off
+      - off and on
+      - back and forth
+      - toggle
+  - n: 2
+    text: 'Speed set too low: Adjust auger speed to a higher percentage. Normal use is around 75%.'
+    keywords:
+    - term: 75%
+      kind: value
+      synonyms:
+      - 75 percent
+    - term: higher
+      kind: term
+      synonyms:
+      - increase
+      - raise
+      - up
+      - too low
+      - faster
+  - n: 3
+    text: 'Start latch: Move joystick to neutral, place Park/Drive switch in PARK. The auger should now function properly.'
+    keywords:
+    - term: neutral
+      kind: position
+      synonyms:
+      - center position
+      - centered
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - park position
+      - on park
+      - at park
+  - n: 4
+    text: 'Auto mode (if auger works on ON but not AUTO): Check for holes in the diaphragm switch. Ensure material is not already touching the switch. Check signal from auto switch returning to computer (electrical connections).'
+    keywords:
+    - term: diaphragm
+      kind: term
+      synonyms: []
+    - term: auto
+      kind: term
+      synonyms:
+      - automatic
+  cautions:
+  - id: C1
+    text: 'WARNING: Auger may start automatically at any time! Do not attempt to clear any jam with the engine running.'
+    step: procedure
+    keywords:
+    - term: automatically
+      kind: term
+      synonyms:
+      - on its own
+      - by itself
+      - without warning
+      - any time
+      - anytime
+      - unexpectedly
+    - term: jam
+      kind: term
+      synonyms:
+      - jammed
+      - unjam
+      - clear
+      - clearing
+      - hands
+      - hand
+      - reach in
+      - reaching in
+    - term: engine running
+      kind: term
+      synonyms:
+      - engine is running
+      - engine on
+      - engine off
+      - engine is off
+      - engine shut off
+      - engine shut down
+      - shut the engine off
+      - shut off the engine
+      - shut the engine down
+      - shut down the engine
+      - turn the engine off
+      - turn off the engine
+      - kill the engine
+      - engine stopped
+      - engine is stopped
+- id: VHRS36-EMERGENCY-DRIVELINE-DISENGAGE
+  model: VHRS36
+  kb_file: 2026-08-07-vhrs36-voice-agent-knowledge-base.md
+  kb_section: Emergency Driveline Disengage Procedure (from M-218-19)
+  question: My chipspreader broke down and can't drive under its own power. How do I get it ready to be towed?
+  steps:
+  - n: 1
+    text: Install a chain or strap around the front hydrostatic motor and parking brake assembly. Secure assembly to front engine crossmember.
+    keywords:
+    - term: chain
+      kind: term
+      synonyms:
+      - strap
+    - term: crossmember
+      kind: term
+      synonyms:
+      - cross member
+      - cross-member
+  - n: 2
+    text: Remove the four 16mm bolts securing the parking brake to the front axle.
+    keywords:
+    - term: bolts
+      kind: term
+      synonyms:
+      - unbolt
+    - term: parking brake
+      kind: term
+      synonyms: []
+  - n: 3
+    text: Pull the parking brake and motor assembly away from the front axle to disengage the spline.
+    keywords:
+    - term: spline
+      kind: term
+      synonyms:
+      - splined
+    - term: pull
+      kind: term
+      synonyms:
+      - pulling
+      - slide
+      - sliding
+      - separate
+  - n: 4
+    text: On 4WD machines, secure the rear motor to the frame crossmember and remove the rear motor in the same manner.
+    keywords:
+    - term: 4WD
+      kind: term
+      synonyms:
+      - 4 w d
+      - 4 wheel drive
+      - four wheel drive
+      - four-wheel drive
+      - all wheel drive
+    - term: rear motor
+      kind: term
+      synonyms:
+      - rear drive motor
+      - rear hydrostatic motor
+  - n: 5
+    text: Tow chipspreader to an area where it can be loaded onto a trailer. Do NOT tow for long distances.
+    keywords:
+    - term: tow
+      kind: term
+      synonyms:
+      - towing
+      - towed
+    - term: trailer
+      kind: term
+      synonyms: []
+  - n: 6
+    text: When returning to service, verify that the axle differential housings are filled with gear lube to the full level.
+    keywords:
+    - term: differential
+      kind: term
+      synonyms:
+      - diff
+      - diffs
+    - term: gear lube
+      kind: term
+      synonyms:
+      - gear oil
+      - gear lubricant
+      - lube
+  cautions:
+  - id: C1
+    text: Do NOT tow for long distances.
+    step: 5
+    keywords:
+    - term: long distances
+      kind: term
+      synonyms:
+      - long distance
+      - short distance
+      - short distances
+      - short way
+      - short hop
+      - any distance
+      - very far
+      - too far
+    - term: tow
+      kind: term
+      synonyms:
+      - towing
+      - towed
+- id: FHRC36-STARTUP-SEQUENCE
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: Startup Sequence (Normal Operation)
+  question: I've finished my walk-around checks. What's the sequence for starting the engine and getting the machine moving?
+  steps:
+  - n: 1
+    text: 'Set Throttle: Place the Throttle Run/Idle switch (Ref 32) in the **IDLE** position.'
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms: []
+    - term: IDLE position
+      kind: term
+      synonyms:
+      - low idle
+      - in idle
+      - into idle
+      - at idle
+      - on idle
+      - throttle to idle
+      - switch to idle
+      - set to idle
+      - down to idle
+      - idle setting
+      - idle mode
+    - term: IDLE
+      kind: position
+      synonyms:
+      - low idle
+  - n: 2
+    text: 'Set Mode: Confirm Park/Drive switch (Ref 2) is in **PARK**.'
+    keywords:
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - at park
+      - on park
+      - set to park
+      - park position
+    - term: PARK
+      kind: position
+      synonyms:
+      - parked
+  - n: 3
+    text: 'Confirm Joystick Neutral: Verify the Speed/Direction Control Handle (Ref 9) is in neutral.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - speed direction control handle
+      - handle
+      - stick
+    - term: in neutral
+      kind: term
+      synonyms:
+      - at neutral
+      - to neutral
+      - into neutral
+      - on neutral
+      - neutral position
+      - centered
+      - centred
+      - center position
+    - term: NEUTRAL
+      kind: position
+      synonyms:
+      - centered
+      - centred
+      - center position
+  - n: 4
+    text: 'Turn Key ON: Rotate the Power/Ignition Switch (Ref 1) from OFF to ON. All electrical systems and controls power up.'
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+      - power switch
+    - term: 'ON'
+      kind: position
+      synonyms: []
+  - n: 5
+    text: 'Verify Display: Main operator screen shows, for example: 20.0 3/8 400 lbs/yd2 Chip fpm'
+    keywords:
+    - term: display
+      kind: term
+      synonyms:
+      - screen
+      - monitor
+    - term: chip
+      kind: term
+      synonyms:
+      - aggregate
+      - application rate
+      - set point
+      - setpoint
+      - pounds per square yard
+  - n: 6
+    text: 'Start Engine: Rotate the ignition key to the START position and release when the engine fires. The engine will not start if the Park/Drive switch is in DRIVE.'
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+    - term: START
+      kind: position
+      synonyms: []
+  - n: 7
+    text: 'Engine Warm-Up: Allow the engine to idle briefly. Switch Throttle to **RUN** (high idle) before performing any work. The hydrostatic system is designed to run at high idle.'
+    keywords:
+    - term: throttle
+      kind: term
+      synonyms: []
+    - term: high idle
+      kind: term
+      synonyms:
+      - to run
+      - into run
+      - in run
+      - on run
+      - at run
+      - set to run
+      - run position
+      - run setting
+    - term: RUN
+      kind: position
+      synonyms:
+      - high idle
+  - n: 8
+    text: 'Check Alarms: Scroll through the operator screens to verify normal readings: Screen 3: Engine coolant temp, oil pressure, fuel % Screen 4: Hydraulic oil temp, engine RPM (should be ~2,200 RPM at high idle), battery voltage (13.5–15.0 V) Screen 5: Engine hours, feet chipped'
+    keywords:
+    - term: screens
+      kind: term
+      synonyms:
+      - display
+      - readings
+      - reading
+    - term: 2,200 RPM
+      kind: value
+      synonyms: []
+  - n: 9
+    text: 'Engage Drive: When ready to move: Move Park/Drive switch to **DRIVE**. Push joystick forward to move. The parking brake releases automatically when joystick moves out of neutral.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - speed and direction handle
+      - handle
+      - stick
+    - term: to DRIVE
+      kind: term
+      synonyms:
+      - into drive
+      - in drive
+      - drive position
+      - select drive
+      - drive mode
+    - term: DRIVE
+      kind: position
+      synonyms: []
+    - term: forward
+      kind: position
+      synonyms: []
+  cautions:
+  - id: C1
+    text: 'CAUTION: Always place the mode selector switch in PARK when the chipspreader is stopped to avoid accidental movement.'
+    step: procedure
+    keywords:
+    - term: PARK
+      kind: position
+      synonyms:
+      - parked
+    - term: stopped
+      kind: term
+      synonyms:
+      - when you stop
+      - whenever you stop
+      - anytime you stop
+      - any time you stop
+      - once you stop
+      - every time you stop
+      - stationary
+      - standing still
+      - sitting still
+      - not moving
+      - accidental
+      - accidentally
+      - unexpected movement
+      - unintended movement
+      - roll away
+      - rolling away
+  - id: C2
+    text: 'WARNING: Selecting PARK while the chipspreader is moving results in an emergency stop.'
+    step: procedure
+    keywords:
+    - term: PARK
+      kind: position
+      synonyms: []
+    - term: moving
+      kind: term
+      synonyms:
+      - in motion
+      - rolling
+      - traveling
+      - travelling
+      - driving
+    - term: emergency stop
+      kind: term
+      synonyms:
+      - sudden stop
+      - abrupt stop
+      - violent stop
+      - hard stop
+      - stop abruptly
+      - stop suddenly
+      - stop violently
+      - stop hard
+      - stop dead
+      - slam
+      - jolt
+  - id: C3
+    text: 'WARNING: Turning the ignition switch to OFF while moving results in a violent stop (all functions except power steering and rear brakes are electrically controlled).'
+    step: procedure
+    keywords:
+    - term: ignition
+      kind: term
+      synonyms:
+      - key
+      - power switch
+    - term: 'OFF'
+      kind: position
+      synonyms: []
+    - term: violent stop
+      kind: term
+      synonyms:
+      - emergency stop
+      - sudden stop
+      - abrupt stop
+      - hard stop
+      - stop abruptly
+      - stop suddenly
+      - stop violently
+      - stop hard
+      - stop dead
+      - slam
+      - jolt
+- id: FHRC36-HYDROSTATIC-STARTUP-AFTER-HYDRAULIC-WORK
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: Hydrostatic System Startup (After Hydraulic Work)
+  question: We just replaced the hydraulic filters on the machine. What do I need to do before I start it back up and drive it?
+  steps:
+  - n: 1
+    text: Jack machine up — all four wheels off ground.
+    keywords:
+    - term: jack
+      kind: term
+      synonyms:
+      - jacked
+      - jacking
+      - raise the machine
+      - lift the machine
+      - raise it
+      - lift it
+      - raised
+      - lifted
+      - stands
+    - term: wheels
+      kind: term
+      synonyms:
+      - tires
+  - n: 2
+    text: Disconnect 50-pin connector at engine (so engine cannot start, only crank).
+    keywords:
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - pin connector
+      - pin plug
+      - engine connector
+    - term: disconnect
+      kind: term
+      synonyms:
+      - unplug
+      - unplugged
+      - disconnected
+      - detach
+      - unhook
+  - n: 3
+    text: Disconnect pump stroker at pump.
+    keywords:
+    - term: stroker
+      kind: term
+      synonyms: []
+    - term: disconnect
+      kind: term
+      synonyms:
+      - unplug
+      - unplugged
+      - disconnected
+      - detach
+      - detached
+      - unhook
+      - unhooked
+  - n: 4
+    text: Install 600 PSI gauge in port "G" on drive pump.
+    keywords:
+    - term: gauge
+      kind: term
+      synonyms:
+      - gage
+    - term: 600 PSI
+      kind: value
+      synonyms: []
+  - n: 5
+    text: Confirm suction gate valve is OPEN.
+    keywords:
+    - term: suction
+      kind: term
+      synonyms: []
+    - term: OPEN
+      kind: position
+      synonyms:
+      - opened
+  - n: 6
+    text: Turn ignition ON, throttle to IDLE. Crank engine until charge pressure gauge shows 40–60 PSI. Do NOT crank for more than 30 seconds. Wait 2 minutes before re-cranking.
+    keywords:
+    - term: crank
+      kind: term
+      synonyms:
+      - cranking
+      - cranked
+      - turn it over
+      - turn the engine over
+    - term: 40–60 PSI
+      kind: value
+      synonyms: []
+    - term: IDLE
+      kind: position
+      synonyms:
+      - low idle
+  - n: 7
+    text: Reconnect 50-pin connector.
+    keywords:
+    - term: 50-pin connector
+      kind: term
+      synonyms:
+      - pin connector
+      - pin plug
+      - engine connector
+    - term: reconnect
+      kind: term
+      synonyms:
+      - connect
+      - plug back
+      - plug it back
+      - back in
+      - plug in
+      - reattach
+      - hook back up
+      - hook it back up
+  - n: 8
+    text: Start engine; let it idle 10 minutes while monitoring charge pressure.
+    keywords:
+    - term: start
+      kind: position
+      synonyms:
+      - fire up
+      - fire it up
+    - term: 10 minutes
+      kind: value
+      synonyms: []
+    - term: charge pressure
+      kind: term
+      synonyms:
+      - pressure
+      - gauge
+  - n: 9
+    text: Shut down engine; remove gauges; recheck fluid levels.
+    keywords:
+    - term: shut down
+      kind: term
+      synonyms:
+      - shut it down
+      - shut the engine down
+      - shut off
+      - shut it off
+      - shut the engine off
+      - turn off
+      - turn it off
+      - turn the engine off
+      - switch off
+      - stop the engine
+      - kill the engine
+    - term: gauges
+      kind: term
+      synonyms:
+      - gage
+    - term: fluid levels
+      kind: term
+      synonyms:
+      - fluid
+      - oil level
+  cautions:
+  - id: C1
+    text: Do NOT crank for more than 30 seconds.
+    step: 6
+    keywords:
+    - term: 30 seconds
+      kind: value
+      synonyms: []
+    - term: crank
+      kind: term
+      synonyms:
+      - cranking
+      - cranked
+      - starter
+  - id: C2
+    text: Wait 2 minutes before re-cranking.
+    step: 6
+    keywords:
+    - term: 2 minutes
+      kind: value
+      synonyms: []
+- id: FHRC36-JOYSTICK-CALIBRATION
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: Joystick Calibration (Setup Screens)
+  question: I need to recalibrate the joystick on my chip spreader. Can you walk me through it?
+  steps:
+  - n: 1
+    text: 'Scroll to SETUP: JOYSTICK screen. Verify 0.0% at neutral.'
+    keywords:
+    - term: 'SETUP: JOYSTICK'
+      kind: term
+      synonyms:
+      - joystick screen
+      - joystick setup
+      - setup screen for the joystick
+    - term: 0.0%
+      kind: value
+      synonyms:
+      - 0 percent
+      - zero percent
+  - n: 2
+    text: 'Press CAL switch to start calibration sequence. (Warning: completing the full sequence is required once started or existing calibration is lost.)'
+    keywords:
+    - term: CAL
+      kind: term
+      synonyms:
+      - c a l
+      - calibrate switch
+      - calibration switch
+      - calibrate button
+      - calibration button
+    - term: start
+      kind: term
+      synonyms:
+      - begin
+      - kick off
+      - initiate
+  - n: 3
+    text: Screen shows NEUTRAL (~2.4V) — press CAL to save neutral.
+    keywords:
+    - term: CAL
+      kind: term
+      synonyms:
+      - c a l
+      - calibrate switch
+      - calibration switch
+      - calibrate button
+      - calibration button
+    - term: NEUTRAL
+      kind: position
+      synonyms: []
+  - n: 4
+    text: Screen shows FORWARD (~4.4V) — push stick full forward, press CAL.
+    keywords:
+    - term: stick
+      kind: term
+      synonyms:
+      - joystick
+      - control handle
+      - handle
+      - lever
+    - term: CAL
+      kind: term
+      synonyms:
+      - c a l
+      - calibrate switch
+      - calibration switch
+      - calibrate button
+      - calibration button
+    - term: FORWARD
+      kind: position
+      synonyms: []
+  - n: 5
+    text: Screen shows REVERSE (~0.7V) — pull stick full reverse, press CAL.
+    keywords:
+    - term: stick
+      kind: term
+      synonyms:
+      - joystick
+      - control handle
+      - handle
+      - lever
+    - term: CAL
+      kind: term
+      synonyms:
+      - c a l
+      - calibrate switch
+      - calibration switch
+      - calibrate button
+      - calibration button
+    - term: REVERSE
+      kind: position
+      synonyms:
+      - all the way back
+      - full back
+      - fully back
+      - backward
+      - backwards
+      - rearward
+      - toward you
+  - n: 6
+    text: Screen returns to JOYSTICK Actual 0.0%.
+    keywords:
+    - term: returns
+      kind: term
+      synonyms:
+      - back to
+      - go back
+      - goes back
+      - come back
+      - comes back
+      - show
+      - read
+      - reading
+    - term: 0.0%
+      kind: value
+      synonyms:
+      - 0 percent
+      - zero percent
+  - n: 7
+    text: Press SCROLL to advance to next screen.
+    keywords:
+    - term: SCROLL
+      kind: term
+      synonyms: []
+    - term: advance
+      kind: term
+      synonyms:
+      - next screen
+      - move on
+      - go on
+      - following screen
+      - continue
+  cautions:
+  - id: C1
+    text: 'Warning: completing the full sequence is required once started or existing calibration is lost.'
+    step: 2
+    keywords:
+    - term: completing
+      kind: term
+      synonyms:
+      - complete
+      - completed
+      - finish
+      - finishing
+      - full sequence
+      - whole sequence
+      - entire sequence
+      - all the way through
+      - partway
+      - part way
+      - halfway
+      - in the middle
+    - term: lost
+      kind: term
+      synonyms:
+      - lose
+      - erase
+      - erased
+      - wipe
+      - wiped
+      - gone
+- id: FHRC36-MACHINE-WONT-MOVE
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: 'Q: Machine does not move / will not respond to joystick'
+  question: The engine's running fine, but the machine won't move when I push the joystick. What should I check?
+  steps:
+  - n: 1
+    text: 'Check Start Latch: The computer locks the machine from moving on startup. Place Park/Drive switch in PARK and joystick to neutral. Move Park/Drive switch to DRIVE. The machine should now respond to the joystick.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - speed direction handle
+      - handle
+      - stick
+    - term: in PARK
+      kind: term
+      synonyms:
+      - to park
+      - into park
+      - at park
+      - on park
+      - set to park
+      - park position
+      - from park
+    - term: to DRIVE
+      kind: term
+      synonyms:
+      - into drive
+      - in drive
+      - drive position
+      - select drive
+      - drive mode
+    - term: neutral
+      kind: position
+      synonyms:
+      - centered
+      - centred
+      - center
+      - centre
+  - n: 2
+    text: 'Check Speed Set Point: If the speed set point is too low (e.g., 0 or very low FPM), the machine will not move at a perceptible rate. Push the SPEED toggle switch UP or press a memory button to raise the set point. The new set point is displayed while changing.'
+    keywords:
+    - term: speed set point
+      kind: term
+      synonyms:
+      - speed setpoint
+      - speed setting
+      - set speed
+      - set point
+      - setpoint
+    - term: raise
+      kind: term
+      synonyms:
+      - increase
+      - higher
+      - bump it up
+      - turn it up
+      - bring it up
+      - memory button
+      - speed toggle
+  - n: 3
+    text: 'Test Brake Pressure Switch: Turn the machine off. Unplug the electrical connector on the brake pressure switch. Start the machine and attempt to move. **Warning: with this connector unplugged, the service brake alone will not stop the machine.** If the machine moves after unplugging the switch, the brake pressure switch is faulty — replace it.'
+    keywords:
+    - term: brake pressure switch
+      kind: term
+      synonyms:
+      - brake pressure
+      - brake switch
+      - pressure switch
+    - term: unplug
+      kind: term
+      synonyms:
+      - unplugged
+      - unplugging
+      - disconnect
+      - disconnected
+  - n: 4
+    text: 'Joystick Failure: Enter service screens (hold SCROLL switch up or down while turning key ON). Scroll to SERVICE: Joystick. The status should show ~0.00 Volts at neutral. If the joystick voltage is out of range, see Joystick Fault section below.'
+    keywords:
+    - term: service screens
+      kind: term
+      synonyms:
+      - service screen
+      - service menu
+      - service mode
+      - service joystick
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - handle
+      - stick
+    - term: 0.00 Volts
+      kind: value
+      synonyms: []
+  - n: 5
+    text: 'Pump Failure: If machine moves forward but a "PUMP REV SOL FAILURE" appears when trying reverse: there is an electrical disconnect between computer and pump (or pump and ground) for the reverse solenoid. If machine moves reverse but a "PUMP FWD SOL FAILURE" appears when trying forward: same issue for forward solenoid. Find and repair the loose or broken electrical connection.'
+    keywords:
+    - term: pump
+      kind: term
+      synonyms: []
+    - term: solenoid
+      kind: term
+      synonyms:
+      - sol
+  - n: 6
+    text: 'Failed Charge Pump: Install a 1,000 PSI gauge in port "G" on the drive pump. With engine at low idle, pressure should be ~400 PSI. If it reads near 0 PSI, the charge pump has failed.'
+    keywords:
+    - term: charge pump
+      kind: term
+      synonyms:
+      - charge pressure
+    - term: 400 PSI
+      kind: value
+      synonyms: []
+  - n: 7
+    text: 'Escalate: Call Etnyre at 888-586-1899.'
+    keywords:
+    - term: call
+      kind: term
+      synonyms:
+      - calling
+      - contact
+      - reach out
+      - phone
+      - parts and service
+      - service team
+  cautions:
+  - id: C1
+    text: 'Warning: with this connector unplugged, the service brake alone will not stop the machine.'
+    step: 3
+    keywords:
+    - term: service brake
+      kind: term
+      synonyms:
+      - brake pedal
+      - foot brake
+      - regular brake
+      - brake alone
+      - brakes alone
+    - term: not stop
+      kind: term
+      synonyms:
+      - won't stop
+      - will not stop
+      - can't stop
+      - cannot stop
+      - unable to stop
+      - not be able to stop
+      - won't be able to stop
+      - not enough to stop
+      - isn't enough to stop
+      - won't hold
+      - will not hold
+      - not hold
+- id: FHRC36-EMERGENCY-DRIVELINE-DISENGAGE
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: 'Q: Emergency — Machine is broken down in the road and cannot move'
+  question: My machine broke down in the middle of the road and won't move at all. Is there an emergency way to get it moved?
+  steps:
+  - n: 1
+    text: 'Install two 04MB x 04MJ fittings (Etnyre Part # 9410200) — one in each test port of the high-pressure distribution block bolted to the side of the drive pump (remove the 04MB plugs and install new fittings on both sides of the pump).'
+    keywords:
+    - term: fittings
+      kind: term
+      synonyms: []
+    - term: test port
+      kind: term
+      synonyms: []
+  - n: 2
+    text: 'Install one 04 x 65-inch hydraulic hose with 04FJX fittings (Etnyre Part # 3181497) across between the two fittings. This creates a loop on the drive system, bypassing the pump and relief system.'
+    keywords:
+    - term: hose
+      kind: term
+      synonyms: []
+    - term: loop
+      kind: term
+      synonyms:
+      - bypass
+      - bypasses
+      - bypassing
+      - bypassed
+      - between the two
+      - across the two
+      - connect the two
+  - n: 3
+    text: Disable or release the park brake unit (mounted in front of the drive motor on the front axle).
+    keywords:
+    - term: park brake
+      kind: term
+      synonyms:
+      - parking brake
+    - term: Disable
+      kind: term
+      synonyms:
+      - disabled
+      - disabling
+      - release the park brake
+      - release the parking brake
+      - releasing the park brake
+      - releasing the parking brake
+      - release the brake
+      - park brake released
+      - parking brake released
+      - disengage the park brake
+      - disengage the parking brake
+      - drive motor
+      - front axle
+  - n: 4
+    text: 'If the engine does NOT run (or the pump cannot supply brake release pressure): use a porta-power modified with a 04 FJX connection to supply approximately **280–400 PSI** to the parking brake unit to release it.'
+    keywords:
+    - term: does NOT run
+      kind: term
+      synonyms:
+      - does not run
+      - doesn't run
+      - won't run
+      - will not run
+      - not running
+      - isn't running
+      - won't start
+      - will not start
+      - doesn't start
+      - can't run
+      - cannot run
+      - engine is dead
+      - engine's dead
+      - dead engine
+      - engine is off
+      - engine off
+      - without the engine
+      - cannot supply
+      - can't supply
+    - term: porta-power
+      kind: term
+      synonyms:
+      - portapower
+      - porta power
+      - portable power
+      - hand pump
+    - term: 280–400 PSI
+      kind: value
+      synonyms: []
+  - n: 5
+    text: 'If the engine RUNS: place controls in Drive mode, push joystick in direction of movement, and steer as needed. Move the machine VERY SLOWLY (crawl speed only) off the road or onto the trailer.'
+    keywords:
+    - term: joystick
+      kind: term
+      synonyms:
+      - control handle
+      - control stick
+      - handle
+      - stick
+    - term: slowly
+      kind: term
+      synonyms:
+      - slow
+      - crawl
+      - crawling
+      - creep
+      - creeping
+    - term: DRIVE
+      kind: position
+      synonyms: []
+  cautions:
+  - id: C1
+    text: 'WARNING: This procedure is for emergency situations ONLY. Not intended for travel or long-distance movement.'
+    step: procedure
+    keywords:
+    - term: emergency
+      kind: term
+      synonyms: []
+    - term: travel
+      kind: term
+      synonyms:
+      - traveling
+      - travelling
+      - long distance
+      - distance
+      - roading
+  - id: C2
+    text: Damage can occur if not done correctly.
+    step: procedure
+    keywords:
+    - term: damage
+      kind: term
+      synonyms:
+      - damaging
+      - damaged
+- id: FHRC36-TOWING
+  model: FHRC36
+  kb_file: 2026-08-17-FHRC36-VoiceAgent-Knowledge-Base.md
+  kb_section: Towing Instructions
+  question: Our engine quit and we have to tow the chip spreader. How do I get it ready to be towed?
+  steps:
+  - n: 1
+    text: Install a chain or strap around the front hydrostatic motor and parking brake assembly. Secure to the front engine crossmember.
+    keywords:
+    - term: chain
+      kind: term
+      synonyms:
+      - strap
+    - term: crossmember
+      kind: term
+      synonyms:
+      - cross member
+  - n: 2
+    text: Remove four 16mm bolts securing the parking brake to the front axle. Pull the parking brake and motor assembly away from the front axle to disengage the spline.
+    keywords:
+    - term: bolts
+      kind: term
+      synonyms: []
+    - term: front axle
+      kind: term
+      synonyms:
+      - axle
+  - n: 3
+    text: 'On 4WD: secure rear motor to frame crossmember and remove in same manner.'
+    keywords:
+    - term: 4WD
+      kind: term
+      synonyms:
+      - 4 wheel drive
+      - four wheel drive
+      - all wheel drive
+      - 4x4
+    - term: rear
+      kind: term
+      synonyms: []
+  - n: 4
+    text: Tow only to a loading area — not recommended for long distances.
+    keywords:
+    - term: loading area
+      kind: term
+      synonyms:
+      - loading
+      - load it
+      - trailer
+    - term: long distances
+      kind: term
+      synonyms:
+      - distance
+  - n: 5
+    text: 'When returning to service: verify axle differential housings are filled with SAE 90 API GL-5 gear lube.'
+    keywords:
+    - term: differential
+      kind: term
+      synonyms:
+      - diff
+      - axle housing
+    - term: gear lube
+      kind: term
+      synonyms:
+      - gear oil
+      - gear lubricant
+      - gl 5
+      - 90 weight
+  cautions:
+  - id: C1
+    text: Do not tow the chipspreader before reading the towing instructions. Improper towing will damage hydraulic motors and brakes.
+    step: procedure
+    keywords:
+    - term: damage
+      kind: term
+      synonyms:
+      - damaging
+      - damaged
+      - ruin
+    - term: hydraulic motors
+      kind: term
+      synonyms:
+      - motors
+      - motor
+      - brakes
+      - brake
