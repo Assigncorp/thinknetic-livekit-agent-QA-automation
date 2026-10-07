@@ -45,6 +45,7 @@ QUIET_S = 8  # after a statement that asks nothing, how long before the caller s
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
 ANSWER_DEADLINE_S = 12 * 60
+ATTEMPT_DEADLINE_S = 16 * 60  # hard cap on one call, whatever happens
 
 CHECKPOINTS = [
     ("call_started", "The call connected and the agent joined"),
@@ -187,7 +188,8 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
     loop = asyncio.get_running_loop()
     started = loop.time()
     print(f"\n[kb] attempt {number}: room={room} serial={serial} model={model} question={entry['id']}")
-    try:
+
+    async def _run() -> None:
         # 1 call_started -------------------------------------------------
         try:
             await call.connect(AGENT_JOIN_TIMEOUT_S)
@@ -197,17 +199,17 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         except AssertionError as exc:
             attempt.room_sid = call.room_sid
             flow.mark("call_started", False, str(exc))
-            return attempt
+            return
 
         # 2 greeted + intake until the agent is ready for the question ----
         greeting = await flow.turn(GREETING_TIMEOUT_S)
         if greeting is None:
             flow.mark("greeted", False, f"no greeting within {GREETING_TIMEOUT_S}s")
-            return attempt
+            return
         call.tag_last_agent_turn("greeting")
         flow.mark("greeted", True)
         if not await _intake(flow, greeting, entry, serial, model):
-            return attempt
+            return
 
         # 3-4 question and answer ---------------------------------------
         await _collect_answer(flow, entry)
@@ -224,10 +226,17 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         await flow.say(THANKS, "thanks")
         flow.mark("thanks_sent", True)
         if not await _feedback(flow, rng):
-            return attempt
+            return
 
         # 9 call_closed ---------------------------------------------------
         await _wait_close(flow)
+
+    try:
+        await asyncio.wait_for(_run(), ATTEMPT_DEADLINE_S)
+        return attempt
+    except asyncio.TimeoutError:
+        attempt.error = f"the call did not finish within {ATTEMPT_DEADLINE_S // 60} min - stopped"
+        print(f"[kb] attempt {number} error: {attempt.error}")
         return attempt
     except Exception as exc:  # noqa: BLE001 - recorded, the report needs the transcript
         attempt.error = f"{type(exc).__name__}: {exc}"
@@ -240,7 +249,7 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         for cp in attempt.checkpoints.values():
             if cp.passed is None:
                 cp.passed, cp.detail = False, cp.detail or "not reached"
-        print(call.dialogue())
+
 
 
 async def _intake(flow: _Flow, turn: str, entry: dict[str, Any], serial: str, model: str) -> bool:
@@ -318,6 +327,9 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
         if loop.time() > deadline:
             break
         turn = await flow.turn(timeout)
+        if turn is None and call.closed:
+            print("[kb] the agent left the call during the answer")
+            break
         if turn is None:
             if timeout == QUIET_S and call.agent_waiting:
                 await flow.say(NEXT_STEP, "next")

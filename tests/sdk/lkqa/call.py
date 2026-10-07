@@ -205,11 +205,30 @@ class Call:
             return
         self.events.append({"role": "agent", "text": text, "openedMs": self.ms(opened),
                             "atMs": self.ms(self._now()), "tag": ""})
+        self._log("AGENT ", text)
         await self._turns.put((opened, text))
 
+    def _log(self, who: str, text: str) -> None:
+        """Each turn as it happens, so a long call shows progress instead of looking hung."""
+        short = text if len(text) <= 160 else text[:157] + "..."
+        print(f"  [call {(self.ms(self._now()) or 0) / 1000:6.1f}s] {who}: {short}", flush=True)
+
     async def next_agent_turn(self, timeout_s: float) -> tuple[float, str]:
-        """(when the turn started streaming, its text)."""
-        return await asyncio.wait_for(self._turns.get(), timeout_s)
+        """(when the turn started streaming, its text). Gives up at once - with
+        TimeoutError - when the agent has left and nothing is left to read."""
+        if not self._turns.empty():
+            return self._turns.get_nowait()
+        get = asyncio.ensure_future(self._turns.get())
+        closed = asyncio.ensure_future(self._closed.wait())
+        try:
+            done, _ = await asyncio.wait({get, closed}, timeout=timeout_s, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            closed.cancel()
+            if not get.done():
+                get.cancel()
+        if get in done:
+            return get.result()
+        raise asyncio.TimeoutError
 
     @property
     def agent_waiting(self) -> bool:
@@ -231,10 +250,13 @@ class Call:
                 pass
 
     async def say(self, text: str, tag: str = "") -> None:
+        if self.closed:
+            raise AssertionError(f"the agent left the call before the caller could say: {text!r}")
         self.last_said_at = self._now()
         self.events.append({"role": "caller", "text": text, "openedMs": self.ms(self.last_said_at),
                             "atMs": self.ms(self.last_said_at), "tag": tag})
-        await self.room.local_participant.send_text(text, topic="lk.chat")
+        self._log("CALLER", text)
+        await asyncio.wait_for(self.room.local_participant.send_text(text, topic="lk.chat"), 15)
 
     def tag_last_agent_turn(self, tag: str) -> None:
         for e in reversed(self.events):
