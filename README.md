@@ -53,13 +53,15 @@ make report-share             # ONE self-contained HTML file to email / Slack / 
 **Every test (all 411) in parallel, with one final report** (~47 min):
 
 ```bash
-make all-parallel; make saturate; make report-share
+make clean; make all-parallel; make saturate FRESH=0; make report-share
 ```
 
-`make all-parallel` runs the 407 default tests and builds the report. `make saturate` adds the
+`make clean` removes previous reports and test caches (`__pycache__`, `.pytest_cache`,
+Playwright results). `make all-parallel` runs the 407 default tests and builds the report. `make saturate` adds the
 4 `@load` tests that the default run leaves out — they deliberately drain the rate-limit window,
 throttling every caller on this IP for up to a minute, so they run after the parallel waves, never
-alongside them. `make report-share` rebuilds the report with those results and writes
+alongside them. `FRESH=0` matters: every top-level `make` target wipes `report/` first, so
+without it `saturate` would delete the parallel run's results. `make report-share` rebuilds the report with those results and writes
 `report/share/qa-report-<timestamp>.html`. `;` (not `&&`) keeps going past a failing step so the
 report shows every failure.
 
