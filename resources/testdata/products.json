@@ -1,0 +1,20 @@
+{
+  "_comment": "Invalid product routes for the fail-closed browser tests (ui/tests/negative/invalid-routes.spec.ts). Keep slugs here, never inline in tests.",
+  "invalidProducts": [
+    {
+      "slug": "definitely-not-a-real-product",
+      "org": "e",
+      "expectedStatus": 404
+    },
+    {
+      "slug": "chip-spreader",
+      "org": "zz-not-an-org",
+      "expectedStatus": 404
+    },
+    {
+      "slug": "",
+      "org": "e",
+      "expectedStatus": 404
+    }
+  ]
+}

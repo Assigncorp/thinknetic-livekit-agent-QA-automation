@@ -1,0 +1,89 @@
+name: API performance and rate limit
+
+# Latency, payload weight and the rate-limiter contract. No browser, no agent
+# sessions - roughly 60 HTTP requests and under a minute of runtime.
+#
+# NOTE ON QUOTA: the API allows 100 requests per minute across the WHOLE suite,
+# counting 404s. This workflow shares that window with anything else pointed at
+# the same deployment, so it does not run on every push - a PR check that
+# competes with the smoke suite for quota makes both of them flaky. The perf
+# suite self-throttles (see docs/api-test-strategy.md), but the cheapest way to
+# avoid the collision is not to create it.
+#
+# Saturation (@load) is NOT part of the scheduled run. It deliberately empties
+# the window and blocks every other caller on this egress IP for up to a
+# minute, so it is a manual dispatch with an explicit opt-in.
+
+on:
+  schedule:
+    # 04:00 UTC daily - outside working hours in every timezone the team
+    # covers, so a run cannot eat quota someone else is waiting on.
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      saturate:
+        description: >-
+          Also run the saturation tests (RL-08..RL-10). These EMPTY the shared
+          rate-limit window for up to a minute - only with dev quiet.
+        type: boolean
+        default: false
+
+concurrency:
+  # Never two of these at once: they would share the 100/minute window and
+  # each would measure the other's traffic.
+  group: api-rate-limit  # shared with ci.yml api + livekit-contract
+  cancel-in-progress: false
+
+env:
+  BASE_URL: https://etnyre-dev.thinknetic.app
+  ORG_SLUG: e
+  PRODUCT_SLUG: chip-spreader
+  TESTBED_CONFIG: config/testbed.config.json
+
+jobs:
+  perf:
+    name: Latency + rate-limit contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        working-directory: tests/api
+        run: uv sync
+
+      - name: Rate-limiter contract
+        working-directory: tests/api
+        run: uv run pytest -v -m ratelimit --junitxml=../../report/data/junit/ratelimit-junit.xml
+
+      - name: Performance budgets
+        working-directory: tests/api
+        run: uv run pytest -v -m perf --junitxml=../../report/data/junit/perf-junit.xml
+
+      # Separate step, explicitly opted into, and allowed to fail without
+      # burying the numbers above: an enforcement gap is worth knowing about
+      # but should not discard a good latency run.
+      - name: Saturation (opt-in)
+        if: ${{ github.event.inputs.saturate == 'true' }}
+        continue-on-error: true
+        working-directory: tests/api
+        env:
+          RUN_RATE_LIMIT_SATURATION: 'true'
+        run: uv run pytest -v -m load --junitxml=../../report/data/junit/saturation-junit.xml
+
+      # report/data/api-perf.json is the whole point of the scheduled run: budgets
+      # start as placeholders and can only be re-based from a history of real
+      # numbers. Kept for 90 days so there is a quarter of trend to look at.
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-perf-${{ github.run_number }}
+          path: |
+            report/data/api-perf.json
+            report/data/junit/*-junit.xml
+          retention-days: 90
+          if-no-files-found: warn

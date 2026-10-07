@@ -1,0 +1,8 @@
+[project]
+name = "thinknetic-livekit-qa-tools"
+version = "0.1.0"
+description = "Resource generators for the agent test bed"
+requires-python = ">=3.11"
+dependencies = [
+    "openpyxl>=3.1",
+]
