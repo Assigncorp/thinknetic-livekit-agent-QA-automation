@@ -50,6 +50,19 @@ make report                   # opens the Playwright HTML report (traces, video,
 make report-share             # ONE self-contained HTML file to email / Slack / Teams
 ```
 
+**Every test (all 411) in parallel, with one final report** (~47 min):
+
+```bash
+make all-parallel; make saturate; make report-share
+```
+
+`make all-parallel` runs the 407 default tests and builds the report. `make saturate` adds the
+4 `@load` tests that the default run leaves out — they deliberately drain the rate-limit window,
+throttling every caller on this IP for up to a minute, so they run after the parallel waves, never
+alongside them. `make report-share` rebuilds the report with those results and writes
+`report/share/qa-report-<timestamp>.html`. `;` (not `&&`) keeps going past a failing step so the
+report shows every failure.
+
 Short on time? `make test-type TYPE=negative` runs one testing type
 everywhere, and every command is listed in the [Command reference](#command-reference).
 Every run leaves its results in `report/data/` — see [Reports](#reports). To run it all on
