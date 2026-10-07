@@ -42,6 +42,7 @@ cd thinknetic-livekit-agent-QA-automation
 make setup                    # ONE command: toolchain, .env, every dependency, Chromium, offline proof
 make all-parallel             # EVERY suite in parallel waves, never >3 live calls at once (~45 min)
 make all                      # the same, one step at a time (~80 min, ~100 live agent calls)
+make clean; make all-parallel; make saturate FRESH=0; make report-share   # ALL 411 tests incl. @load, caches cleared, one final shareable report (~47 min)
 make livekit-sdk              # ONLY the LiveKit SDK suite (tests/sdk/), in parallel (~35 min, no browser)
 make live-parallel            # (~25 min) REAL agent calls only, 8 at a time, KB-judged, VISIBLE browser, no offline checks, ends with a shareable report
 make live-headed              # (~60 min) REAL traffic only - API + live LiveKit calls + browser HEADED, no mocks (LIVE_KB=1 adds the KB run)
@@ -49,21 +50,6 @@ make report-all               # opens report/index.html - one page for every sui
 make report                   # opens the Playwright HTML report (traces, video, screenshots)
 make report-share             # ONE self-contained HTML file to email / Slack / Teams
 ```
-
-**Every test (all 411) in parallel, with one final report** (~47 min):
-
-```bash
-make clean; make all-parallel; make saturate FRESH=0; make report-share
-```
-
-`make clean` removes previous reports and test caches (`__pycache__`, `.pytest_cache`,
-Playwright results). `make all-parallel` runs the 407 default tests and builds the report. `make saturate` adds the
-4 `@load` tests that the default run leaves out — they deliberately drain the rate-limit window,
-throttling every caller on this IP for up to a minute, so they run after the parallel waves, never
-alongside them. `FRESH=0` matters: every top-level `make` target wipes `report/` first, so
-without it `saturate` would delete the parallel run's results. `make report-share` rebuilds the report with those results and writes
-`report/share/qa-report-<timestamp>.html`. `;` (not `&&`) keeps going past a failing step so the
-report shows every failure.
 
 Short on time? `make test-type TYPE=negative` runs one testing type
 everywhere, and every command is listed in the [Command reference](#command-reference).
