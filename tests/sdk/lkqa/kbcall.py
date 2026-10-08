@@ -1,8 +1,11 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, nine timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, eleven timed checkpoints.
 
-    call_started  greeted  question_asked  answer_received  answer_valid
-    thanks_sent   feedback_asked  feedback_answered  call_closed
+    call_started  greeted  question_asked  answer_received  answer_valid  text_asked
+    thanks_sent   feedback_asked  feedback_answered  call_closed  text_valid
+
+text_valid is judged after the call from the agent's own logs (`lk agent logs`): the
+text it sent is validated against the KB like the spoken answer.
 
 The caller reads each FINISHED agent turn and replies to what it asked; nothing
 is a fixed script. What the agent does, from its own prompt and phrase catalog
@@ -34,9 +37,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+from . import agentlogs
 from .call import Call, agent_token, is_holding
 from .expect import text_matches
-from .validator import Validation, validate
+from .validator import PASS_THRESHOLD, Validation, validate
 
 AGENT_JOIN_TIMEOUT_S = 15
 GREETING_TIMEOUT_S = 30
@@ -44,6 +48,7 @@ TURN_TIMEOUT_S = 75  # a KB search can take a while; the agent fills after 5 s
 QUIET_S = 8  # after a statement that asks nothing, how long before the caller speaks
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
+WORKER_LOG_WAIT_S = 90  # how long to wait for the agent's logs of a finished call
 ANSWER_DEADLINE_S = 12 * 60
 ATTEMPT_DEADLINE_S = 16 * 60  # hard cap on one call, whatever happens
 
@@ -53,10 +58,12 @@ CHECKPOINTS = [
     ("question_asked", "Our test caller asked the knowledge-base question"),
     ("answer_received", "The agent answered"),
     ("answer_valid", "The answer matched the knowledge base, step by step"),
+    ("text_asked", "Our test caller asked for the steps by text"),
     ("thanks_sent", "Our test caller said thank you"),
     ("feedback_asked", "The agent asked the caller to rate the call"),
     ("feedback_answered", "Our test caller gave a rating from 1 to 10"),
     ("call_closed", "The agent ended the call"),
+    ("text_valid", "The steps in the text matched the knowledge base (read from the agent's logs)"),
 ]
 
 # --- what the agent says --------------------------------------------------
@@ -81,6 +88,10 @@ NO_INFO = [r"don'?t have that information"]
 FEEDBACK_ASK = [r"\b(1|one) to (10|ten)\b", r"scale of", r"on a scale", r"\brate (the|this|your|our)\b",
                 r"how (was|would you rate) your experience", r"how your experience was", r"how did i do",
                 r"out of (10|ten)"]
+TEXT_PHONE = PHONE_ASK + [r"phone number", r"your number", r"mobile", r"number .{0,30}text"]
+TEXT_SENT = [r"\bsent\b", r"on its way", r"texted (it|them|that|you)", r"just texted", r"you should (see|get|receive)"]
+TEXT_FAILED = [r"didn'?t go through", r"couldn'?t (send|text)", r"landline", r"wasn'?t able to", r"unable to (send|text)",
+               r"can'?t receive texts"]
 CLOSING = [r"thank you so much for calling", r"take care", r"have a great (one|day)", r"goodbye"]
 
 # --- what the caller says -------------------------------------------------
@@ -96,6 +107,9 @@ ASK_REMAINING = ("Is that the complete procedure? Please give me any remaining s
 THANKS = "That's everything I needed, thank you - I'm all set."
 NOTHING_ELSE = "No, that's everything. Thanks."
 STILL_HERE = "Yes, I'm still here."
+ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
+            "including the cautions or warnings.")
+CONFIRM = "Yes, that is correct."
 
 
 @dataclass
@@ -126,6 +140,13 @@ class Attempt:
     rating: int | None = None
     error: str = ""
     duration_ms: int = 0
+    log: list[str] = field(default_factory=list)
+    worker_log: list[str] = field(default_factory=list)
+    worker_log_note: str = ""
+    text_message: str = ""
+    text_to: str = ""
+    text_delivery: str = ""
+    text_validation: Validation | None = None
 
     @property
     def passed(self) -> bool:
@@ -146,6 +167,13 @@ class Attempt:
             "checkpoints": [c.as_dict() for c in self.checkpoints.values()],
             "events": self.events,
             "validation": self.validation.as_dict() if self.validation else None,
+            "text": {
+                "to": self.text_to,
+                "message": self.text_message,
+                "delivery": self.text_delivery,
+                "validation": self.text_validation.as_dict() if self.text_validation else None,
+            },
+            "workerLogLines": len(self.worker_log),
         }
 
 
@@ -218,9 +246,20 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         attempt.validation = validate(entry, attempt.answer_turns)
         v = attempt.validation
         print("[kb] validation:\n" + v.explain())
-        flow.mark("answer_valid", v.passed,
-                  "every step and caution matched" if v.passed else
-                  f"{len(v.failures)} of {len(v.items)} KB items failed")
+        matched = len(v.items) - len(v.failures)
+        score = f"{matched} of {len(v.items)} KB items matched ({v.score:.0%}, pass at {PASS_THRESHOLD:.0%})"
+        if v.passed:
+            detail = "every step and caution matched"
+        elif v.meets_threshold():
+            detail = f"{score}; passed on the threshold. Missed: " + "; ".join(f"{i.ref} ({i.reason})" for i in v.failures)
+        elif v.wrong_values:
+            detail = f"{score}; failed: wrong value in " + ", ".join(i.ref for i in v.wrong_values)
+        else:
+            detail = f"{score}; below the threshold"
+        flow.mark("answer_valid", v.meets_threshold(), detail)
+
+        # the same steps by text; the text itself is checked from the agent's logs at the end
+        await _request_text(flow, caller["phone"])
 
         # 6-8 thanks, feedback ask, rating ------------------------------
         await flow.say(THANKS, "thanks")
@@ -244,12 +283,114 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         return attempt
     finally:
         await call.hang_up()
+        attempt.log = call.log_lines
+        try:
+            await _worker_logs(flow, entry)
+        except Exception as exc:  # noqa: BLE001 - debugging aid; never hides the call's own result
+            attempt.worker_log_note = f"{type(exc).__name__}: {exc}"
+            print(f"[kb] worker logs failed: {attempt.worker_log_note}")
+        _write_call_log(attempt)
         attempt.events = call.events
         attempt.duration_ms = int((loop.time() - started) * 1000)
         for cp in attempt.checkpoints.values():
             if cp.passed is None:
                 cp.passed, cp.detail = False, cp.detail or "not reached"
 
+
+
+def _write_call_log(attempt: Attempt) -> None:
+    """Everything the room delivered, for engineers: report-internal/call-log-attempt-N.txt.
+    Not part of the management report."""
+    from .routing import ROOT
+
+    path = ROOT / "report-internal" / f"call-log-attempt-{attempt.number}.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    head = f"room={attempt.room} sid={attempt.room_sid or '-'} agent={attempt.agent_identity or '-'}\n"
+    path.write_text(head + "\n".join(attempt.log) + "\n", encoding="utf-8")
+    print(f"[kb] call log -> {path.relative_to(ROOT)}")
+    wpath = path.with_name(f"worker-log-attempt-{attempt.number}.txt")
+    wpath.write_text(head + (attempt.worker_log_note + "\n" if attempt.worker_log_note else "")
+                     + "\n".join(attempt.worker_log) + "\n", encoding="utf-8")
+    print(f"[kb] worker log -> {wpath.relative_to(ROOT)}")
+
+
+async def _request_text(flow: _Flow, phone: str) -> bool:
+    """Ask for the steps by text, take the agent through its phone-number question,
+    and stop once it says whether the text went. What the text said is read later
+    from the agent's logs."""
+    call = flow.call
+    await flow.say(ASK_TEXT, "ask text")
+    gave_number = 0
+    for _ in range(8):
+        turn = await flow.turn(TURN_TIMEOUT_S)
+        if turn is None:
+            break
+        if is_holding(turn):
+            call.tag_last_agent_turn("holding")
+            continue
+        asks = turn.rstrip().endswith("?")
+        # A refusal ("that number can't receive texts ... which number?") also asks for a
+        # number, so it is checked first; the test number is given at most twice.
+        if text_matches(turn, TEXT_FAILED):
+            call.tag_last_agent_turn("text result")
+            flow.mark("text_asked", True, "the agent answered the text request (it could not text this number)")
+            return True
+        if text_matches(turn, READ_BACK) and asks:
+            await flow.say(CONFIRM, "confirm")
+        elif text_matches(turn, TEXT_PHONE) and asks and gave_number < 2:
+            gave_number += 1
+            await flow.say(" ".join(phone), "phone")
+        elif text_matches(turn, TEXT_SENT):
+            call.tag_last_agent_turn("text result")
+            flow.mark("text_asked", True, "the agent answered the text request")
+            return True
+        elif text_matches(turn, IDLE):
+            await flow.say(STILL_HERE)
+        elif asks and gave_number < 2:
+            await flow.say("Yes, please text the steps to me.", "confirm text")
+        else:
+            break
+    flow.mark("text_asked", False, "the agent never confirmed the text")
+    return False
+
+
+async def _worker_logs(flow: _Flow, entry: dict[str, Any]) -> None:
+    """Read the agent's own logs for this room, print them, and check the text it sent."""
+    attempt = flow.attempt
+    texting = attempt.checkpoints["text_asked"].passed is not None
+    why = agentlogs.available()
+    lines: list[dict[str, Any]] = []
+    if why:
+        attempt.worker_log_note = f"worker logs not read: {why}"
+    else:
+        lines = await agentlogs.fetch(attempt.room, deadline_s=WORKER_LOG_WAIT_S)
+        attempt.worker_log = agentlogs.render(lines)
+        if not lines:
+            attempt.worker_log_note = "the agent's logs had no lines for this room (yet)"
+    print(f"[kb] worker logs for {attempt.room}: {len(lines)} line(s)" +
+          (f" - {attempt.worker_log_note}" if attempt.worker_log_note else ""))
+    for line in attempt.worker_log:
+        print(f"  [worker] {line}")
+    if not texting:
+        return  # the call never got as far as asking for a text
+
+    texts = agentlogs.sent_texts(lines)
+    if not texts:
+        flow.mark("text_valid", False, attempt.worker_log_note or "the agent's logs show no text was sent")
+        return
+    sent = texts[-1]
+    attempt.text_to, attempt.text_message = sent["to"], sent["message"]
+    failures = agentlogs.text_failures(lines)
+    attempt.text_delivery = ("not delivered: " + "; ".join(failures)) if failures else "accepted by the SMS provider"
+    v = attempt.text_validation = validate(entry, [sent["message"]])
+    print("[kb] text validation:\n" + v.explain())
+    matched = len(v.items) - len(v.failures)
+    score = f"{matched} of {len(v.items)} KB items matched ({v.score:.0%}, pass at {PASS_THRESHOLD:.0%})"
+    detail = f"{score}; delivery: {attempt.text_delivery}"
+    if failures and os.getenv("TEXT_REQUIRE_DELIVERY") == "1":
+        flow.mark("text_valid", False, f"{detail} (TEXT_REQUIRE_DELIVERY=1)")
+    else:
+        flow.mark("text_valid", v.meets_threshold(), detail)
 
 
 async def _intake(flow: _Flow, turn: str, entry: dict[str, Any], serial: str, model: str) -> bool:

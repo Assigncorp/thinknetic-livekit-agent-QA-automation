@@ -1,6 +1,3 @@
-# node (left over from the old UI suite)
-node_modules/
-
 # python
 .venv/
 __pycache__/
@@ -16,12 +13,10 @@ __pycache__/
 # test output
 report/**
 !report/.gitkeep
+report-internal/
 
 # os
 .DS_Store
-
-# playwright
-tests/ui/test-results/
 
 # question bank intermediates (tools/build_question_bank.py, hand-review); the
 # reviewed kb/question_bank.yaml is what is committed

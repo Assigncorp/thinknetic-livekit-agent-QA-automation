@@ -1,5 +1,7 @@
-# The agent smoke test: unit checks, the product-page UI test, then one live
-# LiveKit KB-steps call - and a published HTML report on every run, pass or fail.
+# The agent smoke test: unit checks, then one live LiveKit KB-steps call - and a
+# published HTML report on every run, pass or fail. The published report (report/)
+# is the phone-call check only; the unit checks go to report-internal/, which is
+# kept as a separate artifact and never published to Pages.
 #
 # Same steps as `make smoke`. Secrets come from repository secrets
 # (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) and are never printed.
@@ -40,12 +42,10 @@ jobs:
       LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
       LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
       AGENT_NAME: thinknetic-agents-nonprod
-      BASE_URL: https://etnyre-dev.thinknetic.app
       KB_SEED: ${{ inputs.kb_seed }}
       KB_MODEL: ${{ inputs.kb_model }}
       KB_QUESTION_ID: ${{ inputs.kb_question_id }}
       KB_RETRIES: "1"
-      PW_WITH_DEPS: "1"
       CI: "true"
     steps:
       - uses: actions/checkout@v4
@@ -57,39 +57,30 @@ jobs:
         with:
           enable-cache: false
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Clean slate (no caches, no old report)
         run: |
-          rm -rf ~/.cache/ms-playwright
           uv cache clean || true
-          rm -rf "$(pnpm store path 2>/dev/null || echo /nonexistent)"
           find report -mindepth 1 ! -name .gitkeep -exec rm -rf {} + 2>/dev/null || true
-          mkdir -p report/data
+          rm -rf report-internal
+          mkdir -p report/data report-internal
 
-      - name: Install fresh (uv sync, pnpm install, Playwright chromium + OS deps)
+      - name: Install fresh (uv sync)
         run: make install
+
+      # The agent runs on LiveKit Cloud; the live call reads its worker logs with `lk agent logs`.
+      - name: Install the LiveKit CLI
+        run: |
+          curl -sSL https://get.livekit.io/cli | bash
+          lk --version
 
       - name: Unit checks (routing, validator, question bank)
         id: unit
         continue-on-error: true
         run: make unit
 
-      - name: UI test (product page)
-        id: ui
-        if: steps.unit.outcome == 'success'
-        continue-on-error: true
-        run: make ui
-
       - name: LiveKit KB-steps call
         id: kb
-        if: steps.ui.outcome == 'success'
+        if: steps.unit.outcome == 'success'
         continue-on-error: true
         run: make kb
 
@@ -105,6 +96,14 @@ jobs:
           path: report/
           if-no-files-found: warn
 
+      - name: Keep the internal unit-check report (not published)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: internal-unit-checks-${{ github.run_number }}
+          path: report-internal/
+          if-no-files-found: warn
+
       - name: Stage the report for GitHub Pages
         if: always()
         uses: actions/upload-pages-artifact@v3
@@ -114,19 +113,17 @@ jobs:
       - name: Verdict
         if: always()
         run: |
-          echo "unit=${{ steps.unit.outcome }} ui=${{ steps.ui.outcome }} kb=${{ steps.kb.outcome }}"
+          echo "unit=${{ steps.unit.outcome }} kb=${{ steps.kb.outcome }}"
           {
             echo "## Smoke test"
             echo "| Stage | Result |"
             echo "|---|---|"
             echo "| Unit checks | ${{ steps.unit.outcome }} |"
-            echo "| UI test | ${{ steps.ui.outcome }} |"
             echo "| LiveKit KB-steps call | ${{ steps.kb.outcome }} |"
             echo ""
             echo "Report: see the **publish** job below for the link, or download the \`smoke-report-${{ github.run_number }}\` artifact."
           } >> "$GITHUB_STEP_SUMMARY"
           test "${{ steps.unit.outcome }}" = success
-          test "${{ steps.ui.outcome }}" = success
           test "${{ steps.kb.outcome }}" = success
 
   publish:

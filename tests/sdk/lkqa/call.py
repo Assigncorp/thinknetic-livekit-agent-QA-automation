@@ -120,6 +120,8 @@ class Call:
         self._agent_joined = asyncio.Event()
         self._state_changed = asyncio.Event()
         self._turns: asyncio.Queue[tuple[float, str]] = asyncio.Queue()  # (opened, text)
+        # Everything the room delivered, in order, for debugging: "12.3s  state  speaking".
+        self.log_lines: list[str] = []
         self.open_streams = 0
         self.last_said_at = 0.0
         self._tasks: set[asyncio.Task] = set()
@@ -133,22 +135,26 @@ class Call:
 
         @room.on("participant_connected")
         def _joined(p: Any) -> None:
+            self.note("participant", f"joined {p.identity} kind={int(p.kind)} name={p.name!r}")
             self._maybe_agent(p)
 
         @room.on("participant_disconnected")
         def _left(p: Any) -> None:
+            self.note("participant", f"left {p.identity}")
             if p.identity == self.agent_identity and self.agent_left_at is None:
                 self.agent_left_at = self._now()
                 self._closed.set()
 
         @room.on("disconnected")
-        def _gone(*_: Any) -> None:
+        def _gone(*args: Any) -> None:
+            self.note("room", f"disconnected {' '.join(str(a) for a in args)}".strip())
             if self.room_closed_at is None:
                 self.room_closed_at = self._now()
             self._closed.set()
 
         @room.on("participant_attributes_changed")
         def _attrs(changed: dict[str, str], p: Any) -> None:
+            self.note("attributes", f"{p.identity} {changed}")
             if p.identity == self.agent_identity and "lk.agent.state" in changed:
                 self.agent_state = changed["lk.agent.state"]
                 self._state_changed.set()
@@ -159,6 +165,31 @@ class Call:
             task.add_done_callback(self._tasks.discard)
 
         room.register_text_stream_handler("lk.transcription", _transcription)
+
+        @room.on("data_received")
+        def _data(packet: Any) -> None:
+            who = getattr(getattr(packet, "participant", None), "identity", "?")
+            raw = bytes(getattr(packet, "data", b""))
+            self.note("data", f"from {who} topic={getattr(packet, 'topic', None)!r} "
+                              f"{raw[:500].decode('utf-8', 'replace')!r}")
+
+        @room.on("transcription_received")
+        def _legacy_transcription(segments: Any, p: Any, track: Any) -> None:
+            for seg in segments:
+                if getattr(seg, "final", False):
+                    self.note("transcription", f"{getattr(p, 'identity', '?')}: {seg.text}")
+
+        @room.on("participant_metadata_changed")
+        def _meta(p: Any, _old: Any, new: Any) -> None:
+            self.note("metadata", f"{p.identity} {str(new)[:300]}")
+
+        @room.on("track_published")
+        def _published(pub: Any, p: Any) -> None:
+            self.note("track", f"{p.identity} published {getattr(pub, 'kind', '')} {getattr(pub, 'name', '')}")
+
+        @room.on("connection_state_changed")
+        def _conn(state: Any) -> None:
+            self.note("connection", str(state))
 
         self.t0 = asyncio.get_running_loop().time()
         await room.connect(self.url, self.token)
@@ -208,10 +239,20 @@ class Call:
         self._log("AGENT ", text)
         await self._turns.put((opened, text))
 
+    def note(self, kind: str, text: str) -> None:
+        """One line of what the room delivered, printed as it arrives and kept for the call log."""
+        try:
+            at = (self.ms(self._now()) or 0) / 1000
+        except RuntimeError:  # no running loop (late callback during teardown)
+            at = 0.0
+        line = f"{at:6.1f}s  {kind:<13} {text}"
+        self.log_lines.append(line)
+        print(f"  [room] {line}", flush=True)
+
     def _log(self, who: str, text: str) -> None:
-        """Each turn as it happens, so a long call shows progress instead of looking hung."""
-        short = text if len(text) <= 160 else text[:157] + "..."
-        print(f"  [call {(self.ms(self._now()) or 0) / 1000:6.1f}s] {who}: {short}", flush=True)
+        """Each turn as it happens, in full, so a long call shows progress instead of looking hung."""
+        print(f"  [call {(self.ms(self._now()) or 0) / 1000:6.1f}s] {who}: {text}", flush=True)
+        self.log_lines.append(f"{(self.ms(self._now()) or 0) / 1000:6.1f}s  {who.strip().lower():<13} {text}")
 
     async def next_agent_turn(self, timeout_s: float) -> tuple[float, str]:
         """(when the turn started streaming, its text). Gives up at once - with
@@ -286,12 +327,3 @@ class Call:
                 pass
         for task in list(self._tasks):
             task.cancel()
-
-    @property
-    def transcript(self) -> list[tuple[str, str]]:
-        return [(e["role"], e["text"]) for e in self.events]
-
-    def dialogue(self) -> str:
-        return "\n".join(
-            f"  {e['atMs'] / 1000:6.1f}s {'AGENT ' if e['role'] == 'agent' else 'CALLER'}"
-            f"{' [' + e['tag'] + ']' if e['tag'] else ''}: {e['text']}" for e in self.events)

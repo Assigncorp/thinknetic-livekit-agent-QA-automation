@@ -4,14 +4,17 @@ Build report/index.html - the smoke run's report, for people who were not there.
     uv run --project tests/sdk python tools/build_report.py
 
 Reads whatever the run left in report/data/ and never fails because a part is
-missing (a stage that did not run is shown as "Did not run" and fails the
+missing (a call that did not run is shown as "Did not run" and fails the
 banner). Self-contained: inline CSS and JS, no network, readable on a phone.
 
+Two outputs:
+    report/index.html            for management: the live phone-call check only
+    report-internal/index.html   for engineers debugging: the offline unit checks.
+                                 Kept outside report/, which CI publishes.
+
 Inputs
-    report/data/junit-unit.xml      routing + validator unit tests (pytest)
-    report/data/ui-results.json     Playwright JSON reporter
+    report-internal/junit-unit.xml  routing + validator + question bank tests (pytest)
     report/data/kb-smoke.json       the live KB-steps call (tests/sdk/tests/test_kb_call.py)
-    report/playwright/index.html    linked as "Technical details"
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "report"
 DATA = REPORT / "data"
+INTERNAL = ROOT / "report-internal"
 IST = ZoneInfo("Asia/Kolkata")
 
 e = html.escape
@@ -60,59 +64,31 @@ def run_meta() -> dict:
 
 
 def unit_results() -> dict | None:
-    path = DATA / "junit-unit.xml"
+    path = INTERNAL / "junit-unit.xml"
     if not path.exists():
         return None
     root = ET.parse(path).getroot()
     suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
     tests = failures = skipped = 0
     failed: list[str] = []
-    for s in suites:
-        for case in s.iter("testcase"):
+    cases: list[dict] = []
+    for s_ in suites:
+        for case in s_.iter("testcase"):
             tests += 1
+            name = f"{case.get('classname', '').split('.')[-1]}::{case.get('name')}"
+            bad = case.find("failure") if case.find("failure") is not None else case.find("error")
             if case.find("skipped") is not None:
                 skipped += 1
-            elif case.find("failure") is not None or case.find("error") is not None:
+                status, detail = "skipped", ""
+            elif bad is not None:
                 failures += 1
-                failed.append(f"{case.get('classname', '').split('.')[-1]}::{case.get('name')}")
-    return {"tests": tests, "failures": failures, "skipped": skipped, "failed": failed,
+                failed.append(name)
+                status, detail = "failed", (bad.get("message") or "") + "\n" + (bad.text or "")
+            else:
+                status, detail = "passed", ""
+            cases.append({"name": name, "status": status, "seconds": float(case.get("time") or 0), "detail": detail.strip()})
+    return {"tests": tests, "failures": failures, "skipped": skipped, "failed": failed, "cases": cases,
             "passed": tests > 0 and failures == 0}
-
-
-def ui_results() -> dict | None:
-    path = DATA / "ui-results.json"
-    if not path.exists():
-        return None
-    data = json.loads(path.read_text(encoding="utf-8"))
-    tests: list[dict] = []
-
-    def walk(suite: dict) -> None:
-        for spec in suite.get("specs", []):
-            for t in spec.get("tests", []):
-                results = t.get("results", [])
-                last = results[-1] if results else {}
-                notes = t.get("annotations", []) + last.get("annotations", [])
-                rooms = list(dict.fromkeys(a.get("description", "") for a in notes
-                                           if a.get("type") == "livekit-room" and a.get("description")))
-                tests.append({
-                    "title": spec.get("title", ""),
-                    "rooms": rooms,
-                    "status": last.get("status", "skipped"),
-                    "durationMs": last.get("duration", 0),
-                    "retries": max(0, len(results) - 1),
-                    "steps": [{"title": s.get("title", ""), "error": bool(s.get("error"))}
-                              for s in last.get("steps", [])
-                              if s.get("title") not in ("Before Hooks", "After Hooks", "Worker Cleanup")],
-                    "error": (last.get("error") or {}).get("message", "") if last.get("status") != "passed" else "",
-                    "attachments": [a.get("path", "") for a in last.get("attachments", []) if a.get("path")],
-                })
-        for child in suite.get("suites", []):
-            walk(child)
-
-    for s in data.get("suites", []):
-        walk(s)
-    passed = bool(tests) and all(t["status"] in ("passed", "expected") for t in tests)
-    return {"tests": tests, "passed": passed}
 
 
 def kb_results() -> dict | None:
@@ -266,16 +242,29 @@ def render_attempt(att: dict, entry: dict, open_: bool) -> str:
                      f' {pill(cp["passed"])}{detail}</div><span class="time">{timing}</span></li>')
     v = att.get("validation")
     steps = render_steps_table(v) if v else '<p class="muted">No answer was validated in this attempt.</p>'
+    if v:
+        matched = sum(1 for i in v["items"] if i["result"] == "pass")
+        steps = (f'<p class="muted">{matched} of {len(v["items"])} KB steps and cautions matched '
+                 f'({v["score"]:.0%}). The call passes at {v["threshold"]:.0%} or more, and never with a wrong value.</p>'
+                 + steps)
     split = ""
     if v:
         segs = "".join(f"<li><code>[{s['index']}]</code> {e(s['text'])}</li>" for s in v["segments"])
         split = (f"<details><summary>How the answer was split into steps ({e(v['splitMethod'])}, "
                  f"{len(v['segments'])} parts)</summary><ol class=plain start=0>{segs}</ol></details>")
+    text = att.get("text") or {}
+    text_html = ""
+    if text.get("message"):
+        tv = text.get("validation")
+        text_html = ('<h3>The steps sent by text</h3><p class="muted">What the agent texted, as recorded in its own logs, '
+                     'checked against the knowledge base the same way as the spoken answer.</p>'
+                     f'<div class="q" style="white-space:pre-wrap">{e(text["message"])}</div>'
+                     + (render_steps_table(tv) if tv else ""))
     err = f'<p class="reason">Error: {e(att["error"])}</p>' if att.get("error") else ""
     body = (f'<h3>Call reference</h3>{render_reference(att)}'
             f'{render_qa(att, entry.get("question", ""))}'
-            f'<h3>The nine checks</h3><ol class="checks">{"".join(items)}</ol>{err}'
-            f'<h3>The answer, step by step</h3>{steps}{split}'
+            f'<h3>The checks</h3><ol class="checks">{"".join(items)}</ol>{err}'
+            f'<h3>The answer, step by step</h3>{steps}{split}{text_html}'
             f'<h3>The call, as it happened</h3>{render_chat(att["events"], att.get("rating"))}'
             f'<p class="muted">Call length {secs(att["durationMs"])}</p>')
     title = (f'Attempt {att["number"]} {pill(att["passed"])} '
@@ -285,9 +274,8 @@ def render_attempt(att: dict, entry: dict, open_: bool) -> str:
 
 def build() -> str:
     meta = run_meta()
-    unit, ui, kb = unit_results(), ui_results(), kb_results()
-    parts_ok = [x["passed"] if x else False for x in (unit, ui, kb)]
-    overall = all(parts_ok)
+    kb = kb_results()
+    overall = bool(kb and kb["passed"])
 
     sel = (kb or {}).get("selection", {})
     entry = (kb or {}).get("entry", {})
@@ -301,10 +289,9 @@ def build() -> str:
         except ValueError:
             pass
 
-    failed_parts = [name for name, ok in zip(("unit checks", "website check", "phone-call check"), parts_ok) if not ok]
-    summary = ("Everything checked out: the website works, and the support agent answered a real question "
+    summary = ("Everything checked out: the support agent answered a real question "
                "correctly from its manual, step by step, and closed the call properly." if overall else
-               "Something needs attention: " + ", ".join(failed_parts) + ". Details below.")
+               ("The phone-call check failed. Details below." if kb else "The phone-call check did not run."))
     commit = (f'<a href="{e(meta["commitUrl"])}">{e(meta["commit"])}</a>' if meta["commitUrl"] else e(meta["commit"]))
     run_link = f' · <a href="{e(meta["runUrl"])}">CI run</a>' if meta["runUrl"] else ""
 
@@ -312,11 +299,6 @@ def build() -> str:
     for att in (kb or {}).get("attempts", []):
         if not att.get("passed"):
             refs.append(f'Phone-call check, attempt {att["number"]}: <code>{e(room_ref(att))}</code>')
-    for t in (ui or {}).get("tests", []):
-        if t["status"] != "passed":
-            where = (", ".join(f"<code>room {e(r)}</code>" for r in t["rooms"]) if t["rooms"]
-                     else "no call room - it failed before a call was started")
-            refs.append(f"Website check: {where}")
     refs_html = ('<p><strong>Reference for what failed</strong></p><ul class="refs">'
                  + "".join(f"<li>{r}</li>" for r in refs) + "</ul>") if refs else ""
     banner = (f'<section class="banner {"pass" if overall else "fail"}"><div class="big">{"PASS" if overall else "FAIL"}</div>'
@@ -335,16 +317,7 @@ def build() -> str:
         '</dl></section>')
 
     overview = ('<section class="card"><h2>What was checked</h2><ol class="checks">'
-                f'<li><span class="num {"pass" if parts_ok[0] else "fail"}">1</span><div class="grow"><strong>Unit checks</strong> '
-                f'{pill(unit["passed"] if unit else None)}<div class="muted">Serial-to-model routing and the step-by-step '
-                f'answer checker, tested without a live call'
-                + (f' · {unit["tests"]} run, {unit["failures"]} failed' if unit else "") + '</div></div></li>'
-                f'<li><span class="num {"pass" if parts_ok[1] else "fail"}">2</span><div class="grow"><strong>Website check</strong> '
-                f'{pill(ui["passed"] if ui else None)}<div class="muted">The product page loads, everything on it is in '
-                f'place, bad input is refused, and "Talk to me" starts a call'
-                + "".join(f' · call room <code>{e(r)}</code>' for t in (ui or {}).get("tests", []) for r in t["rooms"])
-                + '</div></div></li>'
-                f'<li><span class="num {"pass" if parts_ok[2] else "fail"}">3</span><div class="grow"><strong>Phone-call check</strong> '
+                f'<li><span class="num {"pass" if overall else "fail"}">1</span><div class="grow"><strong>Phone-call check</strong> '
                 f'{pill(kb["passed"] if kb else None)}<div class="muted">A test caller asked the agent a real question '
                 f'and checked the answer against the manual'
                 + (" · retried once" if kb and kb.get("retried") else "")
@@ -354,8 +327,8 @@ def build() -> str:
     call = ""
     if kb:
         attempts = kb.get("attempts", [])
-        retry_note = (f'<p class="muted">The first call failed, so it was tried once more in a fresh room. '
-                      f'The verdict is the last attempt; every attempt is shown.</p>' if kb.get("retried") else "")
+        retry_note = ('<p class="muted">The first call failed, so it was tried once more in a fresh room. '
+                      'The verdict is the last attempt; every attempt is shown.</p>' if kb.get("retried") else "")
         call = ('<section class="card"><h2>The phone-call check</h2>'
                 f'<p><strong>Question asked:</strong> “{e(sel.get("question", ""))}”</p>'
                 f'<p class="muted">From the knowledge base section “{e(sel.get("kbSection", ""))}” '
@@ -366,30 +339,7 @@ def build() -> str:
     else:
         call = '<section class="card"><h2>The phone-call check</h2><p>Did not run.</p></section>'
 
-    ui_html = ""
-    if ui:
-        rows = []
-        for t in ui["tests"]:
-            steps = "".join(f'<li>{"✗ " if s["error"] else "✓ "}{e(s["title"])}</li>' for s in t["steps"])
-            err = f'<p class="reason">{e(t["error"][:600])}</p>' if t["error"] else ""
-            shots = "".join(
-                f'<li><a href="{e(os.path.relpath(a, REPORT))}">{e(Path(a).name)}</a></li>'
-                for a in t["attachments"] if a and Path(a).exists())
-            shots = f"<p class=muted>Trace and screenshots:</p><ul class=plain>{shots}</ul>" if shots else ""
-            room = ('<div class="ref"><dl><div><dt>Call room (LiveKit room name)</dt><dd>'
-                    + (e(", ".join(t["rooms"])) if t["rooms"] else "no call was started") + '</dd></div></dl></div>')
-            rows.append(f'<details class="card"{"" if t["status"] == "passed" else " open"}><summary><strong>{e(t["title"])}</strong> '
-                        f'{pill(t["status"] == "passed")} <span class="time">{secs(t["durationMs"])}</span></summary>'
-                        f'{room}{err}<ul class=plain>{steps}</ul>{shots}</details>')
-        ui_html = '<section><h2>The website check</h2>' + "".join(rows) + "</section>"
-
-    unit_html = ""
-    if unit and unit["failed"]:
-        unit_html = ('<section class="card"><h2>Unit checks that failed</h2><ul class=plain>' +
-                     "".join(f"<li><code>{e(x)}</code></li>" for x in unit["failed"]) + "</ul></section>")
-
     tech = ('<section class="card"><h2>Technical details</h2><ul class=plain>'
-            '<li><a href="playwright/index.html">Playwright report</a> (traces and screenshots on failure)</li>'
             '<li><a href="data/kb-smoke.json">Raw call data (JSON)</a></li>'
             + (f'<li>Re-run this exact call: <code>KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>' if sel else "")
             + "</ul></section>")
@@ -397,16 +347,51 @@ def build() -> str:
     return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
             f"<title>Agent Smoke Test</title><style>{CSS}</style></head><body><main>"
-            f"{banner}{meta_html}{overview}{call}{ui_html}{unit_html}{tech}"
+            f"{banner}{meta_html}{overview}{call}{tech}"
             f"<p class=muted>Generated {e(datetime.now(timezone.utc).astimezone(IST).strftime('%d %b %Y, %I:%M %p IST'))}</p>"
             "</main></body></html>")
 
 
+def build_internal() -> str:
+    """Engineer-facing page: the offline unit checks. Not for the management report."""
+    meta, unit = run_meta(), unit_results()
+    if unit:
+        rows = "".join(
+            f'<tr><td><code>{e(c["name"])}</code>'
+            + (f'<pre class="reason">{e(c["detail"][:1500])}</pre>' if c["detail"] else "")
+            + f'</td><td>{pill(c["status"] == "passed", "Pass", "Skipped" if c["status"] == "skipped" else "Fail")}</td>'
+            f'<td class="time">{c["seconds"]:.2f} s</td></tr>'
+            for c in sorted(unit["cases"], key=lambda c: c["status"] == "passed"))
+        body = (f'<section class="card"><h2>Unit checks {pill(unit["passed"])}</h2>'
+                f'<p class="muted">{unit["tests"]} run, {unit["failures"]} failed, {unit["skipped"]} skipped. '
+                'Offline: serial routing, the answer validator and the question bank. Failures are listed first.</p>'
+                f'<div class="table-wrap"><table><thead><tr><th>Test</th><th>Result</th><th>Time</th></tr></thead>'
+                f'<tbody>{rows}</tbody></table></div></section>')
+    else:
+        body = '<section class="card"><h2>Unit checks</h2><p>Did not run.</p></section>'
+    logs = sorted(INTERNAL.glob("*-log-attempt-*.txt"))
+    if logs:
+        body += ('<section class="card"><h2>Call and worker logs</h2><p class="muted">Per attempt: what the room delivered to '
+                 'the test caller, and the agent worker\'s own logs for that room (<code>lk agent logs</code>).</p><ul class=plain>'
+                 + "".join(f'<li><a href="{e(f.name)}">{e(f.name)}</a></li>' for f in logs) + "</ul></section>")
+    return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
+            "<meta name=viewport content='width=device-width,initial-scale=1'>"
+            f"<title>Agent Smoke Test - internal</title><style>{CSS}pre{{white-space:pre-wrap;margin:6px 0 0}}</style></head><body><main>"
+            f'<section class="banner {"pass" if unit and unit["passed"] else "fail"}"><div class="big">'
+            f'{"PASS" if unit and unit["passed"] else "FAIL"}</div><div class="grow"><h1>Internal: unit checks</h1>'
+            f'<p>Branch {e(meta["branch"])} · commit {e(meta["commit"])}. Not part of the management report.</p></div></section>'
+            f"{body}</main></body></html>")
+
+
 def main() -> int:
     REPORT.mkdir(parents=True, exist_ok=True)
+    INTERNAL.mkdir(parents=True, exist_ok=True)
     out = REPORT / "index.html"
     out.write_text(build(), encoding="utf-8")
     print(f"report -> {out.relative_to(ROOT)}")
+    internal = INTERNAL / "index.html"
+    internal.write_text(build_internal(), encoding="utf-8")
+    print(f"internal report -> {internal.relative_to(ROOT)}")
     return 0
 
 

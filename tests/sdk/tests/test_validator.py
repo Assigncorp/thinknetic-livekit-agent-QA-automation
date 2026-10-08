@@ -91,3 +91,14 @@ def test_empty_answer_fails_every_item():
     result = validate(ENTRY, [])
     assert not result.passed
     assert all(not i.passed for i in result.items)
+
+
+def test_threshold_allows_a_miss_only_when_the_share_is_high_enough_and_never_a_wrong_value():
+    miss = validate(ENTRY, next(c for c in CASES if c["name"] == "step 3 never given")["turns"])
+    assert not miss.passed and not miss.wrong_values
+    assert miss.meets_threshold(0.90) and not miss.meets_threshold(0.95)  # 11 of 12 items
+    wrong = validate(ENTRY, next(c for c in CASES if c["name"] == "crank limit stated as sixty seconds")["turns"])
+    assert wrong.wrong_values
+    assert not wrong.meets_threshold(0.50)  # a wrong value fails whatever the share
+    clean = validate(ENTRY, CASES[0]["turns"])
+    assert clean.passed and clean.meets_threshold(1.0)

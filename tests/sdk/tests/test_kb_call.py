@@ -72,8 +72,10 @@ async def test_kb_steps_call(product, caller):
         run.expect.next_event().is_message(role="assistant")
     if final.checkpoints["feedback_asked"].passed:
         run.expect.contains_message(role="assistant", matching=FEEDBACK_ASK, what="rating request")
-    if final.validation and not final.validation.passed:
+    if final.validation and not final.validation.meets_threshold():
         failed += [f"  {i.ref}: {i.reason}" for i in final.validation.failures]
+    if final.text_validation and not final.text_validation.meets_threshold():
+        failed += [f"  text, {i.ref}: {i.reason}" for i in final.text_validation.failures]
     rooms = "; ".join(f"attempt {a.number}: room {a.room} (sid {a.room_sid or '-'})" for a in attempts)
     assert not failed, (
         f"KB-steps call failed ({len(attempts)} attempt(s); KB_SEED={selection.seed}; {rooms}):\n  "

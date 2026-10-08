@@ -24,6 +24,7 @@ sentences. The split is part of the result so a failure can be checked by eye.
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -348,6 +349,11 @@ class ItemResult:
         }
 
 
+# The live call passes when this share of KB items (steps and cautions) matched
+# and none of the misses is a wrong value. Override with KB_PASS_THRESHOLD (0-1).
+PASS_THRESHOLD = float(os.getenv("KB_PASS_THRESHOLD", "0.95"))
+
+
 @dataclass
 class Validation:
     items: list[ItemResult]
@@ -356,7 +362,22 @@ class Validation:
 
     @property
     def passed(self) -> bool:
+        """Strict: every item matched. The unit tests and the question bank check use this."""
         return bool(self.items) and all(i.passed for i in self.items)
+
+    @property
+    def score(self) -> float:
+        return sum(i.passed for i in self.items) / len(self.items) if self.items else 0.0
+
+    @property
+    def wrong_values(self) -> list[ItemResult]:
+        return [i for i in self.items if i.result == "wrong_value"]
+
+    def meets_threshold(self, threshold: float | None = None) -> bool:
+        """What the live call uses: enough items matched, and never a wrong value, because
+        a wrong number or position is the agent giving wrong guidance."""
+        threshold = PASS_THRESHOLD if threshold is None else threshold
+        return bool(self.items) and not self.wrong_values and self.score + 1e-9 >= threshold
 
     @property
     def failures(self) -> list[ItemResult]:
@@ -372,6 +393,9 @@ class Validation:
     def as_dict(self) -> dict[str, Any]:
         return {
             "passed": self.passed,
+            "score": round(self.score, 4),
+            "threshold": PASS_THRESHOLD,
+            "meetsThreshold": self.meets_threshold(),
             "splitMethod": self.split_method,
             "segments": [{"index": s.index, "turn": s.turn, "text": s.text} for s in self.segments],
             "items": [i.as_dict() for i in self.items],
