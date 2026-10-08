@@ -351,7 +351,7 @@ class ItemResult:
 
 # The live call passes when this share of KB items (steps and cautions) matched
 # and none of the misses is a wrong value. Override with KB_PASS_THRESHOLD (0-1).
-PASS_THRESHOLD = float(os.getenv("KB_PASS_THRESHOLD", "0.95"))
+PASS_THRESHOLD = float(os.getenv("KB_PASS_THRESHOLD") or "0.95")  # blank (unset CI input) = default
 
 
 @dataclass

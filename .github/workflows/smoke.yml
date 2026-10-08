@@ -6,11 +6,21 @@
 # Same steps as `make smoke`. Secrets come from repository secrets
 # (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) and are never printed.
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
+#
+# Triggers: every push to develop-phase1_basic, on demand from the Actions tab, and
+# a schedule that is OFF until a time is chosen (see `schedule` below). GitHub only
+# runs scheduled workflows from the repository's default branch, so the schedule
+# does nothing until this file is on master.
 name: smoke
 
 on:
   push:
     branches: [develop-phase1_basic]
+  # Scheduled run - placeholder, not active. To turn on: set the cron time below
+  # (five fields, UTC: minute hour day-of-month month day-of-week), uncomment the
+  # two lines, and merge to the default branch. IST is UTC+5:30.
+  # schedule:
+  #   - cron: "<MINUTE> <HOUR> * * <DAYS>"   # TODO: choose the run time
   workflow_dispatch:
     inputs:
       kb_seed:
@@ -21,6 +31,9 @@ on:
         required: false
       kb_question_id:
         description: "KB_QUESTION_ID - pin one question bank entry (blank = random)"
+        required: false
+      kb_pass_threshold:
+        description: "KB_PASS_THRESHOLD - share of KB steps and cautions that must match, 0 to 1 (blank = 0.95)"
         required: false
 
 # One smoke run at a time: the live call uses the shared dev agent.
@@ -45,10 +58,20 @@ jobs:
       KB_SEED: ${{ inputs.kb_seed }}
       KB_MODEL: ${{ inputs.kb_model }}
       KB_QUESTION_ID: ${{ inputs.kb_question_id }}
+      KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
+      TEXT_REQUIRE_DELIVERY: "0"
       KB_RETRIES: "1"
       CI: "true"
     steps:
       - uses: actions/checkout@v4
+
+      # Without these the live test skips instead of failing, which would look like a pass.
+      - name: Check the LiveKit secrets are set
+        run: |
+          for v in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET; do
+            if [ -z "${!v}" ]; then echo "::error::repository secret $v is not set"; missing=1; fi
+          done
+          test -z "${missing:-}"
 
       - name: Start the clock
         run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"

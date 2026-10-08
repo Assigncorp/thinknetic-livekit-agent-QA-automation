@@ -111,7 +111,9 @@ The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K675
 
 ## CI
 
-[.github/workflows/smoke.yml](.github/workflows/smoke.yml) runs on every push to `develop-phase1_basic` and on demand from the Actions tab. A manual run can set the seed, model or question.
+[.github/workflows/smoke.yml](.github/workflows/smoke.yml) runs on every push to `develop-phase1_basic` and on demand from the Actions tab. A manual run can set the seed, model, question or pass mark.
+
+**Schedule.** A scheduled run is in the workflow as a commented-out placeholder, with no time set. To turn it on, pick a cron time (UTC) in the `schedule` block, uncomment it, and merge the workflow to the default branch: GitHub only runs scheduled workflows from there. The run fails fast if a LiveKit secret is missing.
 
 - It starts from a clean slate: no restored caches and old reports removed. It then runs the same steps as `make smoke`.
 - The report is built and published on every run, pass or fail:
