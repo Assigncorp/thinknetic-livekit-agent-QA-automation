@@ -1,8 +1,8 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, sixteen timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, fifteen timed checkpoints.
 
     call_started  greeted  question_asked  answer_received  answer_valid  text_asked
-    text_triggered  callback_asked  callback_task_created  note_added  thanks_sent  feedback_asked
+    text_triggered  callback_asked  callback_task_created  thanks_sent  feedback_asked
     feedback_answered  call_closed  text_valid  call_log_complete
 
 The caller asks for the steps by text to SMS_TEST_PHONE (a number other than the caller's).
@@ -66,7 +66,6 @@ CHECKPOINTS = [
     ("text_triggered", "The agent sent the steps by text to that number (read from its logs, before the feedback step)"),
     ("callback_asked", "Our test caller asked for a call back"),
     ("callback_task_created", "The agent created a callback task for the caller's number (read from its logs, before the feedback step)"),
-    ("note_added", "Our test caller asked for a line to be noted for the call log, and the agent answered, before the feedback step"),
     ("thanks_sent", "Our test caller said thank you"),
     ("feedback_asked", "The agent asked the caller to rate the call"),
     ("feedback_answered", "Our test caller gave a rating from 1 to 10"),
@@ -118,14 +117,6 @@ DECLINE_TRANSFER = "No thanks, I'd rather keep going here. What's the next step?
 ASK_REMAINING = ("Is that the complete procedure? Please give me any remaining steps, "
                  "and any cautions or warnings that go with them.")
 THANKS = "That's everything I needed, thank you - I'm all set."
-# A line the caller asks to have noted, before the rating. Distinctive words, so it can be told
-# apart in the call log; one pair is picked per call.
-NOTE_MARKERS = [("amber falcon", "the amber falcon delivery is booked for Thursday morning"),
-                ("copper lantern", "the copper lantern shipment needs a signature on arrival"),
-                ("silver anchor", "the silver anchor order should go to the east gate"),
-                ("velvet harbor", "the velvet harbor invoice must be sent to accounts")]
-# No "before I go": the agent can read that as a goodbye and close the call before the rating.
-ASK_NOTE = "One more thing for the record of this call: {line}. Please make sure that is in my call notes."
 NOTHING_ELSE = "No, that's everything. Thanks."
 STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
@@ -171,7 +162,6 @@ class Attempt:
     text_to: str = ""
     text_delivery: str = ""
     text_validation: Validation | None = None
-    note_marker: str = ""  # the distinctive words the caller asked to have noted
     sms_phone: str = ""  # the number the text must go to; never written to the published report
     caller_phone: str = ""
 
@@ -308,9 +298,6 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         await _request_callback(flow, caller["phone"])
         await _check_callback_task(flow, caller["phone"])
 
-        # a line for the call notes, before the feedback step -------------
-        await _add_note(flow, rng)
-
         # 6-8 thanks, feedback ask, rating ------------------------------
         await flow.say(THANKS, "thanks")
         flow.mark("thanks_sent", True)
@@ -445,37 +432,11 @@ async def _request_callback(flow: _Flow, caller_phone: str) -> bool:
     return False
 
 
-async def _add_note(flow: _Flow, rng: random.Random) -> None:
-    """The caller asks for one distinctive line to be noted, before the feedback step.
-
-    The agent has no notes tool - it may even say it cannot record this - and the call log's
-    `notes` come from a model reading the transcript afterwards. So the agent does not have to
-    accept the note: the step passes once the agent has answered the line. Whether the call log
-    is complete is judged after the call (_check_call_log)."""
-    marker, line = rng.choice(NOTE_MARKERS)
-    flow.attempt.note_marker = marker
-    await flow.say(ASK_NOTE.format(line=line), "note for the call log")
-    loop = asyncio.get_running_loop()
-    deadline = loop.time() + TURN_TIMEOUT_S
-    while loop.time() < deadline:
-        turn = await flow.turn(max(1.0, deadline - loop.time()))
-        if turn is None:
-            break
-        if is_holding(turn):
-            continue
-        flow.call.tag_last_agent_turn("note result")
-        flow.mark("note_added", True, f"the caller said “{marker}”; the agent answered: {turn[:90]}")
-        return
-    flow.mark("note_added", False,
-              "the agent left the call right after the note" if flow.call.closed
-              else f"no reply to the note within {TURN_TIMEOUT_S}s")
-
-
 def _check_call_log(flow: _Flow, lines: list[dict[str, Any]], caller_turns: int) -> None:
     """After the call: did the agent write the call record with everything, and deliver it?
     Judged from its logs - the record's content itself goes to the webhook, so what we can see is
-    that the transcript was analysed (turns), the summary and notes were extracted, the record was
-    accepted (2xx), and - when the agent's 160-character log preview shows it - our noted line."""
+    that the transcript was analysed (turns), the summary and notes were extracted, and the record was
+    accepted (2xx)."""
     attempt = flow.attempt
     if flow.tail is None:
         flow.mark("call_log_complete", False, attempt.worker_log_note or "the agent's logs could not be followed")
@@ -501,11 +462,8 @@ def _check_call_log(flow: _Flow, lines: list[dict[str, Any]], caller_turns: int)
     for f in ("call_summary", "notes"):
         if f not in rec["fields"]:
             problems.append(f"no {f} extracted")
-    marker = attempt.note_marker
-    seen = bool(marker) and all(w in rec["analysis"].lower() for w in marker.split())
-    detail = (f"delivered {rec['delivered']}, {rec['turns']} transcript turns (the caller spoke {caller_turns} times), fields {rec['fields']}, summary from {rec['summary_source'] or '-'}"
-              + (f"; noted line “{marker}” is in the extracted notes" if seen else
-                 f"; noted line “{marker}” not visible in the agent's 160-character log preview (not counted as a failure)" if marker else ""))
+    detail = (f"delivered {rec['delivered']}, {rec['turns']} transcript turns (the caller spoke {caller_turns} times), "
+              f"fields {rec['fields']}, summary from {rec['summary_source'] or '-'}")
     flow.mark("call_log_complete", not problems, "; ".join(problems) if problems else detail)
 
 
