@@ -84,7 +84,11 @@ jobs:
           [ -n "$TOKEN" ] || { echo "::error::repository secret SETTINGFILE_FINEGRAINED_TOKEN is not set"; exit 1; }
 
       # Always the agent team's latest settings - never a copy kept in this repo.
+      # A failed fetch must not stop the unit checks and the live call: the settings stage
+      # below then fails on its own, with the reason, and the verdict stays red.
       - name: Fetch the agent repo (config only)
+        id: agentsrc
+        continue-on-error: true
         uses: actions/checkout@v4
         with:
           repository: Assigncorp/thinknetic-livekit-agents
@@ -126,6 +130,10 @@ jobs:
         id: settings
         continue-on-error: true
         run: |
+          if [ "${{ steps.agentsrc.outcome }}" != success ]; then
+            echo "::error::could not read Assigncorp/thinknetic-livekit-agents - check that SETTINGFILE_FINEGRAINED_TOKEN has Contents: read on that repo (and is approved for the org)"
+            exit 1
+          fi
           echo "agent commit: $(git -C agents-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
           make settings
 
