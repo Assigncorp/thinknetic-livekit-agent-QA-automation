@@ -1,4 +1,4 @@
-# Daily static check of the agent's settings.yaml. The file lives in
+# Weekday static check of the agent's settings.yaml. The file lives in
 # Assigncorp/thinknetic-livekit-agents and is checked out fresh on every run - it is
 # never copied into this repo. No calls are placed (live checks are a later phase).
 #
@@ -7,7 +7,7 @@
 # variable, comma-separated E.164) turns on the check that no real desk number is
 # committed to the nonprod config; without it that one test is skipped.
 #
-# Schedule: 06:00 IST = 00:30 UTC. GitHub runs schedules only from the default
+# Schedule: Monday to Friday, 08:00 IST = 02:30 UTC (IST is UTC+5:30, so the weekday is the same in both). GitHub runs schedules only from the default
 # branch, so it starts once this file is on master; use Run workflow until then.
 name: settings-daily
 
@@ -22,7 +22,7 @@ on:
       - "tests/sdk/lkqa/cronwindow.py"
       - "kb/settings_expectations.yaml"
   schedule:
-    - cron: "30 0 * * *"
+    - cron: "30 2 * * 1-5"
   workflow_dispatch:
     inputs:
       agents_ref:
