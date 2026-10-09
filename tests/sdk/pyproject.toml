@@ -14,6 +14,9 @@ dependencies = [
     # kb/hopper_classification.xlsx (serial routing) and kb/*.yaml.
     "openpyxl>=3.1",
     "pyyaml>=6.0",
+    # tests/test_settings_static.py: transfer windows and body_template rendering.
+    "croniter>=2.0",
+    "jinja2>=3.1",
 ]
 
 [tool.pytest.ini_options]
@@ -24,5 +27,6 @@ asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
 markers = [
     "live: joins a real agent session on the shared dev deployment",
+    "settings: static checks of the agent repo's settings.yaml (no calls; needs AGENT_SRC, so not part of -m offline)",
     "offline: no network - routing, question bank and validator checks",
 ]

@@ -4,12 +4,13 @@ export PYTHONDONTWRITEBYTECODE := 1
 SDK := tests/sdk
 PY := uv run --project $(SDK) python
 
-.PHONY: help smoke test install clean unit kb report bank-draft check-bank
+.PHONY: help smoke test install clean unit kb settings report bank-draft check-bank
 
 help:
 	@echo "make smoke       - the whole smoke run, same steps as CI: clean, install, unit, kb, report"
 	@echo "make test        - unit, kb, report (no clean/install)"
 	@echo "make unit        - routing + validator + question bank checks (offline); results go to report-internal/"
+	@echo "make settings   - static checks of settings.yaml read from the agent repo (AGENT_SRC, default ../thinknetic-livekit-agents)"
 	@echo "make kb          - the live LiveKit KB-steps call (KB_SEED / KB_MODEL / KB_QUESTION_ID to pin)"
 	@echo "make report      - build report/index.html (management) and report-internal/index.html (unit checks)"
 	@echo "make bank-draft  - regenerate kb/question_bank.draft.yaml from the KBs"
@@ -44,6 +45,11 @@ unit:
 	@echo "== unit: routing, validator, question bank"
 	@mkdir -p report-internal
 	cd $(SDK) && uv run pytest -m offline --junitxml=../../report-internal/junit-unit.xml
+
+settings:
+	@echo "== settings: static checks of the agent repo's settings.yaml"
+	@mkdir -p report-internal
+	cd $(SDK) && uv run pytest tests/test_settings_static.py -m settings --junitxml=../../report-internal/junit-settings.xml
 
 kb:
 	@echo "== kb: live LiveKit KB-steps call"

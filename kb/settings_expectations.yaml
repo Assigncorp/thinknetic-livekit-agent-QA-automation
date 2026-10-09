@@ -1,0 +1,22 @@
+# Allow-lists for tests/sdk/tests/test_settings_static.py. This is QA's own view of
+# what a sane settings.yaml looks like - the settings themselves are read fresh
+# from the agent repo and never copied here.
+top_level_keys: [system_settings]
+system_settings_keys:
+  [kb, resume_last_session_within_days, serial_number_formats, pronunciations,
+   integrations, sms, transfer, transcriber, model, voice, noise_cancellation,
+   turn_handling, message_plan, max_duration_seconds, max_duration_message, end_call]
+transcribers: { deepgram: [nova-3] }
+llms:
+  openai: [gpt-4.1, gpt-4o]
+  anthropic: [claude-sonnet-4-6]
+voice_providers: [cartesia, elevenlabs]
+credential_types: [bearer, api_key, oauth2]
+http_methods: [POST, PUT, PATCH, GET]
+turn_models: [en, multilingual, "off"]
+endpointing_modes: [fixed, dynamic]
+webhook_hosts: [railway.assigncorp.com]
+# Placeholders the agent fills in message_plan / max_duration / structured_data.
+known_placeholders:
+  [product_brand, product_name, product_serial_number, organization_name, organization_id,
+   room_id, product_id, reason, phone_number]
