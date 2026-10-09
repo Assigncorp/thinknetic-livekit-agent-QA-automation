@@ -7,14 +7,18 @@
 # (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, SMS_TEST_PHONE) and are never printed.
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
-# Triggers: every push to develop-phase1_basic, on demand from the Actions tab, and
-# Monday to Friday at 06:00 IST. GitHub only runs scheduled workflows from the
+# The one smoke workflow. Triggers: every push to any branch, on demand from the Actions
+# tab, and Monday to Friday at 06:00 IST. GitHub only runs scheduled workflows from the
 # repository's default branch, so the schedule does nothing until this file is on it.
+#
+# Stages: unit checks, static checks of the agent repo's settings.yaml (read fresh from
+# Assigncorp/thinknetic-livekit-agents with the SETTINGFILE_FINEGRAINED_TOKEN secret:
+# Contents read on that repo only), then the live LiveKit call. All three must pass.
 name: smoke
 
 on:
   push:
-    branches: [develop-phase1_basic]
+    branches: ["**"]
   # Scheduled run: Monday to Friday, 06:00 IST = 00:30 UTC (five fields, UTC: minute hour
   # day-of-month month day-of-week). IST is UTC+5:30, so the weekday is the same in both.
   schedule:
@@ -58,6 +62,8 @@ jobs:
       KB_QUESTION_ID: ${{ inputs.kb_question_id }}
       KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
       SMS_TEST_PHONE: ${{ secrets.SMS_TEST_PHONE }}
+      AGENT_SRC: ${{ github.workspace }}/agents-src
+      TRANSFER_TEST_NUMBERS: ${{ vars.TRANSFER_TEST_NUMBERS }}
       KB_RETRIES: "1"
       CI: "true"
     steps:
@@ -70,6 +76,23 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::repository secret $v is not set"; missing=1; fi
           done
           test -z "${missing:-}"
+
+      - name: Check the agent-repo token is set
+        env:
+          TOKEN: ${{ secrets.SETTINGFILE_FINEGRAINED_TOKEN }}
+        run: |
+          [ -n "$TOKEN" ] || { echo "::error::repository secret SETTINGFILE_FINEGRAINED_TOKEN is not set"; exit 1; }
+
+      # Always the agent team's latest settings - never a copy kept in this repo.
+      - name: Fetch the agent repo (config only)
+        uses: actions/checkout@v4
+        with:
+          repository: Assigncorp/thinknetic-livekit-agents
+          ref: develop
+          token: ${{ secrets.SETTINGFILE_FINEGRAINED_TOKEN }}
+          path: agents-src
+          sparse-checkout: src/assistants/product_support/config
+          fetch-depth: 1
 
       - name: Start the clock
         run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -98,6 +121,13 @@ jobs:
         id: unit
         continue-on-error: true
         run: make unit
+
+      - name: Settings checks (agent repo's settings.yaml)
+        id: settings
+        continue-on-error: true
+        run: |
+          echo "agent commit: $(git -C agents-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
+          make settings
 
       - name: LiveKit KB-steps call
         id: kb
@@ -134,17 +164,19 @@ jobs:
       - name: Verdict
         if: always()
         run: |
-          echo "unit=${{ steps.unit.outcome }} kb=${{ steps.kb.outcome }}"
+          echo "unit=${{ steps.unit.outcome }} settings=${{ steps.settings.outcome }} kb=${{ steps.kb.outcome }}"
           {
             echo "## Smoke test"
             echo "| Stage | Result |"
             echo "|---|---|"
             echo "| Unit checks | ${{ steps.unit.outcome }} |"
+            echo "| Settings checks | ${{ steps.settings.outcome }} |"
             echo "| LiveKit KB-steps call | ${{ steps.kb.outcome }} |"
             echo ""
             echo "Report: see the **publish** job below for the link, or download the \`smoke-report-${{ github.run_number }}\` artifact."
           } >> "$GITHUB_STEP_SUMMARY"
           test "${{ steps.unit.outcome }}" = success
+          test "${{ steps.settings.outcome }}" = success
           test "${{ steps.kb.outcome }}" = success
 
   publish:
