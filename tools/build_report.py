@@ -108,7 +108,7 @@ CSS = """
 --agent:#222a34;--caller:#1d2a44}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
 font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-main{max-width:1000px;margin:0 auto;padding:16px}
+main{max-width:1400px;margin:0 auto;padding:16px}
 h1{font-size:1.5rem;margin:0}h2{font-size:1.2rem;margin:0 0 12px}h3{font-size:1rem;margin:16px 0 8px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 16px}
 .banner{border-radius:12px;padding:20px;margin:0 0 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -144,6 +144,17 @@ td.kb{min-width:220px}td.said{min-width:200px}.kw{font-size:.82rem}.kw .ok{color
 details{margin-top:8px}summary{cursor:pointer;color:var(--accent)}a{color:var(--accent)}
 code{font-size:.85em;background:var(--bg);padding:1px 5px;border-radius:5px}
 ul.plain{margin:6px 0;padding-left:20px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tile{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile .ico{font-size:1.6rem;line-height:1}.tl{color:var(--muted);font-size:.78rem}.tv{font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+.flow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}.flow .arrow{align-self:center;color:var(--accent);font-size:1.3rem}
+.node{flex:1 1 180px;min-width:0;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:10px 12px}
+.node .nv{font-weight:700;overflow-wrap:anywhere}
+@media (max-width:700px){.flow .arrow{transform:rotate(90deg);width:100%;text-align:center}}
+details.sec{margin-top:0}details.sec>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;color:var(--ink)}
+details.sec>summary::-webkit-details-marker{display:none}details.sec>summary h2{margin:0}
+details.sec>summary .more{color:var(--accent);font-size:.85rem;white-space:nowrap}
+details.sec[open]>summary{margin-bottom:12px}details.sec[open]>summary .more{display:none}
 @media (max-width:700px){.steps thead{display:none}.steps tr{display:block;border-top:1px solid var(--line);padding:8px 0}
 .steps td{display:block;border:0;padding:4px 0;min-width:0}.steps td::before{content:attr(data-label);display:block;
 color:var(--muted);font-size:.75rem;font-weight:600}.banner .big{font-size:2rem}}
@@ -231,15 +242,19 @@ def render_qa(att: dict, fallback_question: str) -> str:
             f'({len(answer)} turn{"" if len(answer) == 1 else "s"}).</p>{a_html}</div>')
 
 
-def render_attempt(att: dict, entry: dict, open_: bool) -> str:
-    cps = att["checkpoints"]
+def render_checks(att: dict) -> str:
     items = []
-    for i, cp in enumerate(cps, start=1):
+    for i, cp in enumerate(att["checkpoints"], start=1):
         cls = "pass" if cp["passed"] else "fail"
         detail = f'<div class="muted">{e(cp["detail"])}</div>' if cp["detail"] else ""
         timing = f'at {secs(cp["atMs"])} · took {secs(cp["tookMs"])}' if cp["atMs"] is not None else "not reached"
         items.append(f'<li><span class="num {cls}">{i}</span><div class="grow"><strong>{e(cp["label"])}</strong>'
                      f' {pill(cp["passed"])}{detail}</div><span class="time">{timing}</span></li>')
+    err = f'<p class="reason">Error: {e(att["error"])}</p>' if att.get("error") else ""
+    return f'<ol class="checks">{"".join(items)}</ol>{err}'
+
+
+def render_attempt(att: dict, entry: dict, open_: bool, show_checks: bool = True) -> str:
     v = att.get("validation")
     steps = render_steps_table(v) if v else '<p class="muted">No answer was validated in this attempt.</p>'
     if v:
@@ -261,16 +276,26 @@ def render_attempt(att: dict, entry: dict, open_: bool) -> str:
                      + (f'<p><strong>Sent to:</strong> the {e(text["to"])}</p>' if text.get("to") else "")
                      + f'<div class="q" style="white-space:pre-wrap">{e(text["message"])}</div>'
                      + (render_steps_table(tv) if tv else ""))
-    err = f'<p class="reason">Error: {e(att["error"])}</p>' if att.get("error") else ""
+    checks = f'<h3>The checks</h3>{render_checks(att)}' if show_checks else ""
+    chat = (f'<h3>The call, as it happened</h3>{render_chat(att["events"], att.get("rating"))}'
+            if not att["passed"] else "")
     body = (f'<h3>Call reference</h3>{render_reference(att)}'
+            f'<p class="muted">Call length {secs(att["durationMs"])}</p>'
+            f'{checks}'
             f'{render_qa(att, entry.get("question", ""))}'
-            f'<h3>The checks</h3><ol class="checks">{"".join(items)}</ol>{err}'
             f'<h3>The answer, step by step</h3>{steps}{split}{text_html}'
-            f'<h3>The call, as it happened</h3>{render_chat(att["events"], att.get("rating"))}'
-            f'<p class="muted">Call length {secs(att["durationMs"])}</p>')
+            f'{chat}')
     title = (f'Attempt {att["number"]} {pill(att["passed"])} '
              f'<span class="time">{e(att.get("roomSid") or att.get("room") or "")}</span>')
-    return f'<details{" open" if open_ else ""} class="card"><summary><strong>{title}</strong></summary>{body}</details>'
+    # Closed by default like the other sections; `open_` is kept for callers but no longer opens it.
+    return (f'<details class="card sec"><summary><h2>{title}</h2><span class="more">Click to see more</span></summary>'
+            f'{body}</details>')
+
+
+def section(title: str, inner: str) -> str:
+    """A collapsed card: the title and a 'Click to see more' hint until opened."""
+    return (f'<details class="card sec"><summary><h2>{title}</h2><span class="more">Click to see more</span></summary>'
+            f'{inner}</details>')
 
 
 def build() -> str:
@@ -303,27 +328,45 @@ def build() -> str:
     refs_html = ('<p><strong>Reference for what failed</strong></p><ul class="refs">'
                  + "".join(f"<li>{r}</li>" for r in refs) + "</ul>") if refs else ""
     banner = (f'<section class="banner {"pass" if overall else "fail"}"><div class="big">{"PASS" if overall else "FAIL"}</div>'
-              f'<div class="grow"><h1>Agent smoke test</h1><p>{e(summary)}</p>{refs_html}</div></section>')
-    meta_html = (
-        '<section class="card"><dl class="meta">'
-        f'<div><dt>Run time</dt><dd>{e(ist(started))}</dd></div>'
-        f'<div><dt>Duration</dt><dd>{e(duration)}</dd></div>'
-        f'<div><dt>Branch</dt><dd>{e(meta["branch"])}</dd></div>'
-        f'<div><dt>Commit</dt><dd>{commit}{run_link}</dd></div>'
-        f'<div><dt>Machine model tested</dt><dd>{e(sel.get("model", "-"))}</dd></div>'
-        f'<div><dt>Serial number used</dt><dd>{e(sel.get("serial", "-"))}</dd></div>'
-        f'<div><dt>Knowledge base file</dt><dd>{e(sel.get("kbFile", "-"))}</dd></div>'
-        f'<div><dt>Why this serial is that model</dt><dd>{e(sel.get("sheet", "-"))} · {e(sel.get("hopperType", "-"))}'
-        f'<br><span class="muted">{e(sel.get("classificationBasis", ""))}</span></dd></div>'
-        '</dl></section>')
+              f'<div class="grow"><h1>LiveKit smoke test</h1><p>{e(summary)}</p>{refs_html}</div></section>')
+    def tile(icon: str, label: str, value: str) -> str:
+        return (f'<div class="tile"><span class="ico">{icon}</span><div><div class="tl">{label}</div>'
+                f'<div class="tv">{value}</div></div></div>')
 
-    overview = ('<section class="card"><h2>What was checked</h2><ol class="checks">'
+    def node(label: str, value: str, sub: str = "") -> str:
+        return (f'<div class="node"><div class="tl">{label}</div><div class="nv">{value}</div>'
+                + (f'<div class="muted">{sub}</div>' if sub else "") + '</div>')
+
+    meta_html = (
+        '<section class="card"><h2>Run details</h2><div class="tiles">'
+        + tile("&#128339;", "Run time", e(ist(started)))
+        + tile("&#9201;", "Duration", e(duration))
+        + tile("&#127807;", "Branch", e(meta["branch"]))
+        + tile("&#128204;", "Commit", commit + run_link)
+        + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len((kb or {}).get("attempts", [])) > 1 else ""),
+                       f'<code>{e(a.get("roomSid") or "-")}</code><div class="muted">{e(a.get("room") or "")}</div>')
+                  for a in (kb or {}).get("attempts", []))
+        + '</div><h3>How the test machine was chosen</h3><div class="flow">'
+        + node("Serial number used", e(sel.get("serial", "-")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Classified as", e(sel.get("sheet", "-")), e(sel.get("hopperType", "")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Machine model tested", e(sel.get("model", "-")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Knowledge base file", e(sel.get("kbFile", "-")))
+        + f'</div><p class="muted">{e(sel.get("classificationBasis", ""))}</p></section>')
+
+    overview = section("What was checked", ('<ol class="checks">'
                 f'<li><span class="num {"pass" if overall else "fail"}">1</span><div class="grow"><strong>Phone-call check</strong> '
                 f'{pill(kb["passed"] if kb else None)}<div class="muted">A test caller asked the agent a real question '
                 f'and checked the answer against the manual'
                 + (" · retried once" if kb and kb.get("retried") else "")
                 + "".join(f' · <code>{e(room_ref(a))}</code>' for a in (kb or {}).get("attempts", []))
-                + '</div></div></li></ol></section>')
+                + '</div></div></li></ol>'))
+
+    checks_top = ""
+    if kb and kb.get("attempts"):
+        checks_top = f'<section class="card"><h2>The checks</h2>{render_checks(kb["attempts"][-1])}</section>'
 
     # The steps, up front: every KB step and caution against what the agent said, for the verdict attempt.
     steps_top = ""
@@ -332,36 +375,36 @@ def build() -> str:
         v = last["validation"]
         matched = sum(1 for i in v["items"] if i["result"] == "pass")
         which = (f' (attempt {last["number"]} of {len(kb["attempts"])}, the last one)' if len(kb["attempts"]) > 1 else "")
-        steps_top = ('<section class="card"><h2>The steps: knowledge base vs what the agent said</h2>'
+        steps_top = section("The steps: knowledge base vs what the agent said", (
                      f'<p class="muted">Question: “{e(sel.get("question", ""))}” · knowledge base section “{e(sel.get("kbSection", ""))}”{e(which)}. '
                      f'{matched} of {len(v["items"])} steps and cautions matched ({v["score"]:.0%}); '
                      f'the call passes at {v["threshold"]:.0%} or more, and never with a wrong value.</p>'
-                     + render_steps_table(v) + "</section>")
+                     + render_steps_table(v)))
 
     call = ""
     if kb:
         attempts = kb.get("attempts", [])
         retry_note = ('<p class="muted">The first call failed, so it was tried once more in a fresh room. '
                       'The verdict is the last attempt; every attempt is shown.</p>' if kb.get("retried") else "")
-        call = ('<section class="card"><h2>The phone-call check</h2>'
+        call = (section("The phone-call check", (
                 f'<p><strong>Question asked:</strong> “{e(sel.get("question", ""))}”</p>'
                 f'<p class="muted">From the knowledge base section “{e(sel.get("kbSection", ""))}” '
                 f'({len(entry.get("steps", []))} steps, {len(entry.get("cautions", []))} cautions) · '
                 f'question <code>{e(sel.get("questionId", ""))}</code> · seed <code>{e(str(sel.get("seed", "")))}</code></p>'
-                f'{retry_note}</section>'
-                + "".join(render_attempt(a, entry, i == len(attempts) - 1) for i, a in enumerate(attempts)))
+                f'{retry_note}')) 
+                + "".join(render_attempt(a, entry, i == len(attempts) - 1, i != len(attempts) - 1) for i, a in enumerate(attempts)))
     else:
-        call = '<section class="card"><h2>The phone-call check</h2><p>Did not run.</p></section>'
+        call = section("The phone-call check", "<p>Did not run.</p>")
 
-    tech = ('<section class="card"><h2>Technical details</h2><ul class=plain>'
+    tech = section("Technical details", ('<ul class=plain>'
             '<li><a href="data/kb-smoke.json">Raw call data (JSON)</a></li>'
             + (f'<li>Re-run this exact call: <code>KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>' if sel else "")
-            + "</ul></section>")
+            + "</ul>"))
 
     return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
-            f"<title>Agent Smoke Test</title><style>{CSS}</style></head><body><main>"
-            f"{banner}{meta_html}{overview}{steps_top}{call}{tech}"
+            f"<title>LiveKit Smoke Test</title><style>{CSS}</style></head><body><main>"
+            f"{banner}{meta_html}{checks_top}{overview}{steps_top}{call}{tech}"
             f"<p class=muted>Generated {e(datetime.now(timezone.utc).astimezone(IST).strftime('%d %b %Y, %I:%M %p IST'))}</p>"
             "</main></body></html>")
 
@@ -390,7 +433,7 @@ def build_internal() -> str:
                  + "".join(f'<li><a href="{e(f.name)}">{e(f.name)}</a></li>' for f in logs) + "</ul></section>")
     return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
-            f"<title>Agent Smoke Test - internal</title><style>{CSS}pre{{white-space:pre-wrap;margin:6px 0 0}}</style></head><body><main>"
+            f"<title>LiveKit Smoke Test - internal</title><style>{CSS}pre{{white-space:pre-wrap;margin:6px 0 0}}</style></head><body><main>"
             f'<section class="banner {"pass" if unit and unit["passed"] else "fail"}"><div class="big">'
             f'{"PASS" if unit and unit["passed"] else "FAIL"}</div><div class="grow"><h1>Internal: unit checks</h1>'
             f'<p>Branch {e(meta["branch"])} · commit {e(meta["commit"])}. Not part of the management report.</p></div></section>'
