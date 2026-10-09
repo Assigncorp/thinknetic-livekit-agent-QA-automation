@@ -20,8 +20,9 @@ import os
 import shutil
 from typing import Any
 
-# The agent writes this once the call is over and its record is saved.
-CALL_DONE = ("call_log_delivered", "voice_session_closed")
+# The agent's last words about a call: its record was sent, or could not be. (voice_session_closed
+# comes seconds BEFORE the record is analysed and sent, so it is not the end.)
+CALL_DONE = ("call_log_delivered", "call_log_failed", "call_log_validation_failed")
 
 
 def available() -> str | None:
@@ -199,6 +200,43 @@ def callback_created(lines: list[dict[str, Any]]) -> dict[str, Any] | None:
     """The latest callback task the task service accepted (HTTP 2xx), or None."""
     done = [t for t in callback_tasks(lines) if t["status"] is not None and 200 <= t["status"] < 300]
     return done[-1] if done else None
+
+
+def call_record(lines: list[dict[str, Any]]) -> dict[str, Any]:
+    """What the agent logged about writing and sending the call's record (logger `call` / `call-log`).
+
+    Keys: turns (transcript turns analysed, None if never logged), fields (the structured fields
+    the call analysis extracted), summary_source, analysis (the one-line preview of the extraction the agent logs -
+    cut at 160 characters), delivered (HTTP status of the webhook POST, None if not delivered),
+    failure (what went wrong, "" if nothing did)."""
+    import ast
+    import re
+
+    rec: dict[str, Any] = {"turns": None, "fields": [], "summary_source": "", "analysis": "",
+                           "delivered": None, "failure": ""}
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("transcript_analyzed"):
+            m = re.search(r"turns=(\d+)", msg)
+            if m:
+                rec["turns"] = int(m.group(1))
+        elif msg.startswith("call_summary source="):
+            rec["summary_source"] = msg.split("source=", 1)[1].split()[0]
+        elif msg.startswith("structured_output name=call_analysis"):
+            # `... name=call_analysis by=openai:gpt-4o-mini fields=['call_summary', ...] in 2805ms raw={...}`
+            m = re.search(r"fields=(\[.*?\])", msg)
+            try:
+                rec["fields"] = list(ast.literal_eval(m.group(1))) if m else []
+            except (ValueError, SyntaxError):
+                rec["fields"] = []
+            m = re.search(r"raw=(.*)\Z", msg, re.S)
+            rec["analysis"] = m.group(1) if m else ""
+        elif msg.startswith("call_log_delivered"):
+            m = re.search(r"status=(\d+)", msg)
+            rec["delivered"] = int(m.group(1)) if m else 0
+        elif msg.startswith(("call_log_failed", "call_log_validation_failed")):
+            rec["failure"] = msg[:200]
+    return rec
 
 
 def last10(phone: str) -> str:

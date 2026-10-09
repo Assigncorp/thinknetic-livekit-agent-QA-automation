@@ -100,8 +100,8 @@ async def test_the_tail_keeps_only_this_rooms_lines_and_knows_when_the_call_is_d
     rows = [
         {"message": "call_started", "room": "qa-kb-other", "name": "call"},
         {"message": "sending_text to=+16025550199 from=+1 message='1. Jack it up.'", "room": "qa-kb-mine", "name": "tool.external-actions"},
-        {"message": "voice_session_closed reason=x", "room": "qa-kb-mine", "name": "call"},
-        {"message": "voice_session_closed reason=x", "room": "qa-kb-other", "name": "call"},
+        {"message": "call_log_delivered status=200", "room": "qa-kb-mine", "name": "call-log"},
+        {"message": "call_log_delivered status=200", "room": "qa-kb-other", "name": "call-log"},
     ]
     fake = tmp_path / "lk"
     fake.write_text("#!/bin/sh\ncat <<'EOF'\nUsing agent [CA_x]\n" + "\n".join(json.dumps(r) for r in rows) + "\nEOF\nsleep 30\n")
@@ -152,3 +152,24 @@ def test_a_callback_with_no_logged_reply_is_not_created():
 def test_another_apis_reply_is_not_taken_for_the_task_reply():
     other = "api_responded https://x.example/api/v1/lookup status=200 chars=3 in 10ms"
     assert agentlogs.callback_created([line(CB_ARGS), line(other)]) is None
+
+
+def _rows(*msgs):
+    return [{"message": m, "room": "r", "name": "call"} for m in msgs]
+
+
+def test_call_record_reads_what_the_agent_logged_about_the_record():
+    rec = agentlogs.call_record(_rows(
+        "voice_session_closed reason=CloseReason.USER_INITIATED",
+        "structured_output name=call_analysis by=openai:gpt-4o-mini fields=['call_summary', 'notes'] in 2805ms raw={'call_summary': 'Caller asked', 'notes': ['amber falcon']}",
+        "transcript_analyzed turns=31 chars=4000 analyses=['call_analysis'] fields=['call_analysis']",
+        "call_summary source=structured_data",
+        "call_log_delivered status=200"))
+    assert rec["turns"] == 31 and rec["fields"] == ["call_summary", "notes"]
+    assert rec["summary_source"] == "structured_data" and rec["delivered"] == 200 and not rec["failure"]
+    assert "amber falcon" in rec["analysis"]
+
+
+def test_call_record_reports_a_failed_delivery_and_an_empty_extraction():
+    rec = agentlogs.call_record(_rows("transcript_analyzed turns=0 chars=0 analyses=[] fields=-", "call_log_failed status=500"))
+    assert rec["turns"] == 0 and rec["fields"] == [] and rec["delivered"] is None and "500" in rec["failure"]

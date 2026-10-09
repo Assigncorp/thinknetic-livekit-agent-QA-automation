@@ -1,8 +1,9 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, fourteen timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, sixteen timed checkpoints.
 
     call_started  greeted  question_asked  answer_received  answer_valid  text_asked
-    text_triggered  thanks_sent  feedback_asked  feedback_answered  call_closed  text_valid
+    text_triggered  callback_asked  callback_task_created  note_added  thanks_sent  feedback_asked
+    feedback_answered  call_closed  text_valid  call_log_complete
 
 The caller asks for the steps by text to SMS_TEST_PHONE (a number other than the caller's).
 text_triggered is judged from the agent's own logs (`lk agent logs`, followed for the whole
@@ -50,7 +51,6 @@ TURN_TIMEOUT_S = 75  # a KB search can take a while; the agent fills after 5 s
 QUIET_S = 8  # after a statement that asks nothing, how long before the caller speaks
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
-WORKER_LOG_WAIT_S = 90  # how long to wait for the agent's logs of a finished call
 TEXT_LOG_WAIT_S = 25  # how long to wait for the text to show in the agent's logs
 CALLBACK_LOG_WAIT_S = 30  # how long to wait for the callback task to show in the agent's logs
 ANSWER_DEADLINE_S = 12 * 60
@@ -66,12 +66,15 @@ CHECKPOINTS = [
     ("text_triggered", "The agent sent the steps by text to that number (read from its logs, before the feedback step)"),
     ("callback_asked", "Our test caller asked for a call back"),
     ("callback_task_created", "The agent created a callback task for the caller's number (read from its logs, before the feedback step)"),
+    ("note_added", "Our test caller asked for a line to be noted for the call log, and the agent answered, before the feedback step"),
     ("thanks_sent", "Our test caller said thank you"),
     ("feedback_asked", "The agent asked the caller to rate the call"),
     ("feedback_answered", "Our test caller gave a rating from 1 to 10"),
     ("call_closed", "The agent ended the call"),
     ("text_valid", "The steps in the text matched the knowledge base"),
+    ("call_log_complete", "The call log was written and sent, with the summary, notes and full transcript (read from the agent's logs)"),
 ]
+CALL_LOG_WAIT_S = 120  # after the call: the record is analysed by an LLM, then POSTed to the webhook
 
 # --- what the agent says --------------------------------------------------
 READ_BACK = [r"read that back", r"is that right", r"is that correct", r"did i get that right"]
@@ -115,6 +118,13 @@ DECLINE_TRANSFER = "No thanks, I'd rather keep going here. What's the next step?
 ASK_REMAINING = ("Is that the complete procedure? Please give me any remaining steps, "
                  "and any cautions or warnings that go with them.")
 THANKS = "That's everything I needed, thank you - I'm all set."
+# A line the caller asks to have noted, before the rating. Distinctive words, so it can be told
+# apart in the call log; one pair is picked per call.
+NOTE_MARKERS = [("amber falcon", "the amber falcon delivery is booked for Thursday morning"),
+                ("copper lantern", "the copper lantern shipment needs a signature on arrival"),
+                ("silver anchor", "the silver anchor order should go to the east gate"),
+                ("velvet harbor", "the velvet harbor invoice must be sent to accounts")]
+ASK_NOTE = "Before I go, please take a note on this call: {line}. Make sure that is in my call notes."
 NOTHING_ELSE = "No, that's everything. Thanks."
 STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
@@ -160,6 +170,7 @@ class Attempt:
     text_to: str = ""
     text_delivery: str = ""
     text_validation: Validation | None = None
+    note_marker: str = ""  # the distinctive words the caller asked to have noted
     sms_phone: str = ""  # the number the text must go to; never written to the published report
     caller_phone: str = ""
 
@@ -296,6 +307,9 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         await _request_callback(flow, caller["phone"])
         await _check_callback_task(flow, caller["phone"])
 
+        # a line for the call notes, before the feedback step -------------
+        await _add_note(flow, rng)
+
         # 6-8 thanks, feedback ask, rating ------------------------------
         await flow.say(THANKS, "thanks")
         flow.mark("thanks_sent", True)
@@ -430,6 +444,64 @@ async def _request_callback(flow: _Flow, caller_phone: str) -> bool:
     return False
 
 
+async def _add_note(flow: _Flow, rng: random.Random) -> None:
+    """The caller asks for one distinctive line to be noted, before the feedback step.
+
+    The agent has no notes tool - it may even say it cannot record this - and the call log's
+    `notes` come from a model reading the transcript afterwards. So the agent does not have to
+    accept the note: the step passes once the agent has answered the line. Whether the call log
+    is complete is judged after the call (_check_call_log)."""
+    marker, line = rng.choice(NOTE_MARKERS)
+    flow.attempt.note_marker = marker
+    await flow.say(ASK_NOTE.format(line=line), "note for the call log")
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + TURN_TIMEOUT_S
+    while loop.time() < deadline:
+        turn = await flow.turn(max(1.0, deadline - loop.time()))
+        if turn is None:
+            break
+        if is_holding(turn):
+            continue
+        flow.call.tag_last_agent_turn("note result")
+        flow.mark("note_added", True, f"the caller said “{marker}”; the agent answered: {turn[:90]}")
+        return
+    flow.mark("note_added", False,
+              "the agent left the call right after the note" if flow.call.closed
+              else f"no reply to the note within {TURN_TIMEOUT_S}s")
+
+
+def _check_call_log(flow: _Flow, lines: list[dict[str, Any]], caller_turns: int) -> None:
+    """After the call: did the agent write the call record with everything, and deliver it?
+    Judged from its logs - the record's content itself goes to the webhook, so what we can see is
+    that the transcript was analysed (turns), the summary and notes were extracted, the record was
+    accepted (2xx), and - when the agent's 160-character log preview shows it - our noted line."""
+    attempt = flow.attempt
+    if flow.tail is None:
+        flow.mark("call_log_complete", False, attempt.worker_log_note or "the agent's logs could not be followed")
+        return
+    rec = agentlogs.call_record(lines)
+    problems = []
+    if rec["failure"]:
+        problems.append(rec["failure"])
+    if rec["delivered"] is None:
+        problems.append("the call log was never delivered to the webhook")
+    elif not 200 <= rec["delivered"] < 300:
+        problems.append(f"the webhook answered {rec['delivered']}")
+    if rec["turns"] is None:
+        problems.append("the transcript was never analysed")
+    elif rec["turns"] == 0:
+        problems.append(f"the transcript was empty, the caller spoke {caller_turns} times")
+    for f in ("call_summary", "notes"):
+        if f not in rec["fields"]:
+            problems.append(f"no {f} extracted")
+    marker = attempt.note_marker
+    seen = bool(marker) and all(w in rec["analysis"].lower() for w in marker.split())
+    detail = (f"delivered {rec['delivered']}, {rec['turns']} transcript turns (the caller spoke {caller_turns} times), fields {rec['fields']}, summary from {rec['summary_source'] or '-'}"
+              + (f"; noted line “{marker}” is in the extracted notes" if seen else
+                 f"; noted line “{marker}” not visible in the agent's 160-character log preview (not counted as a failure)" if marker else ""))
+    flow.mark("call_log_complete", not problems, "; ".join(problems) if problems else detail)
+
+
 async def _check_callback_task(flow: _Flow, caller_phone: str) -> None:
     """Did the agent create the callback task, for the caller's number? Judged from its logs:
     the `request_callback` tool call and an accepted (2xx) reply from the task service."""
@@ -491,7 +563,7 @@ async def _worker_logs(flow: _Flow, entry: dict[str, Any], sms_phone: str) -> No
     attempt, tail = flow.attempt, flow.tail
     lines: list[dict[str, Any]] = []
     if tail is not None:
-        lines = await tail.finish(WORKER_LOG_WAIT_S)
+        lines = await tail.finish(CALL_LOG_WAIT_S)
         attempt.worker_log = agentlogs.render(lines)
         if not lines:
             attempt.worker_log_note = "the agent's logs had no lines for this room"
@@ -499,6 +571,8 @@ async def _worker_logs(flow: _Flow, entry: dict[str, Any], sms_phone: str) -> No
           (f" - {attempt.worker_log_note}" if attempt.worker_log_note else ""))
     for line in attempt.worker_log:
         print(f"  [worker] {line}")
+    if attempt.checkpoints["call_started"].passed:
+        _check_call_log(flow, lines, sum(1 for e_ in flow.call.events if e_["role"] == "caller"))
     if attempt.checkpoints["text_asked"].passed is None:
         return  # the call never got as far as asking for a text
 
