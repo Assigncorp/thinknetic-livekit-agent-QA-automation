@@ -124,7 +124,8 @@ NOTE_MARKERS = [("amber falcon", "the amber falcon delivery is booked for Thursd
                 ("copper lantern", "the copper lantern shipment needs a signature on arrival"),
                 ("silver anchor", "the silver anchor order should go to the east gate"),
                 ("velvet harbor", "the velvet harbor invoice must be sent to accounts")]
-ASK_NOTE = "Before I go, please take a note on this call: {line}. Make sure that is in my call notes."
+# No "before I go": the agent can read that as a goodbye and close the call before the rating.
+ASK_NOTE = "One more thing for the record of this call: {line}. Please make sure that is in my call notes."
 NOTHING_ELSE = "No, that's everything. Thanks."
 STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
@@ -480,6 +481,12 @@ def _check_call_log(flow: _Flow, lines: list[dict[str, Any]], caller_turns: int)
         flow.mark("call_log_complete", False, attempt.worker_log_note or "the agent's logs could not be followed")
         return
     rec = agentlogs.call_record(lines)
+    if attempt.error and rec["delivered"] is None:
+        # The call broke down before its record was sent: that failure is already reported by the
+        # checkpoint that broke, so this one is "not reached" rather than a second failure.
+        attempt.checkpoints["call_log_complete"].detail = (
+            f"not checked: the call ended early ({attempt.error[:90]}), so no call log was sent")
+        return
     problems = []
     if rec["failure"]:
         problems.append(rec["failure"])
