@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 import pytest
 
 from lkqa.bank import choose
+from lkqa.agentlogs import sms_number_problem
 from lkqa.call import missing_credentials
 from lkqa.expect import RunResult
 from lkqa.kbcall import FEEDBACK_ASK, run_attempt
@@ -34,6 +35,10 @@ async def test_kb_steps_call(product, caller):
     if missing := missing_credentials():
         pytest.skip(f"{', '.join(missing)} not set in .env")
 
+    sms_phone = os.getenv("SMS_TEST_PHONE", "")
+    if problem := sms_number_problem(sms_phone, caller["phone"]):
+        pytest.fail(problem, pytrace=False)  # before any call: text coverage must not silently disappear
+
     started = datetime.now(timezone.utc)
     selection = choose()
     print(f"\n[kb] seed={selection.seed} (KB_SEED={selection.seed} reproduces this run) "
@@ -43,7 +48,7 @@ async def test_kb_steps_call(product, caller):
     attempts = []
     for number in range(1, RETRIES + 2):
         attempt = await run_attempt(number, selection.entry, selection.serial, selection.model,
-                                    product, caller, rng)
+                                    product, caller, rng, sms_phone)
         attempts.append(attempt)
         if attempt.passed:
             break

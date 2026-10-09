@@ -64,38 +64,59 @@ def parse(line: str) -> dict[str, Any] | None:
     return obj if isinstance(obj, dict) else None
 
 
-async def fetch(room: str, *, quiet_s: float = 4, deadline_s: float = 90) -> list[dict[str, Any]]:
-    """Every worker log line for `room`, oldest first."""
-    aid = await agent_id()
-    proc = await asyncio.create_subprocess_exec(
-        "lk", "agent", "logs", "--id", aid,
-        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-    lines: list[dict[str, Any]] = []
-    loop = asyncio.get_running_loop()
-    stop_at = loop.time() + deadline_s
-    done_seen_at: float | None = None
-    try:
-        assert proc.stdout is not None
-        while loop.time() < stop_at:
-            try:
-                raw = await asyncio.wait_for(proc.stdout.readline(), quiet_s)
-            except asyncio.TimeoutError:
-                # Quiet. If the call has finished, that is everything; otherwise keep waiting.
-                if done_seen_at is not None:
-                    break
-                continue
-            if not raw:
-                break
+class LogTail:
+    """`lk agent logs` running for the whole call, keeping only the lines for our room.
+
+    Started before the call so the trigger of a text is already there when the call
+    reaches it, with no waiting on a fresh replay of the history mid-call. The stream
+    replays recent history first, then follows live."""
+
+    def __init__(self, room: str) -> None:
+        self.room = room
+        self.lines: list[dict[str, Any]] = []
+        self.done_seen = False
+        self._proc: asyncio.subprocess.Process | None = None
+        self._task: asyncio.Task | None = None
+
+    async def start(self) -> None:
+        aid = await agent_id()
+        self._proc = await asyncio.create_subprocess_exec(
+            "lk", "agent", "logs", "--id", aid, limit=1 << 22,  # tracebacks make long lines
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+        self._task = asyncio.create_task(self._pump())
+
+    async def _pump(self) -> None:
+        assert self._proc is not None and self._proc.stdout is not None
+        while raw := await self._proc.stdout.readline():
             obj = parse(raw.decode("utf-8", "replace"))
-            if obj and obj.get("room") == room:
-                lines.append(obj)
-                if any(k in str(obj.get("message", "")) for k in CALL_DONE) and done_seen_at is None:
-                    done_seen_at = loop.time()
-    finally:
-        if proc.returncode is None:
-            proc.kill()
-        await proc.wait()
-    return lines
+            if obj and obj.get("room") == self.room:
+                self.lines.append(obj)
+                if any(k in str(obj.get("message", "")) for k in CALL_DONE):
+                    self.done_seen = True
+
+    async def wait_until(self, predicate: Any, timeout_s: float) -> bool:
+        """True once predicate(lines so far) holds, False at the timeout."""
+        loop = asyncio.get_running_loop()
+        end = loop.time() + timeout_s
+        while loop.time() < end:
+            if predicate(self.lines):
+                return True
+            await asyncio.sleep(0.5)
+        return predicate(self.lines)
+
+    async def finish(self, timeout_s: float) -> list[dict[str, Any]]:
+        """Wait for the call's closing lines (the agent writes them after the room is gone), then stop."""
+        await self.wait_until(lambda _: self.done_seen, timeout_s)
+        await self.stop()
+        return self.lines
+
+    async def stop(self) -> None:
+        if self._proc is not None and self._proc.returncode is None:
+            self._proc.kill()
+        if self._task is not None:
+            self._task.cancel()
+        if self._proc is not None:
+            await self._proc.wait()
 
 
 def render(lines: list[dict[str, Any]]) -> list[str]:
@@ -143,3 +164,83 @@ def text_failures(lines: list[dict[str, Any]]) -> list[str]:
             m = re.search(r"reason=(.*?)(?: error=|\Z)", msg, re.S)
             out.append((m.group(1) if m else msg[:200]).strip())
     return out
+
+
+def callback_tasks(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The callback tasks the agent tried to create, oldest first.
+
+    The agent's `request_callback` tool logs `api_call_requested tool=request_callback
+    args={'phone_number': ..., 'reason': ...}` (tool.http-request), POSTs to
+    `.../locations/<id>/tasks` (http-request: calling_api), and logs the reply as
+    `api_responded <url> status=201`. Each entry: {"phone", "reason", "status", "timestamp"};
+    status is the HTTP status of the tasks call that followed, or None when no reply was logged."""
+    import ast
+    import re
+
+    out: list[dict[str, Any]] = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("api_call_requested") and "tool=request_callback" in msg:
+            m = re.search(r"args=(\{.*\})\s*\Z", msg, re.S)
+            try:
+                args = ast.literal_eval(m.group(1)) if m else {}
+            except (ValueError, SyntaxError):
+                args = {}
+            out.append({"phone": str(args.get("phone_number", "")), "reason": str(args.get("reason", "")),
+                        "status": None, "timestamp": str(o.get("timestamp", ""))})
+        elif out and out[-1]["status"] is None and msg.startswith("api_responded") and "/tasks " in msg + " ":
+            m = re.search(r"status=(\d+)", msg)
+            if m:
+                out[-1]["status"] = int(m.group(1))
+    return out
+
+
+def callback_created(lines: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The latest callback task the task service accepted (HTTP 2xx), or None."""
+    done = [t for t in callback_tasks(lines) if t["status"] is not None and 200 <= t["status"] < 300]
+    return done[-1] if done else None
+
+
+def last10(phone: str) -> str:
+    """The ten digits that identify a US number, however it is written (+1 480-555-0142, 4805550142)."""
+    import re
+
+    return re.sub(r"\D", "", phone)[-10:]
+
+
+def mask(phone: str) -> str:
+    """For reports that are published: the last four digits only."""
+    digits = last10(phone)
+    return f"number ending {digits[-4:]}" if digits else "no number"
+
+
+def sms_number_problem(sms_phone: str, caller_phone: str) -> str | None:
+    """Why SMS_TEST_PHONE cannot be used, or None. Checked before the call is made."""
+    import re
+
+    if not sms_phone.strip():
+        return ("SMS_TEST_PHONE is not set: put the number that should receive the test text in .env "
+                "(and as the SMS_TEST_PHONE repository secret in CI). It must differ from TEST_CALLER_PHONE.")
+    if len(re.sub(r"\D", "", sms_phone)) not in (10, 11):
+        return "SMS_TEST_PHONE must be a 10-digit number (an optional leading 1 is fine)."
+    if last10(sms_phone) == last10(caller_phone):
+        return "SMS_TEST_PHONE is the same as the caller's number (TEST_CALLER_PHONE); the text must go to a different one."
+    return None
+
+
+def texts_to(texts: list[dict[str, str]], phone: str) -> list[dict[str, str]]:
+    """The sent texts whose destination is `phone`."""
+    return [t for t in texts if last10(t["to"]) == last10(phone)]
+
+
+def redact(text: str, *phones: str) -> str:
+    """Replace a number written in any common way (4 8 0 5 5 5..., 480-555-..., +1 (480) ...)
+    with its masked form. Used on everything that goes into the published report."""
+    import re
+
+    for phone in phones:
+        digits = last10(phone)
+        if len(digits) == 10:
+            pattern = r"(?:\+?1[\s.\-]*)?" + r"[\s.\-—–()]*".join(digits)
+            text = re.sub(pattern, f"[{mask(phone)}]", text)
+    return text

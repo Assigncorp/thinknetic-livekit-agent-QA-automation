@@ -4,7 +4,7 @@
 # kept as a separate artifact and never published to Pages.
 #
 # Same steps as `make smoke`. Secrets come from repository secrets
-# (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) and are never printed.
+# (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, SMS_TEST_PHONE) and are never printed.
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
 # Triggers: every push to develop-phase1_basic, on demand from the Actions tab, and
@@ -59,7 +59,7 @@ jobs:
       KB_MODEL: ${{ inputs.kb_model }}
       KB_QUESTION_ID: ${{ inputs.kb_question_id }}
       KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
-      TEXT_REQUIRE_DELIVERY: "0"
+      SMS_TEST_PHONE: ${{ secrets.SMS_TEST_PHONE }}
       KB_RETRIES: "1"
       CI: "true"
     steps:
@@ -68,7 +68,7 @@ jobs:
       # Without these the live test skips instead of failing, which would look like a pass.
       - name: Check the LiveKit secrets are set
         run: |
-          for v in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET; do
+          for v in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET SMS_TEST_PHONE; do
             if [ -z "${!v}" ]; then echo "::error::repository secret $v is not set"; missing=1; fi
           done
           test -z "${missing:-}"

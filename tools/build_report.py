@@ -258,7 +258,8 @@ def render_attempt(att: dict, entry: dict, open_: bool) -> str:
         tv = text.get("validation")
         text_html = ('<h3>The steps sent by text</h3><p class="muted">What the agent texted, as recorded in its own logs, '
                      'checked against the knowledge base the same way as the spoken answer.</p>'
-                     f'<div class="q" style="white-space:pre-wrap">{e(text["message"])}</div>'
+                     + (f'<p><strong>Sent to:</strong> the {e(text["to"])}</p>' if text.get("to") else "")
+                     + f'<div class="q" style="white-space:pre-wrap">{e(text["message"])}</div>'
                      + (render_steps_table(tv) if tv else ""))
     err = f'<p class="reason">Error: {e(att["error"])}</p>' if att.get("error") else ""
     body = (f'<h3>Call reference</h3>{render_reference(att)}'
@@ -324,6 +325,19 @@ def build() -> str:
                 + "".join(f' · <code>{e(room_ref(a))}</code>' for a in (kb or {}).get("attempts", []))
                 + '</div></div></li></ol></section>')
 
+    # The steps, up front: every KB step and caution against what the agent said, for the verdict attempt.
+    steps_top = ""
+    last = (kb or {}).get("attempts", [None])[-1] if kb and kb.get("attempts") else None
+    if last and last.get("validation"):
+        v = last["validation"]
+        matched = sum(1 for i in v["items"] if i["result"] == "pass")
+        which = (f' (attempt {last["number"]} of {len(kb["attempts"])}, the last one)' if len(kb["attempts"]) > 1 else "")
+        steps_top = ('<section class="card"><h2>The steps: knowledge base vs what the agent said</h2>'
+                     f'<p class="muted">Question: “{e(sel.get("question", ""))}” · knowledge base section “{e(sel.get("kbSection", ""))}”{e(which)}. '
+                     f'{matched} of {len(v["items"])} steps and cautions matched ({v["score"]:.0%}); '
+                     f'the call passes at {v["threshold"]:.0%} or more, and never with a wrong value.</p>'
+                     + render_steps_table(v) + "</section>")
+
     call = ""
     if kb:
         attempts = kb.get("attempts", [])
@@ -347,7 +361,7 @@ def build() -> str:
     return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
             f"<title>Agent Smoke Test</title><style>{CSS}</style></head><body><main>"
-            f"{banner}{meta_html}{overview}{call}{tech}"
+            f"{banner}{meta_html}{overview}{steps_top}{call}{tech}"
             f"<p class=muted>Generated {e(datetime.now(timezone.utc).astimezone(IST).strftime('%d %b %Y, %I:%M %p IST'))}</p>"
             "</main></body></html>")
 

@@ -1,11 +1,13 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, eleven timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, fourteen timed checkpoints.
 
     call_started  greeted  question_asked  answer_received  answer_valid  text_asked
-    thanks_sent   feedback_asked  feedback_answered  call_closed  text_valid
+    text_triggered  thanks_sent  feedback_asked  feedback_answered  call_closed  text_valid
 
-text_valid is judged after the call from the agent's own logs (`lk agent logs`): the
-text it sent is validated against the KB like the spoken answer.
+The caller asks for the steps by text to SMS_TEST_PHONE (a number other than the caller's).
+text_triggered is judged from the agent's own logs (`lk agent logs`, followed for the whole
+call) BEFORE the call moves on to thanks and feedback. text_valid, after the call, checks
+what the text said against the KB like the spoken answer.
 
 The caller reads each FINISHED agent turn and replies to what it asked; nothing
 is a fixed script. What the agent does, from its own prompt and phrase catalog
@@ -49,6 +51,8 @@ QUIET_S = 8  # after a statement that asks nothing, how long before the caller s
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
 WORKER_LOG_WAIT_S = 90  # how long to wait for the agent's logs of a finished call
+TEXT_LOG_WAIT_S = 25  # how long to wait for the text to show in the agent's logs
+CALLBACK_LOG_WAIT_S = 30  # how long to wait for the callback task to show in the agent's logs
 ANSWER_DEADLINE_S = 12 * 60
 ATTEMPT_DEADLINE_S = 16 * 60  # hard cap on one call, whatever happens
 
@@ -58,12 +62,15 @@ CHECKPOINTS = [
     ("question_asked", "Our test caller asked the knowledge-base question"),
     ("answer_received", "The agent answered"),
     ("answer_valid", "The answer matched the knowledge base, step by step"),
-    ("text_asked", "Our test caller asked for the steps by text"),
+    ("text_asked", "Our test caller asked for the steps by text, to a different number"),
+    ("text_triggered", "The agent sent the steps by text to that number (read from its logs, before the feedback step)"),
+    ("callback_asked", "Our test caller asked for a call back"),
+    ("callback_task_created", "The agent created a callback task for the caller's number (read from its logs, before the feedback step)"),
     ("thanks_sent", "Our test caller said thank you"),
     ("feedback_asked", "The agent asked the caller to rate the call"),
     ("feedback_answered", "Our test caller gave a rating from 1 to 10"),
     ("call_closed", "The agent ended the call"),
-    ("text_valid", "The steps in the text matched the knowledge base (read from the agent's logs)"),
+    ("text_valid", "The steps in the text matched the knowledge base"),
 ]
 
 # --- what the agent says --------------------------------------------------
@@ -92,6 +99,9 @@ TEXT_PHONE = PHONE_ASK + [r"phone number", r"your number", r"mobile", r"number .
 TEXT_SENT = [r"\bsent\b", r"on its way", r"texted (it|them|that|you)", r"just texted", r"you should (see|get|receive)"]
 TEXT_FAILED = [r"didn'?t go through", r"couldn'?t (send|text)", r"landline", r"wasn'?t able to", r"unable to (send|text)",
                r"can'?t receive texts"]
+CALLBACK_DONE = [r"callback (is|has been|was) (arranged|requested|set|scheduled|created|logged)",
+                 r"(arranged|scheduled|requested|logged) (the|your|a) call ?back", r"someone .{0,40}will (call|reach)",
+                 r"\bwill (call|reach out to) you"]
 CLOSING = [r"thank you so much for calling", r"take care", r"have a great (one|day)", r"goodbye"]
 
 # --- what the caller says -------------------------------------------------
@@ -110,6 +120,9 @@ STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
             "including the cautions or warnings.")
 CONFIRM = "Yes, that is correct."
+ASK_CALLBACK = ("Actually, can you have someone call me back about this? Please create a callback request. "
+                "The callback number is my own number, not the one I gave you for the text: {spoken}.")
+CALLBACK_CONFIRM = "Yes, that's right, my own number, {spoken}. Any time today is fine."
 
 
 @dataclass
@@ -147,10 +160,16 @@ class Attempt:
     text_to: str = ""
     text_delivery: str = ""
     text_validation: Validation | None = None
+    sms_phone: str = ""  # the number the text must go to; never written to the published report
+    caller_phone: str = ""
 
     @property
     def passed(self) -> bool:
         return all(c.passed for c in self.checkpoints.values())
+
+    def _safe(self, text: str) -> str:
+        """Text for the published report: the SMS number masked, however it was spoken or written."""
+        return agentlogs.redact(text, self.sms_phone)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -159,17 +178,17 @@ class Attempt:
             "roomSid": self.room_sid,
             "agentIdentity": self.agent_identity,
             "startedAt": self.started_at,
-            "answer": self.answer_turns,
+            "answer": [self._safe(t) for t in self.answer_turns],
             "passed": self.passed,
             "durationMs": self.duration_ms,
             "error": self.error,
             "rating": self.rating,
-            "checkpoints": [c.as_dict() for c in self.checkpoints.values()],
-            "events": self.events,
+            "checkpoints": [{**c.as_dict(), "detail": self._safe(c.detail)} for c in self.checkpoints.values()],
+            "events": [{**e, "text": self._safe(e["text"])} for e in self.events],
             "validation": self.validation.as_dict() if self.validation else None,
             "text": {
-                "to": self.text_to,
-                "message": self.text_message,
+                "to": agentlogs.mask(self.text_to) if self.text_to else "",
+                "message": self._safe(self.text_message),
                 "delivery": self.text_delivery,
                 "validation": self.text_validation.as_dict() if self.text_validation else None,
             },
@@ -181,6 +200,7 @@ class _Flow:
     def __init__(self, call: Call, attempt: Attempt) -> None:
         self.call = call
         self.attempt = attempt
+        self.tail: agentlogs.LogTail | None = None  # the agent's logs for this room, followed live
         self._last_mark = 0
         for name, label in CHECKPOINTS:
             attempt.checkpoints[name] = Checkpoint(name, label)
@@ -205,8 +225,10 @@ class _Flow:
 
 
 async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: str,
-                      product: dict[str, str], caller: dict[str, str], rng: random.Random) -> Attempt:
+                      product: dict[str, str], caller: dict[str, str], rng: random.Random,
+                      sms_phone: str) -> Attempt:
     attempt = Attempt(number)
+    attempt.sms_phone, attempt.caller_phone = sms_phone, caller["phone"]
     caller = {**caller, "serial": serial}
     room, token = agent_token(product, caller)
     attempt.room = room
@@ -218,6 +240,14 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
     print(f"\n[kb] attempt {number}: room={room} serial={serial} model={model} question={entry['id']}")
 
     async def _run() -> None:
+        if (why := agentlogs.available()) is None:
+            try:
+                flow.tail = agentlogs.LogTail(room)
+                await flow.tail.start()
+            except Exception as exc:  # noqa: BLE001 - reported on the text checks; the call still runs
+                flow.tail, attempt.worker_log_note = None, f"could not follow the agent's logs: {type(exc).__name__}: {exc}"
+        else:
+            attempt.worker_log_note = f"worker logs not read: {why}"
         # 1 call_started -------------------------------------------------
         try:
             await call.connect(AGENT_JOIN_TIMEOUT_S)
@@ -259,7 +289,12 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         flow.mark("answer_valid", v.meets_threshold(), detail)
 
         # the same steps by text; the text itself is checked from the agent's logs at the end
-        await _request_text(flow, caller["phone"])
+        await _request_text(flow, caller["phone"], sms_phone)
+        await _check_text_triggered(flow, sms_phone)  # before thanks and the feedback step
+
+        # callback request: the agent must create a task, read from its logs ----
+        await _request_callback(flow, caller["phone"])
+        await _check_callback_task(flow, caller["phone"])
 
         # 6-8 thanks, feedback ask, rating ------------------------------
         await flow.say(THANKS, "thanks")
@@ -285,10 +320,12 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         await call.hang_up()
         attempt.log = call.log_lines
         try:
-            await _worker_logs(flow, entry)
+            await _worker_logs(flow, entry, sms_phone)
         except Exception as exc:  # noqa: BLE001 - debugging aid; never hides the call's own result
             attempt.worker_log_note = f"{type(exc).__name__}: {exc}"
             print(f"[kb] worker logs failed: {attempt.worker_log_note}")
+            if flow.tail is not None:
+                await flow.tail.stop()
         _write_call_log(attempt)
         attempt.events = call.events
         attempt.duration_ms = int((loop.time() - started) * 1000)
@@ -314,14 +351,19 @@ def _write_call_log(attempt: Attempt) -> None:
     print(f"[kb] worker log -> {wpath.relative_to(ROOT)}")
 
 
-async def _request_text(flow: _Flow, phone: str) -> bool:
-    """Ask for the steps by text, take the agent through its phone-number question,
-    and stop once it says whether the text went. What the text said is read later
-    from the agent's logs."""
+async def _request_text(flow: _Flow, caller_phone: str, sms_phone: str) -> bool:
+    """Ask for the steps by text to a DIFFERENT number than the caller's. The agent first offers
+    the caller's own number; the caller refuses it and gives the SMS number, then confirms the
+    read-back. Stops once the agent says whether the text went. What was sent, and to whom, is
+    read later from the agent's logs."""
+    import re
+
     call = flow.call
+    new, old = agentlogs.last10(sms_phone), agentlogs.last10(caller_phone)
+    spoken = " ".join(new)
     await flow.say(ASK_TEXT, "ask text")
-    gave_number = 0
-    for _ in range(8):
+    gave = 0
+    for _ in range(10):
         turn = await flow.turn(TURN_TIMEOUT_S)
         if turn is None:
             break
@@ -329,24 +371,28 @@ async def _request_text(flow: _Flow, phone: str) -> bool:
             call.tag_last_agent_turn("holding")
             continue
         asks = turn.rstrip().endswith("?")
+        said = re.sub(r"\D", "", turn)  # the digits the agent spoke or wrote
         # A refusal ("that number can't receive texts ... which number?") also asks for a
-        # number, so it is checked first; the test number is given at most twice.
+        # number, so it is checked first.
         if text_matches(turn, TEXT_FAILED):
             call.tag_last_agent_turn("text result")
             flow.mark("text_asked", True, "the agent answered the text request (it could not text this number)")
             return True
-        if text_matches(turn, READ_BACK) and asks:
-            await flow.say(CONFIRM, "confirm")
-        elif text_matches(turn, TEXT_PHONE) and asks and gave_number < 2:
-            gave_number += 1
-            await flow.say(" ".join(phone), "phone")
+        if asks and new in said:
+            await flow.say(CONFIRM, "confirm number")
+        elif asks and old in said and gave < 3:
+            gave += 1
+            await flow.say(f"No, that's not the right number. Please text it to a different number: {spoken}", "different number")
+        elif asks and text_matches(turn, READ_BACK + TEXT_PHONE) and gave < 3:
+            gave += 1
+            await flow.say(f"Please use this number: {spoken}", "different number")
         elif text_matches(turn, TEXT_SENT):
             call.tag_last_agent_turn("text result")
             flow.mark("text_asked", True, "the agent answered the text request")
             return True
         elif text_matches(turn, IDLE):
             await flow.say(STILL_HERE)
-        elif asks and gave_number < 2:
+        elif asks and gave < 3:
             await flow.say("Yes, please text the steps to me.", "confirm text")
         else:
             break
@@ -354,43 +400,121 @@ async def _request_text(flow: _Flow, phone: str) -> bool:
     return False
 
 
-async def _worker_logs(flow: _Flow, entry: dict[str, Any]) -> None:
-    """Read the agent's own logs for this room, print them, and check the text it sent."""
-    attempt = flow.attempt
-    texting = attempt.checkpoints["text_asked"].passed is not None
-    why = agentlogs.available()
+async def _request_callback(flow: _Flow, caller_phone: str) -> bool:
+    """Ask for a call back. The agent confirms the number (the caller's own); the caller agrees.
+    Stops once the agent says the callback is arranged. Whether a task was really created is
+    read from the agent's logs, not from what it says."""
+    call = flow.call
+    spoken = " ".join(agentlogs.last10(caller_phone))
+    await flow.say(ASK_CALLBACK.format(spoken=spoken), "ask callback")
+    confirmed = 0
+    for _ in range(6):
+        turn = await flow.turn(TURN_TIMEOUT_S)
+        if turn is None:
+            break
+        if is_holding(turn):
+            call.tag_last_agent_turn("holding")
+            continue
+        if text_matches(turn, CALLBACK_DONE):
+            call.tag_last_agent_turn("callback result")
+            flow.mark("callback_asked", True, "the agent answered the callback request")
+            return True
+        if text_matches(turn, IDLE):
+            await flow.say(STILL_HERE)
+        elif turn.rstrip().endswith("?") and confirmed < 3:
+            confirmed += 1
+            await flow.say(CALLBACK_CONFIRM.format(spoken=spoken), "confirm callback")
+        else:
+            break
+    flow.mark("callback_asked", False, "the agent never confirmed the callback")
+    return False
+
+
+async def _check_callback_task(flow: _Flow, caller_phone: str) -> None:
+    """Did the agent create the callback task, for the caller's number? Judged from its logs:
+    the `request_callback` tool call and an accepted (2xx) reply from the task service."""
+    attempt, tail = flow.attempt, flow.tail
+    if tail is None:
+        flow.mark("callback_task_created", False, attempt.worker_log_note or "the agent's logs could not be followed")
+        return
+    await tail.wait_until(lambda lines: agentlogs.callback_created(lines) is not None, CALLBACK_LOG_WAIT_S)
+    tasks = agentlogs.callback_tasks(tail.lines)
+    if not tasks:
+        flow.mark("callback_task_created", False, f"no request_callback call in the agent's logs within {CALLBACK_LOG_WAIT_S}s")
+        return
+    made = agentlogs.callback_created(tail.lines)
+    if made is None:
+        last = tasks[-1]
+        flow.mark("callback_task_created", False,
+                  "the task service did not accept the task (" +
+                  (f"HTTP {last['status']}" if last["status"] is not None else "no reply logged") + ")")
+        return
+    if agentlogs.last10(made["phone"]) != agentlogs.last10(caller_phone):
+        flow.mark("callback_task_created", False,
+                  f"the task was made for the {agentlogs.mask(made['phone'])}, not the caller's {agentlogs.mask(caller_phone)}")
+        return
+    flow.mark("callback_task_created", True,
+              f"task created (HTTP {made['status']}) for the {agentlogs.mask(made['phone'])}: {made['reason']}")
+
+
+def _texts_by_destination(lines: list[dict[str, Any]], sms_phone: str) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    texts = agentlogs.sent_texts(lines)
+    return texts, agentlogs.texts_to(texts, sms_phone)
+
+
+async def _check_text_triggered(flow: _Flow, sms_phone: str) -> None:
+    """Did the agent send the text to the SMS number? Judged from its logs right after the text
+    request, so it comes before the call moves on to thanks and feedback."""
+    attempt, tail = flow.attempt, flow.tail
+    if tail is None:
+        flow.mark("text_triggered", False, attempt.worker_log_note or "the agent's logs could not be followed")
+        return
+    arrived = await tail.wait_until(lambda lines: bool(agentlogs.texts_to(agentlogs.sent_texts(lines), sms_phone)),
+                                    TEXT_LOG_WAIT_S)
+    texts, mine = _texts_by_destination(tail.lines, sms_phone)
+    if not texts:
+        flow.mark("text_triggered", False, f"no text appeared in the agent's logs within {TEXT_LOG_WAIT_S}s")
+        return
+    if not arrived:
+        flow.mark("text_triggered", False, "the agent texted " + ", ".join(sorted({agentlogs.mask(t["to"]) for t in texts}))
+                  + f", not the {agentlogs.mask(sms_phone)} it was given")
+        return
+    sent = mine[-1]
+    failures = agentlogs.text_failures(tail.lines)
+    # The trigger is what is tested. A refused delivery is recorded but never fails the call.
+    attempt.text_delivery = ("not delivered: " + "; ".join(failures)) if failures else "accepted by the SMS provider"
+    flow.mark("text_triggered", True, f"text sent to the {agentlogs.mask(sent['to'])} (delivery: {attempt.text_delivery})")
+
+
+async def _worker_logs(flow: _Flow, entry: dict[str, Any], sms_phone: str) -> None:
+    """After the call: take the agent's logs to the end, print them, and check what the text said."""
+    attempt, tail = flow.attempt, flow.tail
     lines: list[dict[str, Any]] = []
-    if why:
-        attempt.worker_log_note = f"worker logs not read: {why}"
-    else:
-        lines = await agentlogs.fetch(attempt.room, deadline_s=WORKER_LOG_WAIT_S)
+    if tail is not None:
+        lines = await tail.finish(WORKER_LOG_WAIT_S)
         attempt.worker_log = agentlogs.render(lines)
         if not lines:
-            attempt.worker_log_note = "the agent's logs had no lines for this room (yet)"
+            attempt.worker_log_note = "the agent's logs had no lines for this room"
     print(f"[kb] worker logs for {attempt.room}: {len(lines)} line(s)" +
           (f" - {attempt.worker_log_note}" if attempt.worker_log_note else ""))
     for line in attempt.worker_log:
         print(f"  [worker] {line}")
-    if not texting:
+    if attempt.checkpoints["text_asked"].passed is None:
         return  # the call never got as far as asking for a text
 
-    texts = agentlogs.sent_texts(lines)
-    if not texts:
-        flow.mark("text_valid", False, attempt.worker_log_note or "the agent's logs show no text was sent")
+    _, mine = _texts_by_destination(lines, sms_phone)
+    if not mine:
+        flow.mark("text_valid", False, "no text to the SMS number to check")
         return
-    sent = texts[-1]
+    sent = mine[-1]
     attempt.text_to, attempt.text_message = sent["to"], sent["message"]
     failures = agentlogs.text_failures(lines)
     attempt.text_delivery = ("not delivered: " + "; ".join(failures)) if failures else "accepted by the SMS provider"
     v = attempt.text_validation = validate(entry, [sent["message"]])
     print("[kb] text validation:\n" + v.explain())
     matched = len(v.items) - len(v.failures)
-    score = f"{matched} of {len(v.items)} KB items matched ({v.score:.0%}, pass at {PASS_THRESHOLD:.0%})"
-    detail = f"{score}; delivery: {attempt.text_delivery}"
-    if failures and os.getenv("TEXT_REQUIRE_DELIVERY") == "1":
-        flow.mark("text_valid", False, f"{detail} (TEXT_REQUIRE_DELIVERY=1)")
-    else:
-        flow.mark("text_valid", v.meets_threshold(), detail)
+    flow.mark("text_valid", v.meets_threshold(),
+              f"{matched} of {len(v.items)} KB items matched ({v.score:.0%}, pass at {PASS_THRESHOLD:.0%})")
 
 
 async def _intake(flow: _Flow, turn: str, entry: dict[str, Any], serial: str, model: str) -> bool:

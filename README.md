@@ -6,7 +6,7 @@ This is the standard smoke test for the deployed Etnyre ChipSpreader support age
    - serial-to-model routing
    - the step-by-step answer validator
    - the question bank, checked against the knowledge bases
-2. **LiveKit KB-steps call** ([test_kb_call.py](tests/sdk/tests/test_kb_call.py)). One live call to the deployed agent over the LiveKit SDK asks a real question from the machine's knowledge base. The answer is checked step by step and caution by caution against the KB text. The caller then asks for the same steps by text, and the text the agent sent is read from the agent's own logs and checked the same way.
+2. **LiveKit KB-steps call** ([test_kb_call.py](tests/sdk/tests/test_kb_call.py)). One live call to the deployed agent over the LiveKit SDK asks a real question from the machine's knowledge base. The answer is checked step by step and caution by caution against the KB text. The caller then asks for the same steps to be texted to a different number (`SMS_TEST_PHONE`), and the text the agent sent is read from the agent's own logs and checked the same way.
 
 A failure in stage 1 stops the run before the live call. The HTML report is built every time, pass or fail.
 
@@ -16,7 +16,7 @@ The product-page UI test (Playwright) is no longer here. It now lives in its own
 
 ```bash
 brew install livekit-cli # the `lk` CLI, to read the agent's logs (CI installs it too)
-cp .env.example .env     # fill in LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+cp .env.example .env     # fill in LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, SMS_TEST_PHONE
 make smoke               # clean, install, unit, kb, report - the same steps as CI
 open report/index.html
 ```
@@ -31,11 +31,11 @@ open report/index.html
 | `KB_MODEL=FHRC28 make kb` | Pins the model. |
 | `KB_QUESTION_ID=<id> make kb` | Pins one question. |
 
-The live test skips if the LiveKit credentials are missing.
+The live test skips if the LiveKit credentials are missing, and fails with a clear message if `SMS_TEST_PHONE` is missing or is the caller's own number.
 
 ## The live call
 
-Each run picks one of the four machine models at random. It uses that model's smoke serial and asks one question from that model's own KB; a question from another model's KB is never asked. Every call follows the same eleven steps, and each one is a timed checkpoint in the report:
+Each run picks one of the four machine models at random. It uses that model's smoke serial and asks one question from that model's own KB; a question from another model's KB is never asked. Every call follows the same fourteen steps, and each one is a timed checkpoint in the report:
 
 | # | Checkpoint | What happens |
 |---|---|---|
@@ -44,12 +44,15 @@ Each run picks one of the four machine models at random. It uses that model's sm
 | 3 | `question_asked` | The test caller asks the KB question. |
 | 4 | `answer_received` | The agent answers. It gives one step per turn, so the caller declines the offer to text the steps, asks for the complete procedure including cautions, and says "done, what's next?" after each step. Collecting stops when every KB step and caution has been said, or at the turn limit. "Let me check" holding turns are ignored. |
 | 5 | `answer_valid` | The combined answer is validated (rules below). |
-| 6 | `text_asked` | The caller asks for the same steps by text, gives the test phone number when asked, and confirms the read-back. The agent must answer the request. |
-| 7 | `thanks_sent` | The caller says thank you. This happens even if validation failed, so the report has the whole call. |
-| 8 | `feedback_asked` | The agent must ask for a rating. |
-| 9 | `feedback_answered` | The caller answers with a random integer from 1 to 10, which is logged. |
-| 10 | `call_closed` | The agent must end the call within 30 s. The test always hangs up at the end, so no room is left open. |
-| 11 | `text_valid` | After the call, the agent's worker logs for the room are read with `lk agent logs`. The text the agent sent (`sending_text … message='…'`) is checked against the KB like the spoken answer. |
+| 6 | `text_asked` | The caller asks for the same steps by text. The agent offers the caller's own number; the caller refuses it, gives `SMS_TEST_PHONE` (a different number) and confirms the read-back. The agent must answer the request. |
+| 7 | `text_triggered` | Checked from the agent's own logs (`lk agent logs`, followed for the whole call) **before the call moves on to thanks and the rating**. They must show the agent sent a text (`sending_text to=… message='…'`) to the `SMS_TEST_PHONE` number, not to the caller's. A refused delivery (for example a landline) never fails this. |
+| 8 | `callback_asked` | The caller asks for a call back. The caller gives their own number (not the text number) as the callback number, and confirms it if asked. The agent must answer the request. |
+| 9 | `callback_task_created` | Checked from the agent's own logs **before the call moves on to thanks and the rating**. They must show the `request_callback` tool call (`api_call_requested tool=request_callback args={'phone_number': …, 'reason': …}`) for the caller's own number, and an accepted (2xx) reply from the task service (`api_responded …/tasks status=201`). What the agent says is not enough; a refused or missing task fails this. |
+| 10 | `thanks_sent` | The caller says thank you. This happens even if validation failed, so the report has the whole call. |
+| 11 | `feedback_asked` | The agent must ask for a rating. |
+| 12 | `feedback_answered` | The caller answers with a random integer from 1 to 10, which is logged. |
+| 13 | `call_closed` | The agent must end the call within 30 s. The test always hangs up at the end, so no room is left open. |
+| 14 | `text_valid` | After the call, the text the agent sent is checked against the KB steps of the question that was asked, like the spoken answer. |
 
 A failed call is retried once in a fresh room. The report shows that a retry happened and includes both transcripts.
 
@@ -104,7 +107,7 @@ The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K675
 - **The phone-call check.**
   - The question and the KB section it came from.
   - For each attempt: **Call reference** (LiveKit room ID, room name, start time, agent participant), then **Question asked** (exactly as said on the call) and **Answer received** (the agent's answer turns, in order).
-  - The eleven checkpoints in plain English, each with its result and timing.
+  - The fourteen checkpoints in plain English, each with its result and timing.
   - **The answer, step by step.** For every KB step and caution: what the agent said, the keywords found and missing, and the result (Pass, Missing, Out of order, Merged, Misplaced caution or Wrong value). Every failure has a one-line reason, and "How the answer was split into steps" shows the split so you can check it by eye.
   - **The call, as it happened.** The full transcript as chat bubbles with timestamps, including the random rating.
 - **Technical details.** A link to the raw call data and the exact command to re-run the same call.
@@ -113,7 +116,7 @@ The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K675
 
 [.github/workflows/smoke.yml](.github/workflows/smoke.yml) runs on every push to `develop-phase1_basic` and on demand from the Actions tab. A manual run can set the seed, model, question or pass mark.
 
-**Schedule.** A scheduled run is in the workflow as a commented-out placeholder, with no time set. To turn it on, pick a cron time (UTC) in the `schedule` block, uncomment it, and merge the workflow to the default branch: GitHub only runs scheduled workflows from there. The run fails fast if a LiveKit secret is missing.
+**Schedule.** A scheduled run is in the workflow as a commented-out placeholder, with no time set. To turn it on, pick a cron time (UTC) in the `schedule` block, uncomment it, and merge the workflow to the default branch: GitHub only runs scheduled workflows from there. The run fails fast if a LiveKit secret or `SMS_TEST_PHONE` is missing.
 
 - It starts from a clean slate: no restored caches and old reports removed. It then runs the same steps as `make smoke`.
 - The report is built and published on every run, pass or fail:
@@ -121,7 +124,7 @@ The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K675
   - **The `smoke-report-<n>` artifact** keeps every run.
 - The unit checks are not in that report. They go to `report-internal/index.html`, kept as the separate `internal-unit-checks-<n>` artifact and never published to Pages.
 - One-time setup:
-  - Repository secrets `LIVEKIT_URL`, `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`.
+  - Repository secrets `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `SMS_TEST_PHONE` (the number that receives the test text; it must differ from the caller's).
   - Settings → Pages → Source = **GitHub Actions**.
 
 ## Layout
@@ -131,7 +134,7 @@ kb/                                 the four model KBs (unchanged), hopper_class
                                     smoke_serials.yaml, question_bank.yaml (reviewed)
 tests/sdk/lkqa/routing.py           serial -> model -> KB
 tests/sdk/lkqa/bank.py              picks model, serial and question (seeded)
-tests/sdk/lkqa/kbcall.py            the eleven-checkpoint live call
+tests/sdk/lkqa/kbcall.py            the fourteen-checkpoint live call
 tests/sdk/lkqa/validator.py         deterministic step/caution validator
 tests/sdk/lkqa/expect.py            LiveKit-style expect() assertions over the recorded call
 tests/sdk/lkqa/call.py              LiveKit room, agent dispatch token, turn reading
