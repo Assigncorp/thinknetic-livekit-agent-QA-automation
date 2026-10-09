@@ -8,19 +8,17 @@
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
 # Triggers: every push to develop-phase1_basic, on demand from the Actions tab, and
-# a schedule that is OFF until a time is chosen (see `schedule` below). GitHub only
-# runs scheduled workflows from the repository's default branch, so the schedule
-# does nothing until this file is on master.
+# Monday to Friday at 06:00 IST. GitHub only runs scheduled workflows from the
+# repository's default branch, so the schedule does nothing until this file is on it.
 name: smoke
 
 on:
   push:
     branches: [develop-phase1_basic]
-  # Scheduled run - placeholder, not active. To turn on: set the cron time below
-  # (five fields, UTC: minute hour day-of-month month day-of-week), uncomment the
-  # two lines, and merge to the default branch. IST is UTC+5:30.
-  # schedule:
-  #   - cron: "<MINUTE> <HOUR> * * <DAYS>"   # TODO: choose the run time
+  # Scheduled run: Monday to Friday, 06:00 IST = 00:30 UTC (five fields, UTC: minute hour
+  # day-of-month month day-of-week). IST is UTC+5:30, so the weekday is the same in both.
+  schedule:
+    - cron: "30 0 * * 1-5"
   workflow_dispatch:
     inputs:
       kb_seed:
