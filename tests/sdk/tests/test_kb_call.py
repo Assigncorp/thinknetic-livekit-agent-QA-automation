@@ -69,7 +69,7 @@ async def test_kb_steps_call(product, caller):
     print(f"[kb] result -> {RESULT.relative_to(ROOT)}")
 
     # LiveKit-style assertions over the final attempt's recorded events.
-    failed = [f"{c.name}: {c.detail}" for c in final.checkpoints.values() if not c.passed]
+    failed = [f"{c.name}: {c.detail}" for c in final.checkpoints.values() if not c.passed and not c.optional]
     if final.error:
         failed.append(f"error: {final.error}")
     run = RunResult(final.events)

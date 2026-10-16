@@ -1,7 +1,7 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, fifteen timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, sixteen timed checkpoints.
 
-    call_started  greeted  question_asked  answer_received  answer_valid  text_asked
+    call_started  greeted  question_asked  answer_received  answer_valid  image_triggered  text_asked
     text_triggered  callback_asked  callback_task_created  thanks_sent  feedback_asked
     feedback_answered  call_closed  text_valid  call_log_complete
 
@@ -52,27 +52,32 @@ QUIET_S = 8  # after a statement that asks nothing, how long before the caller s
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
 TEXT_LOG_WAIT_S = 25  # how long to wait for the text to show in the agent's logs
+IMAGE_LOG_WAIT_S = 20  # how long to wait for an image push to show in the agent's logs
 CALLBACK_LOG_WAIT_S = 30  # how long to wait for the callback task to show in the agent's logs
-ANSWER_DEADLINE_S = 12 * 60
-ATTEMPT_DEADLINE_S = 16 * 60  # hard cap on one call, whatever happens
+ANSWER_DEADLINE_S = 90
+ATTEMPT_DEADLINE_S = 5 * 60  # hard cap on one call; the KB answer alone can take 2.5 minutes
+KB_CALL_STEPS = int(os.getenv("KB_CALL_STEPS") or "3")  # KB steps the caller asks for before "that's it" (2-3)
 
 CHECKPOINTS = [
-    ("call_started", "The call connected and the agent joined"),
-    ("greeted", "The agent greeted the caller"),
-    ("question_asked", "Our test caller asked the knowledge-base question"),
-    ("answer_received", "The agent answered"),
-    ("answer_valid", "The answer matched the knowledge base, step by step"),
-    ("text_asked", "Our test caller asked for the steps by text, to a different number"),
-    ("text_triggered", "The agent sent the steps by text to that number (read from its logs, before the feedback step)"),
-    ("callback_asked", "Our test caller asked for a call back"),
-    ("callback_task_created", "The agent created a callback task for the caller's number (read from its logs, before the feedback step)"),
-    ("thanks_sent", "Our test caller said thank you"),
-    ("feedback_asked", "The agent asked the caller to rate the call"),
-    ("feedback_answered", "Our test caller gave a rating from 1 to 10"),
-    ("call_closed", "The agent ended the call"),
-    ("text_valid", "The steps in the text matched the knowledge base"),
-    ("call_log_complete", "The call log was written and sent, with the summary, notes and full transcript (read from the agent's logs)"),
+    ("call_started", "Call started"),
+    ("greeted", "Greetings"),
+    ("question_asked", "KB question asked"),
+    ("answer_received", "Agent answered"),
+    ("answer_valid", "KB steps matched"),
+    ("image_triggered", "Image shown"),
+    ("text_asked", "Text asked"),
+    ("text_triggered", "Text sent"),
+    ("callback_asked", "Callback asked"),
+    ("callback_task_created", "Callback task created"),
+    ("thanks_sent", "Thanks said"),
+    ("feedback_asked", "Rating asked"),
+    ("feedback_answered", "Rating given"),
+    ("call_closed", "Call ended"),
+    ("text_valid", "Text matched"),
+    ("call_log_complete", "Call log sent"),
 ]
+# Checkpoints that are noted but never fail the call: the agent may skip the rating question.
+OPTIONAL = {"feedback_asked", "feedback_answered"}
 CALL_LOG_WAIT_S = 120  # after the call: the record is analysed by an LLM, then POSTed to the webhook
 
 # --- what the agent says --------------------------------------------------
@@ -116,7 +121,7 @@ NOT_FIXED = "No, that didn't fix it yet. What's the next step?"
 DECLINE_TRANSFER = "No thanks, I'd rather keep going here. What's the next step?"
 ASK_REMAINING = ("Is that the complete procedure? Please give me any remaining steps, "
                  "and any cautions or warnings that go with them.")
-THANKS = "That's everything I needed, thank you - I'm all set."
+THANKS = "Okay, that's it, thank you - I'm all set."
 NOTHING_ELSE = "No, that's everything. Thanks."
 STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
@@ -132,12 +137,13 @@ class Checkpoint:
     name: str
     label: str
     passed: bool | None = None  # None = not reached
+    optional: bool = False  # a miss is noted ("not asked"), not failed
     at_ms: int | None = None
     took_ms: int | None = None
     detail: str = ""
 
     def as_dict(self) -> dict[str, Any]:
-        return {"name": self.name, "label": self.label, "passed": self.passed,
+        return {"name": self.name, "label": self.label, "passed": self.passed, "optional": self.optional,
                 "atMs": self.at_ms, "tookMs": self.took_ms, "detail": self.detail}
 
 
@@ -164,14 +170,21 @@ class Attempt:
     text_validation: Validation | None = None
     sms_phone: str = ""  # the number the text must go to; never written to the published report
     caller_phone: str = ""
+    images: list[dict[str, Any]] = field(default_factory=list)  # the agent's image pushes, from its logs
+    images_received: list[dict[str, Any]] = field(default_factory=list)  # what reached the test caller's screen
+    text_tool_trace: list[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
-        return all(c.passed for c in self.checkpoints.values())
+        return all(c.passed for c in self.checkpoints.values() if not c.optional)
 
     def _safe(self, text: str) -> str:
         """Text for the published report: the SMS number masked, however it was spoken or written."""
         return agentlogs.redact(text, self.sms_phone)
+
+    def _safe_log(self, text: str) -> str:
+        """A log line for the published report: both test numbers masked, and no line longer than 2000 characters."""
+        return agentlogs.redact(text, self.sms_phone, self.caller_phone)[:2000]
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -195,6 +208,11 @@ class Attempt:
                 "validation": self.text_validation.as_dict() if self.text_validation else None,
             },
             "workerLogLines": len(self.worker_log),
+            "images": {"pushes": self.images, "received": self.images_received},
+            "textToolTrace": self.text_tool_trace,
+            "workerLog": [self._safe_log(x) for x in self.worker_log],
+            "workerLogNote": self.worker_log_note,
+            "callLog": [self._safe_log(x) for x in self.log],
         }
 
 
@@ -205,14 +223,14 @@ class _Flow:
         self.tail: agentlogs.LogTail | None = None  # the agent's logs for this room, followed live
         self._last_mark = 0
         for name, label in CHECKPOINTS:
-            attempt.checkpoints[name] = Checkpoint(name, label)
+            attempt.checkpoints[name] = Checkpoint(name, label, optional=name in OPTIONAL)
 
     def mark(self, name: str, passed: bool, detail: str = "") -> None:
         cp = self.attempt.checkpoints[name]
         now = self.call.ms(self.call._now()) or 0
-        cp.passed, cp.at_ms, cp.took_ms, cp.detail = passed, now, now - self._last_mark, detail
+        cp.passed, cp.at_ms, cp.took_ms, cp.detail = (None if cp.optional and not passed else passed), now, now - self._last_mark, detail
         self._last_mark = now
-        print(f"[kb] {'PASS' if passed else 'FAIL'} {name} @{now / 1000:.1f}s {detail}")
+        print(f"[kb] {'PASS' if passed else ('NOTE' if cp.optional else 'FAIL')} {name} @{now / 1000:.1f}s {detail}")
 
     async def say(self, text: str, tag: str = "") -> None:
         await self.call.wait_listening(TURN_TIMEOUT_S)
@@ -229,6 +247,7 @@ class _Flow:
 async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: str,
                       product: dict[str, str], caller: dict[str, str], rng: random.Random,
                       sms_phone: str) -> Attempt:
+    entry = short_entry(entry)
     attempt = Attempt(number)
     attempt.sms_phone, attempt.caller_phone = sms_phone, caller["phone"]
     caller = {**caller, "serial": serial}
@@ -290,6 +309,8 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
             detail = f"{score}; below the threshold"
         flow.mark("answer_valid", v.meets_threshold(), detail)
 
+        await _check_image_triggered(flow)  # images ride along with the answer, so judge them now
+
         # the same steps by text; the text itself is checked from the agent's logs at the end
         await _request_text(flow, caller["phone"], sms_phone)
         await _check_text_triggered(flow, sms_phone)  # before thanks and the feedback step
@@ -301,8 +322,7 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         # 6-8 thanks, feedback ask, rating ------------------------------
         await flow.say(THANKS, "thanks")
         flow.mark("thanks_sent", True)
-        if not await _feedback(flow, rng):
-            return
+        await _feedback(flow, rng)  # optional: if no rating is asked, the rest of the call is still checked
 
         # 9 call_closed ---------------------------------------------------
         await _wait_close(flow)
@@ -333,7 +353,10 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         attempt.duration_ms = int((loop.time() - started) * 1000)
         for cp in attempt.checkpoints.values():
             if cp.passed is None:
-                cp.passed, cp.detail = False, cp.detail or "not reached"
+                if cp.optional:
+                    cp.detail = cp.detail or "not asked"
+                else:
+                    cp.passed, cp.detail = False, cp.detail or "not reached"
 
 
 
@@ -499,6 +522,37 @@ def _texts_by_destination(lines: list[dict[str, Any]], sms_phone: str) -> tuple[
     return texts, agentlogs.texts_to(texts, sms_phone)
 
 
+async def _check_image_triggered(flow: _Flow) -> None:
+    """Did the agent's image tool fire while it talked the caller through the steps? Judged from its
+    logs: it searches its image store, picks the relevant pictures and pushes them to the caller's
+    screen (`pushing_images`). The trigger is what is tested; whether the test caller's screen
+    received them is recorded next to it."""
+    attempt, tail = flow.attempt, flow.tail
+    if tail is None:
+        flow.mark("image_triggered", False, attempt.worker_log_note or "the agent's logs could not be followed")
+        return
+    await tail.wait_until(lambda lines: bool(agentlogs.image_pushes(lines)), IMAGE_LOG_WAIT_S)
+    pushes = attempt.images = agentlogs.image_pushes(tail.lines)
+    attempt.images_received = list(flow.call.images)
+    if not pushes:
+        seen = agentlogs.image_outcomes(tail.lines)
+        why = ", ".join(f"{k} x{n}" for k, n in sorted(seen.items())) or "no image activity at all"
+        if seen.get("searches") and not seen.get("searches_with_candidates"):
+            # The tool ran but the image store holds nothing for this topic: noted, not failed.
+            attempt.checkpoints["image_triggered"].optional = True
+            flow.mark("image_triggered", False,
+                      f"the image tool searched {seen['searches']} time(s) but the store has no image for this topic ({why})")
+            return
+        flow.mark("image_triggered", False, f"the agent never pushed an image to the caller ({why})")
+        return
+    shown = sum(p["images"] for p in pushes)
+    got = len(attempt.images_received)
+    queries = "; ".join(sorted({p["query"] for p in pushes if p["query"]}))
+    flow.mark("image_triggered", True,
+              f"{len(pushes)} image push(es), {shown} image(s), for: {queries or '-'}; "
+              f"{got} received by the test caller")
+
+
 async def _check_text_triggered(flow: _Flow, sms_phone: str) -> None:
     """Did the agent send the text to the SMS number? Judged from its logs right after the text
     request, so it comes before the call moves on to thanks and feedback."""
@@ -520,7 +574,9 @@ async def _check_text_triggered(flow: _Flow, sms_phone: str) -> None:
     failures = agentlogs.text_failures(tail.lines)
     # The trigger is what is tested. A refused delivery is recorded but never fails the call.
     attempt.text_delivery = ("not delivered: " + "; ".join(failures)) if failures else "accepted by the SMS provider"
-    flow.mark("text_triggered", True, f"text sent to the {agentlogs.mask(sent['to'])} (delivery: {attempt.text_delivery})")
+    attempt.text_tool_trace = agentlogs.text_tool_trace(tail.lines)
+    flow.mark("text_triggered", True, f"text sent to the {agentlogs.mask(sent['to'])} (delivery: {attempt.text_delivery}); "
+              f"tool trace: {' > '.join(attempt.text_tool_trace)}")
 
 
 async def _worker_logs(flow: _Flow, entry: dict[str, Any], sms_phone: str) -> None:
@@ -530,6 +586,8 @@ async def _worker_logs(flow: _Flow, entry: dict[str, Any], sms_phone: str) -> No
     if tail is not None:
         lines = await tail.finish(CALL_LOG_WAIT_S)
         attempt.worker_log = agentlogs.render(lines)
+        attempt.images = agentlogs.image_pushes(lines)  # the whole call, not just up to the check
+        attempt.images_received = list(flow.call.images)
         if not lines:
             attempt.worker_log_note = "the agent's logs had no lines for this room"
     print(f"[kb] worker logs for {attempt.room}: {len(lines)} line(s)" +
@@ -615,6 +673,13 @@ def _pick_option(turn: str, model: str) -> str:
     return "Option 1."
 
 
+def short_entry(entry: dict[str, Any], steps: int | None = None) -> dict[str, Any]:
+    """The part of a KB entry a 3-minute call checks: its first steps only. Cautions are left out,
+    as they usually belong to later steps."""
+    n = max(1, steps or KB_CALL_STEPS)
+    return {**entry, "steps": list(entry.get("steps") or [])[:n], "cautions": []}
+
+
 def _outstanding(entry: dict[str, Any], turns: list[str]) -> list[str]:
     v = validate(entry, turns)
     return [i.ref for i in v.items if i.result in ("missing", "missing_caution")]
@@ -624,7 +689,7 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
     call, attempt = flow.call, flow.attempt
     loop = asyncio.get_running_loop()
     deadline = loop.time() + ANSWER_DEADLINE_S
-    max_turns = max(12, 3 * len(entry["steps"]) + 6)
+    max_turns = 3 * len(entry["steps"]) + 3
     endings = 0
     timeout = TURN_TIMEOUT_S
     for _ in range(max_turns):

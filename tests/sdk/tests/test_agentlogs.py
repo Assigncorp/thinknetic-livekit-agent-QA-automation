@@ -173,3 +173,32 @@ def test_call_record_reads_what_the_agent_logged_about_the_record():
 def test_call_record_reports_a_failed_delivery_and_an_empty_extraction():
     rec = agentlogs.call_record(_rows("transcript_analyzed turns=0 chars=0 analyses=[] fields=-", "call_log_failed status=500"))
     assert rec["turns"] == 0 and rec["fields"] == [] and rec["delivered"] is None and "500" in rec["failure"]
+
+
+def test_image_pushes_are_read_with_their_query_and_delivery():
+    lines = [
+        line("searching_images kb_id=1 scope={'product_id': 2} query='auger'", name="image-sharing"),
+        line("pushing_images to=qa-caller-1 images=1 chat_id='got it' bytes=376", name="image-sharing"),
+        line("image_push_failed to=qa-caller-1 error=RpcError\nTraceback ...", name="image-sharing"),
+        line("searching_images kb_id=1 scope={} query='auger speed setting adjustment'", name="image-sharing"),
+        line("pushing_images to=qa-caller-1 images=2 chat_id='step 2' bytes=405", name="image-sharing"),
+        line("images_delivered ack='ok'", name="image-sharing"),
+    ]
+    first, second = agentlogs.image_pushes(lines)
+    assert (first["query"], first["images"], first["delivered"]) == ("auger", 1, False)
+    assert (second["query"], second["images"], second["delivered"]) == ("auger speed setting adjustment", 2, True)
+
+
+def test_no_image_push_and_the_reasons_why():
+    lines = [line("searching_images kb_id=1 query='auger'"), line("image_outcome_noted status=not_found query='auger'"),
+             line("image_check_skipped reason=product_not_resolved product_id=-")]
+    assert agentlogs.image_pushes(lines) == []
+    assert agentlogs.image_outcomes(lines) == {"searches": 1, "not_found": 1, "skipped:product_not_resolved": 1}
+
+
+def test_text_tool_trace_keeps_the_order_and_drops_repeats():
+    lines = [line(m) for m in ("text_requested settling the number (chars=10)", "phone_number_confirmed to=+1",
+                               "sending_text to=+1 from=+1 message='x'", "sms_accepted to=+1", "sms_accepted again",
+                               "text_sent to=+1 parts=1")]
+    assert agentlogs.text_tool_trace(lines) == ["text_requested", "phone_number_confirmed", "sending_text",
+                                                "sms_accepted", "text_sent"]

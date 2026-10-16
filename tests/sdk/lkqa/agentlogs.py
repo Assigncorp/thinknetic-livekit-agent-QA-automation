@@ -202,6 +202,78 @@ def callback_created(lines: list[dict[str, Any]]) -> dict[str, Any] | None:
     return done[-1] if done else None
 
 
+def image_pushes(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The images the agent pushed to the caller's screen, oldest first.
+
+    Per turn the agent decides an image query (`image_query_decided`), searches its image store
+    (`searching_images ... query='auger'`), has an LLM pick the relevant ones, then
+    `pushing_images to=<caller> images=1 ...` and either `images_delivered ack=...` or
+    `image_push_failed ... error=RpcError`. Each entry: {"query", "images", "to", "delivered", "timestamp"};
+    delivered is True/False, or None when neither was logged."""
+    import ast
+    import re
+
+    out: list[dict[str, Any]] = []
+    query = ""
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("searching_images"):
+            m = re.search(r"query=('(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\")\s*\Z", msg)
+            try:
+                query = str(ast.literal_eval(m.group(1))) if m else ""
+            except (ValueError, SyntaxError):
+                query = m.group(1) if m else ""
+        elif msg.startswith("pushing_images"):
+            m = re.match(r"pushing_images to=(\S+) images=(\d+)", msg)
+            if m:
+                out.append({"query": query, "images": int(m.group(2)), "to": m.group(1),
+                            "delivered": None, "timestamp": str(o.get("timestamp", ""))})
+        elif out and out[-1]["delivered"] is None and msg.startswith("images_delivered"):
+            out[-1]["delivered"] = True
+        elif out and out[-1]["delivered"] is None and msg.startswith("image_push_failed"):
+            out[-1]["delivered"] = False
+    return out
+
+
+def image_outcomes(lines: list[dict[str, Any]]) -> dict[str, int]:
+    """How the agent's image searches ended, counted: {"failed": 2, "not_found": 1, "searches": 4, ...}.
+
+    Used to say why no image was shown (`image_outcome_noted status=...`, `image_check_skipped reason=...`)."""
+    import re
+
+    out: dict[str, int] = {}
+    for o in lines:
+        msg = str(o.get("message", ""))
+        key = None
+        if msg.startswith("searching_images"):
+            key = "searches"
+        elif msg.startswith("image_search candidates="):
+            m = re.search(r"candidates=(\d+)", msg)
+            key = "searches_with_candidates" if m and int(m.group(1)) > 0 else None
+        elif msg.startswith("image_outcome_noted"):
+            m = re.search(r"status=(\w+)", msg)
+            key = m.group(1) if m else None
+        elif msg.startswith("image_check_skipped"):
+            m = re.search(r"reason=(\w+)", msg)
+            key = f"skipped:{m.group(1)}" if m else None
+        if key:
+            out[key] = out.get(key, 0) + 1
+    return out
+
+
+def text_tool_trace(lines: list[dict[str, Any]]) -> list[str]:
+    """The steps of the agent's send-text tool, in the order the logs show them (phone numbers left out):
+    text_requested -> phone_number_confirmed -> sending_text -> sms_accepted -> text_sent."""
+    steps = ("text_requested", "phone_number_confirmed", "sending_text", "sms_accepted", "text_sent",
+             "text_failed", "sms_send_rejected")
+    out: list[str] = []
+    for o in lines:
+        word = str(o.get("message", "")).split(" ", 1)[0]
+        if word in steps and (not out or out[-1] != word):
+            out.append(word)
+    return out
+
+
 def call_record(lines: list[dict[str, Any]]) -> dict[str, Any]:
     """What the agent logged about writing and sending the call's record (logger `call` / `call-log`).
 

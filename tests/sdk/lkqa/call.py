@@ -122,6 +122,7 @@ class Call:
         self._turns: asyncio.Queue[tuple[float, str]] = asyncio.Queue()  # (opened, text)
         # Everything the room delivered, in order, for debugging: "12.3s  state  speaking".
         self.log_lines: list[str] = []
+        self.images: list[dict[str, Any]] = []  # what the agent pushed to this caller's screen (display_images RPC)
         self.open_streams = 0
         self.last_said_at = 0.0
         self._tasks: set[asyncio.Task] = set()
@@ -197,6 +198,7 @@ class Call:
             self.room_sid = await asyncio.wait_for(room.sid, 5)
         except Exception:  # noqa: BLE001 - the room name still identifies the call
             pass
+        self._register_image_receiver()
         for p in room.remote_participants.values():
             self._maybe_agent(p)
         try:
@@ -206,6 +208,28 @@ class Call:
                 f"connected but no agent joined within {agent_join_timeout_s:.0f}s - "
                 f"check AGENT_NAME={os.getenv('AGENT_NAME')!r} is the name the worker registers with"
             ) from exc
+
+    def _register_image_receiver(self) -> None:
+        """Act as the caller's screen: the agent shows images by an RPC call, and without a handler
+        that push fails with 'Method not supported at destination' whatever the agent did right."""
+        import json
+
+        async def display_images(data: Any) -> str:
+            try:
+                body = json.loads(data.payload)
+            except ValueError:
+                body = {}
+            images = body.get("images") if isinstance(body, dict) else None
+            for img in images or []:
+                self.images.append({"description": str(img.get("description", "")), "urls": list(img.get("urls") or [])})
+            self.note("images", f"received {len(images or [])} image(s): "
+                                + ", ".join(str(i.get("description", "?")) for i in images or []))
+            return "ok"
+
+        try:
+            self.room.local_participant.register_rpc_method("display_images", display_images)
+        except Exception as exc:  # noqa: BLE001 - the pushes then fail on the agent's side; the check says so
+            self.note("images", f"could not register the image receiver: {exc}")
 
     def _maybe_agent(self, p: Any) -> None:
         if int(p.kind) == AGENT_KIND and self.agent_identity is None:
