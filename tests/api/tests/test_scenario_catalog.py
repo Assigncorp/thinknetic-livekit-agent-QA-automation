@@ -104,8 +104,11 @@ def test_serials_are_globally_unique():
 
 
 def test_serials_look_like_part_numbers():
-    bad = [s["serial"] for s in testbed.serial_index()["serials"] if not re.fullmatch(r"[A-Z]\d{4,6}", s["serial"])]
-    assert not bad, f"serials that do not match the K-number shape: {bad[:10]}"
+    # K-numbers by default; a product with another shape (RoadSaver: RS1001)
+    # declares it as serialSource.serialPattern.
+    shape = CONFIG["serialSource"].get("serialPattern", r"[A-Z]\d{4,6}")
+    bad = [s["serial"] for s in testbed.serial_index()["serials"] if not re.fullmatch(shape, s["serial"])]
+    assert not bad, f"serials that do not match the {shape} shape: {bad[:10]}"
 
 
 def test_excluded_serials_are_absent():

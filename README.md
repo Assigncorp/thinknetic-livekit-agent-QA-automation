@@ -324,6 +324,28 @@ Anything in the config can be overridden from `.env` for a single run without
 editing the committed file — useful for a slower environment or a stricter
 gate. See [`.env.example`](.env.example) for the full list.
 
+### Bearcat RoadSaver — the second product
+
+`https://etnyre-dev.thinknetic.app/b/products/roadsaver`, described by
+[`config/roadsaver.config.json`](config/roadsaver.config.json) with one KB,
+[`resources/kb/roadsaver.md`](resources/kb/roadsaver.md) (v2.0 draft, 2026-10-22),
+and serials RS1001–RS1007. The `roadsaver-*` targets set the product for the run,
+so `.env` stays on the chip spreader:
+
+```bash
+make roadsaver-resources   # rebuild resources/generated/roadsaver/ after a KB edit
+make roadsaver-catalog     # KB structure + scenario pool, no network, <1s
+make roadsaver-api         # public API suite against /b/products/roadsaver
+make roadsaver-ui          # browser suite, no real sessions
+make roadsaver-chat        # 3 real RoadSaver chat calls (~3 min)
+make roadsaver             # all of the above, then the combined report
+```
+
+`tests/api/tests/test_roadsaver_kb.py` always reads the RoadSaver config, so plain
+`make catalog` checks the RoadSaver KB too. It pins the KB's known gaps by name
+(safety-flagged entries with no **Safety:** line, an FAQ with no spoken answer);
+a new gap fails it, and so does a fixed one until the list is updated.
+
 ---
 
 ## One file configures everything

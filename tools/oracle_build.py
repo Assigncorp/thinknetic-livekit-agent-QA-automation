@@ -182,7 +182,10 @@ def build_corpus_numerals(cfg: dict[str, Any]) -> dict[str, Any]:
     shared = [
         kb["id"]
         for kb in cfg["knowledgeBases"]
-        if kb.get("enabled") and not kb.get("controller") and not kb.get("hopperType")
+        if kb.get("enabled")
+        and not kb.get("controller")
+        and not kb.get("hopperType")
+        and not kb.get("anchorSerial")
     ]
 
     return {

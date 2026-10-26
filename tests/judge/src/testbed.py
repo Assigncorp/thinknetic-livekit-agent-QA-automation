@@ -87,7 +87,9 @@ def scenario_pools() -> dict[str, Any]:
 def knowledge_bases(serial_routed_only: bool = False) -> list[dict[str, Any]]:
     kbs = [k for k in config()["knowledgeBases"] if k.get("enabled")]
     if serial_routed_only:
-        kbs = [k for k in kbs if k.get("controller") and k.get("hopperType")]
+        # A KB with no controller/hopper split (RoadSaver) is still reached
+        # by serial when it declares an anchorSerial.
+        kbs = [k for k in kbs if (k.get("controller") and k.get("hopperType")) or k.get("anchorSerial")]
     return kbs
 
 

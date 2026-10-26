@@ -1,0 +1,11 @@
+{
+ "_generated": "Do not edit. Regenerate with: make resources",
+ "_note": "A measurement listed under a machine appears in another machine's manual and NOT in this one's. Citing it to this caller is the cross-family defect docs/test-plan.md ranks as risk #1.",
+ "byKb": {
+  "roadsaver": {
+   "controller": null,
+   "hopperType": null,
+   "forbidden": {}
+  }
+ }
+}

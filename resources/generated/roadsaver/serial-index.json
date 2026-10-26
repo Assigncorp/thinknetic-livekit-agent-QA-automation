@@ -1,0 +1,64 @@
+{
+ "_generated": "Do not edit. Regenerate with: make resources",
+ "countsByKb": {
+  "roadsaver": 7
+ },
+ "serials": [
+  {
+   "serial": "RS1001",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1002",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1003",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1004",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1005",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1006",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  },
+  {
+   "serial": "RS1007",
+   "description": "Bearcat RoadSaver slurry seal / micro-surfacing machine (RoadSaver II and IIIG)",
+   "controller": null,
+   "hopperType": null,
+   "sheet": "config:knowledgeBases",
+   "kbId": "roadsaver"
+  }
+ ]
+}

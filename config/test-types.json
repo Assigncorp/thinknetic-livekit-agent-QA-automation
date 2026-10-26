@@ -64,6 +64,14 @@
       [
         "tests/test_scenario_catalog.py::*",
         "positive"
+      ],
+      [
+        "tests/test_roadsaver_kb.py::test_kb_file_is_present_and_clean_utf8",
+        "edge"
+      ],
+      [
+        "tests/test_roadsaver_kb.py::*",
+        "positive"
       ]
     ],
     "judge": [

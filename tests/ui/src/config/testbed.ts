@@ -109,9 +109,14 @@ export const kbById = (id: string): KnowledgeBase => {
   return kb;
 };
 
-/** Knowledge bases reachable by giving the agent a serial number. */
+/**
+ * Knowledge bases reachable by giving the agent a serial number. A KB with no
+ * controller/hopper split (RoadSaver) is still reached by its anchorSerial.
+ */
 export const serialRoutedKbs = (): KnowledgeBase[] =>
-  knowledgeBases().filter((k) => k.controller !== null && k.hopperType !== null);
+  knowledgeBases().filter(
+    (k) => (k.controller !== null && k.hopperType !== null) || Boolean(k.anchorSerial),
+  );
 
 export const scenariosFor = (kbId: string): Scenario[] => scenarioPools.pools[kbId] ?? [];
 export const serialsFor = (kbId: string): SerialEntry[] =>

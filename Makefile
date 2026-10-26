@@ -34,7 +34,8 @@ JUNIT = --junitxml=$(CURDIR)/report/data/junit/$@.xml
         livekit-voice livekit-resilience livekit-concurrency livekit-browser livekit-phrasing livekit-report livekit-sdk all-parallel live-parallel ui-live-headed ui-all live-headed demo-livekit livekit-kb livekit-kb-rescore livekit-interview livekit-interview-rescore llm-check \
         smoke regression negative catalog ui chat demo api voice test report clean \
         ratelimit perf perf-report saturate judge judge-offline judge-report \
-        oracle oracle-offline oracle-report probe-agent
+        oracle oracle-offline oracle-report probe-agent \
+        roadsaver roadsaver-resources roadsaver-catalog roadsaver-api roadsaver-ui roadsaver-chat
 
 help:
 	@echo "make check       - verify the local toolchain and .env"
@@ -167,7 +168,7 @@ resources:
 	cd tools && uv run python build_resources.py
 
 catalog: fresh
-	cd tests/api && uv run pytest tests/test_scenario_catalog.py -q $(JUNIT)
+	cd tests/api && uv run pytest tests/test_scenario_catalog.py tests/test_roadsaver_kb.py -q $(JUNIT)
 
 smoke: fresh
 	cd tests/ui && npx playwright test --grep @smoke
@@ -400,6 +401,38 @@ demo-livekit: fresh
 voice: livekit-voice
 
 test: api ui
+
+# ---------------------------------------------------------------------------
+# Bearcat RoadSaver - https://etnyre-dev.thinknetic.app/b/products/roadsaver
+# The same suites, pointed at config/roadsaver.config.json. Nothing is forked:
+# these only set the product, so a fix to a suite fixes both products.
+# ---------------------------------------------------------------------------
+ROADSAVER = TESTBED_CONFIG=config/roadsaver.config.json ORG_SLUG=b PRODUCT_SLUG=roadsaver PRODUCT_TITLE=RoadSaver
+
+roadsaver-resources:
+	cd tools && $(ROADSAVER) uv run python build_resources.py
+
+# KB structure + generated scenario pool. No network, <1s.
+roadsaver-catalog: fresh
+	cd tests/api && $(ROADSAVER) uv run pytest -v tests/test_scenario_catalog.py tests/test_roadsaver_kb.py $(JUNIT)
+
+roadsaver-api: fresh
+	cd tests/api && $(ROADSAVER) uv run pytest -v -m "not load" $(JUNIT)
+
+# Browser suite minus real agent sessions.
+roadsaver-ui: fresh
+	cd tests/ui && $(ROADSAVER) npx playwright test --grep-invert @live
+
+# Real RoadSaver chat sessions with RS1001-RS1007.
+roadsaver-chat: fresh
+	cd tests/ui && $(ROADSAVER) npx playwright test --grep @chat
+
+roadsaver: fresh
+	-$(MAKE) roadsaver-catalog
+	-$(MAKE) roadsaver-api
+	-$(MAKE) roadsaver-ui
+	-$(MAKE) roadsaver-chat
+	@$(MAKE) report-html
 
 # ---------------------------------------------------------------------------
 # Reports

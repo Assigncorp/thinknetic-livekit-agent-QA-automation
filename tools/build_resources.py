@@ -67,7 +67,43 @@ def load_config() -> dict[str, Any]:
 # Serial index
 # --------------------------------------------------------------------------
 
+def config_serial_index(cfg: dict[str, Any]) -> dict[str, Any]:
+    """The index for a product with no classification workbook: each KB's
+    anchorSerial, then any `serials` it lists in config. RoadSaver is one KB for
+    every machine, so there is nothing to route - the serial only has to get the
+    caller past the 'Before we start' form."""
+    excluded = {s.upper() for s in cfg["scenarioSelection"].get("excludeSerials", [])}
+    entries: list[dict[str, Any]] = []
+    for kb in cfg["knowledgeBases"]:
+        if not kb.get("enabled"):
+            continue
+        listed = [kb["anchorSerial"]] if kb.get("anchorSerial") else []
+        listed += kb.get("serials", [])
+        for serial in dict.fromkeys(s.strip().upper() for s in listed):
+            if serial in excluded:
+                continue
+            entries.append(
+                {
+                    "serial": serial,
+                    "description": kb["machine"],
+                    "controller": kb.get("controller"),
+                    "hopperType": kb.get("hopperType"),
+                    "sheet": "config:knowledgeBases",
+                    "kbId": kb["id"],
+                }
+            )
+    by_kb = {k: sum(1 for e in entries if e["kbId"] == k) for k in dict.fromkeys(e["kbId"] for e in entries)}
+    print(f"  serials: {len(entries)} from config ({by_kb}); no serial workbook configured")
+    return {
+        "_generated": "Do not edit. Regenerate with: make resources",
+        "countsByKb": by_kb,
+        "serials": entries,
+    }
+
+
 def build_serial_index(cfg: dict[str, Any]) -> dict[str, Any]:
+    if not cfg["resources"].get("serialWorkbook"):
+        return config_serial_index(cfg)
     workbook_path = ROOT / cfg["resources"]["serialWorkbook"]
     if not workbook_path.exists():
         sys.exit(f"serial workbook not found: {workbook_path}")
@@ -247,7 +283,7 @@ def collect_answer(lines: list[str], idx: int, stoppers: tuple, window: int = 60
 def build_scenarios(cfg: dict[str, Any]) -> dict[str, Any]:
     extraction = cfg["scenarioExtraction"]
     faq_re = re.compile(extraction["faqPattern"])
-    howto_re = re.compile(extraction["howToPattern"])
+    howto_re = re.compile(extraction["howToPattern"]) if extraction.get("howToPattern") else None
     problem_re = re.compile(extraction["problemPattern"]) if extraction.get("problemPattern") else None
     symptom_re = re.compile(extraction["problemSymptomPattern"]) if extraction.get("problemSymptomPattern") else None
     min_len = int(extraction["minQuestionLength"])
@@ -273,7 +309,7 @@ def build_scenarios(cfg: dict[str, Any]) -> dict[str, Any]:
                 section = line.lstrip("# ").strip()
 
             faq = faq_re.match(line)
-            howto = howto_re.match(line)
+            howto = howto_re.match(line) if howto_re else None
             problem = problem_re.match(line) if problem_re else None
             if not (faq or howto or problem):
                 continue
