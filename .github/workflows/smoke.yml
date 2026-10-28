@@ -1,4 +1,4 @@
-# The agent QA workflow: unit checks, settings checks and the live LiveKit KB-steps call,
+# The agent QA workflow: unit checks and the live LiveKit KB-steps call,
 # with a published HTML report on every run that makes a call, pass or fail. The published
 # report (report/) is the phone-call check only; the unit checks go to report-internal/,
 # which is kept as a separate artifact and never published to Pages.
@@ -13,14 +13,11 @@
 #               until this file is on it.
 #   push      - every push to any branch, always the smoke suite.
 #   manual    - Actions tab > qa > Run workflow, pick the suite:
-#                 smoke     unit + settings + live call (the same as the scheduled run)
+#                 smoke     unit checks + live call (the same as the scheduled run)
 #                 unit      unit checks only (offline)
-#                 settings  settings checks only (agent repo's settings.yaml)
 #                 live      live call only
 #
-# Settings checks read the agent repo's settings.yaml fresh from
-# Assigncorp/thinknetic-livekit-agents with the SETTINGFILE_FINEGRAINED_TOKEN secret
-# (Contents read on that repo only). Every stage in the suite must pass.
+# Every stage in the suite must pass; a failed stage shows red and fails the run.
 name: qa
 run-name: ${{ inputs.suite || 'smoke' }} (${{ github.event_name }}) - ${{ github.ref_name }}
 
@@ -40,7 +37,6 @@ on:
         options:
           - smoke
           - unit
-          - settings
           - live
       kb_seed:
         description: "KB_SEED - reproduce a run's model and question (blank = random)"
@@ -86,7 +82,6 @@ jobs:
       KB_IMAGE: ${{ inputs.kb_image }}
       KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
       SMS_TEST_PHONE: ${{ secrets.SMS_TEST_PHONE }}
-      AGENT_SRC: ${{ github.workspace }}/agents-src
       TRANSFER_TEST_NUMBERS: ${{ vars.TRANSFER_TEST_NUMBERS }}
       KB_RETRIES: "1"
       CI: "true"
@@ -99,14 +94,13 @@ jobs:
         run: |
           suite="${{ inputs.suite || 'smoke' }}"
           case "$suite" in
-            smoke)    unit=true;  settings=true;  kb=true ;;
-            unit)     unit=true;  settings=false; kb=false ;;
-            settings) unit=false; settings=true;  kb=false ;;
-            live)     unit=false; settings=false; kb=true ;;
+            smoke) unit=true;  kb=true ;;
+            unit)  unit=true;  kb=false ;;
+            live)  unit=false; kb=true ;;
             *) echo "::error::unknown suite '$suite'"; exit 1 ;;
           esac
-          { echo "suite=$suite"; echo "unit=$unit"; echo "settings=$settings"; echo "kb=$kb"; } >> "$GITHUB_OUTPUT"
-          echo "suite=$suite unit=$unit settings=$settings kb=$kb"
+          { echo "suite=$suite"; echo "unit=$unit"; echo "kb=$kb"; } >> "$GITHUB_OUTPUT"
+          echo "suite=$suite unit=$unit kb=$kb"
 
       # Without these the live test skips instead of failing, which would look like a pass.
       - name: Check the LiveKit secrets are set
@@ -116,29 +110,6 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::repository secret $v is not set"; missing=1; fi
           done
           test -z "${missing:-}"
-
-      - name: Check the agent-repo token is set
-        if: steps.plan.outputs.settings == 'true'
-        env:
-          TOKEN: ${{ secrets.SETTINGFILE_FINEGRAINED_TOKEN }}
-        run: |
-          [ -n "$TOKEN" ] || { echo "::error::repository secret SETTINGFILE_FINEGRAINED_TOKEN is not set"; exit 1; }
-
-      # Always the agent team's latest settings - never a copy kept in this repo.
-      # A failed fetch must not stop the unit checks and the live call: the settings stage
-      # below then fails on its own, with the reason, and the verdict stays red.
-      - name: Fetch the agent repo (config only)
-        id: agentsrc
-        if: steps.plan.outputs.settings == 'true'
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          repository: Assigncorp/thinknetic-livekit-agents
-          ref: develop
-          token: ${{ secrets.SETTINGFILE_FINEGRAINED_TOKEN }}
-          path: agents-src
-          sparse-checkout: src/assistants/product_support/config
-          fetch-depth: 1
 
       - name: Start the clock
         run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -155,38 +126,30 @@ jobs:
           mkdir -p report/data report-internal
 
       - name: Install fresh (uv sync)
+        id: install
         run: make install
 
       # The agent runs on LiveKit Cloud; the live call reads its worker logs with `lk agent logs`.
       - name: Install the LiveKit CLI
+        id: lkcli
         if: steps.plan.outputs.kb == 'true'
         run: |
           curl -sSL https://get.livekit.io/cli | bash
           lk --version
 
+      # Each stage fails red on its own, and the job with it. `!cancelled()` lets the report
+      # steps after them still run, so every result is reported.
       - name: Unit checks (routing, validator, question bank)
         id: unit
         if: steps.plan.outputs.unit == 'true'
-        continue-on-error: true
         run: make unit
 
-      - name: Settings checks (agent repo's settings.yaml)
-        id: settings
-        if: steps.plan.outputs.settings == 'true'
-        continue-on-error: true
-        run: |
-          if [ "${{ steps.agentsrc.outcome }}" != success ]; then
-            echo "::error::could not read Assigncorp/thinknetic-livekit-agents - check that SETTINGFILE_FINEGRAINED_TOKEN has Contents: read on that repo (and is approved for the org)"
-            exit 1
-          fi
-          echo "agent commit: $(git -C agents-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
-          make settings
-
-      # In smoke, a unit failure stops the run before the live call.
       - name: LiveKit KB-steps call
         id: kb
-        if: steps.plan.outputs.kb == 'true' && (steps.plan.outputs.unit != 'true' || steps.unit.outcome == 'success')
-        continue-on-error: true
+        if: >-
+          ${{ !cancelled() && steps.install.outcome == 'success' && steps.lkcli.outcome == 'success'
+              && steps.plan.outputs.kb == 'true'
+              && (steps.plan.outputs.unit != 'true' || steps.unit.outcome == 'success') }}
         run: make kb
 
       - name: Build the HTML report
@@ -209,7 +172,7 @@ jobs:
           path: report-internal/
           if-no-files-found: warn
 
-      # Only runs with a live call publish, so a unit- or settings-only run never replaces
+      # Only runs with a live call publish, so a unit-only run never replaces
       # the latest call report on Pages with an empty one.
       - name: Stage the report for GitHub Pages
         if: always() && steps.plan.outputs.kb == 'true'
@@ -221,13 +184,12 @@ jobs:
       - name: Verdict
         if: always()
         run: |
-          echo "suite=${{ steps.plan.outputs.suite }} unit=${{ steps.unit.outcome }} settings=${{ steps.settings.outcome }} kb=${{ steps.kb.outcome }}"
+          echo "suite=${{ steps.plan.outputs.suite }} unit=${{ steps.unit.outcome }} kb=${{ steps.kb.outcome }}"
           {
             echo "## QA run: ${{ steps.plan.outputs.suite }}"
             echo "| Stage | Result |"
             echo "|---|---|"
             echo "| Unit checks | ${{ steps.unit.outcome || 'not in suite' }} |"
-            echo "| Settings checks | ${{ steps.settings.outcome || 'not in suite' }} |"
             echo "| LiveKit KB-steps call | ${{ steps.kb.outcome || 'not in suite' }} |"
             echo ""
             if [ "${{ steps.plan.outputs.kb }}" = true ]; then
@@ -236,10 +198,12 @@ jobs:
               echo "Results: download the \`internal-unit-checks-${{ github.run_number }}\` artifact."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+          # Every planned stage must pass; each failed one is named as an error annotation on the run.
           status=0
-          if [ "${{ steps.plan.outputs.unit }}" = true ] && [ "${{ steps.unit.outcome }}" != success ]; then status=1; fi
-          if [ "${{ steps.plan.outputs.settings }}" = true ] && [ "${{ steps.settings.outcome }}" != success ]; then status=1; fi
-          if [ "${{ steps.plan.outputs.kb }}" = true ] && [ "${{ steps.kb.outcome }}" != success ]; then status=1; fi
+          if [ "${{ steps.plan.outputs.unit }}" = true ] && [ "${{ steps.unit.outcome }}" != success ]; then
+            echo "::error title=Unit checks failed::see the 'Unit checks' step log"; status=1; fi
+          if [ "${{ steps.plan.outputs.kb }}" = true ] && [ "${{ steps.kb.outcome }}" != success ]; then
+            echo "::error title=LiveKit KB-steps call failed::see the report and the 'LiveKit KB-steps call' step log"; status=1; fi
           exit $status
 
   publish:

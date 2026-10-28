@@ -40,7 +40,7 @@ open report/index.html
 | `make kb` | Live call only. |
 | `make report` | Builds `report/index.html` from whatever has run. |
 | `KB_SEED=123456789 make kb` | Repeats a run's exact model, question and image. The seed is printed and shown in the report. |
-| `KB_MODEL=FHRC28 make kb` | Pins the model. Any of the four models works here; a variable-hopper model has no image list, so its image check is noted, not failed. |
+| `KB_MODEL=FHRC28 make kb` | Pins the model. Any of the four models works here, but a variable-hopper model has no image list, so its image check fails. |
 | `KB_QUESTION_ID=<id> make kb` | Pins one question. |
 | `KB_IMAGE="Air oiler" make kb` | Pins the image the caller asks for, by its description (or id) in [kb/images.yaml](kb/images.yaml). |
 
@@ -142,9 +142,8 @@ The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K675
 
 | Suite | What it runs |
 |---|---|
-| `smoke` | Unit checks, settings checks, then the live call. A unit failure stops it before the call. |
+| `smoke` | Unit checks, then the live call. A unit failure stops it before the call. |
 | `unit` | Unit checks only (offline). |
-| `settings` | Settings checks only (the agent repo's `settings.yaml`). |
 | `live` | The live call only. |
 
 A manual run can also set the seed, model, question or pass mark. GitHub only runs scheduled workflows from the default branch, so the daily run starts once this workflow is merged there. The run fails fast if a secret its suite needs is missing.
@@ -152,12 +151,11 @@ A manual run can also set the seed, model, question or pass mark. GitHub only ru
 - It starts from a clean slate: no restored caches and old reports removed.
 - Every stage in the chosen suite must pass. Stages outside it show as "not in suite".
 - Every run that makes a live call (`smoke`, `live`) builds and publishes the report, pass or fail:
-  - **GitHub Pages** holds the latest call run; the link is in the run summary. A `unit` or `settings` run never replaces it.
+  - **GitHub Pages** holds the latest call run; the link is in the run summary. A `unit` run never replaces it.
   - **The `<suite>-report-<n>` artifact** keeps every run.
 - The unit checks are not in that report. They go to `report-internal/index.html`, kept as the separate `internal-unit-checks-<n>` artifact and never published to Pages.
 - One-time setup:
   - Repository secrets `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `SMS_TEST_PHONE` (the number that receives the test text; it must differ from the caller's).
-  - Repository secret `SETTINGFILE_FINEGRAINED_TOKEN`: a fine-grained token with Contents: read on `Assigncorp/thinknetic-livekit-agents`, for the settings checks.
   - Settings → Pages → Source = **GitHub Actions**.
 
 ## Layout

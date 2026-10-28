@@ -606,8 +606,7 @@ async def _request_image(flow: _Flow, image: dict[str, Any] | None) -> None:
     picked and shared. `discarded` - the same picture was shared just before - counts as shared."""
     call, attempt, tail = flow.call, flow.attempt, flow.tail
     if image is None:
-        attempt.checkpoints["image_requested"].optional = True
-        flow.mark("image_requested", False, "no image list for this model in kb/images.yaml")
+        flow.mark("image_requested", False, "no image list for this model in kb/images.yaml - nothing to ask for")
         return
     request = attempt.image_request = {"description": image["description"], "id": image["id"],
                                        "tool": None, "matched": False}
@@ -619,8 +618,15 @@ async def _request_image(flow: _Flow, image: dict[str, Any] | None) -> None:
     await flow.say(ASK_IMAGE.format(description=image["description"]), "ask image")
     loop = asyncio.get_running_loop()
     deadline = loop.time() + IMAGE_REQUEST_WAIT_S
-    replies = 0
-    while loop.time() < deadline and not any(r["status"] for r in agentlogs.image_requests(tail.lines[log_from:])):
+    replies, answered = 0, False
+
+    def settled() -> bool:
+        return any(r["status"] for r in agentlogs.image_requests(tail.lines[log_from:]))
+
+    # Until the tool has settled AND the agent has said how it went: left unread, that reply
+    # ("I don't have a picture of that... would you like me to describe it?") would be taken
+    # as its answer to the text request that comes next.
+    while loop.time() < deadline and not (answered and settled()):
         turn = await flow.turn(min(2.0, max(0.1, deadline - loop.time())))
         if turn is None:
             if call.closed:
@@ -632,8 +638,11 @@ async def _request_image(flow: _Flow, image: dict[str, Any] | None) -> None:
         call.tag_last_agent_turn("image reply")
         if text_matches(turn, IDLE):
             await flow.say(STILL_HERE)
-        elif turn.rstrip().endswith("?") and replies < 2:
+            continue
+        answered = True
+        if turn.rstrip().endswith("?") and replies < 2 and not settled():
             replies += 1
+            answered = False  # it asked to confirm; its answer comes after the caller's yes
             await flow.say(CONFIRM_IMAGE, "confirm image")
 
     lines = tail.lines[log_from:]
@@ -790,8 +799,11 @@ def short_entry(entry: dict[str, Any], steps: int | None = None) -> dict[str, An
 
 
 def _outstanding(entry: dict[str, Any], turns: list[str]) -> list[str]:
+    """KB items not yet properly said. Out of order counts too: a safety preface that names
+    PARK or neutral is not steps 2 and 3, so the caller keeps listening until the steps come.
+    A wrong value cannot be undone by more turns, so it does not hold the caller back."""
     v = validate(entry, turns)
-    return [i.ref for i in v.items if i.result in ("missing", "missing_caution")]
+    return [i.ref for i in v.items if i.result not in ("pass", "wrong_value")]
 
 
 async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
