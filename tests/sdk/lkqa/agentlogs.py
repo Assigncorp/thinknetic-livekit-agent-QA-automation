@@ -235,6 +235,40 @@ def image_pushes(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def image_requests(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The agent's image tool calls (`share_images`, run when the caller asks for a picture), oldest first.
+
+    `image_requested query=… query_context=…` opens one. Its search logs
+    `image_outcome_noted status=… query=… description=<what was picked>`, and
+    `image_request_settled status=shared|discarded|not_found|failed|unavailable query=…` closes it
+    (`discarded`: the same picture was shared just before). A tool call turned away early logs
+    `image_request_declined` or `no_screen_for_images` instead. Each entry:
+    {"query", "status", "descriptions", "timestamp"}; status is None while it has not settled."""
+    import re
+
+    out: list[dict[str, Any]] = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("image_requested "):
+            m = re.match(r"image_requested query=(.*?) query_context=", msg)
+            out.append({"query": m.group(1) if m else "", "status": None, "descriptions": [],
+                        "timestamp": str(o.get("timestamp", ""))})
+        elif not out or out[-1]["status"] is not None:
+            continue
+        elif msg.startswith("image_outcome_noted"):
+            m = re.search(r" description=(.*)\Z", msg)
+            if m and m.group(1).strip() not in ("", "-"):
+                out[-1]["descriptions"].append(m.group(1).strip())
+        elif msg.startswith("image_request_settled"):
+            m = re.match(r"image_request_settled status=(\S+)", msg)
+            out[-1]["status"] = m.group(1) if m else "-"
+        elif msg.startswith("image_request_declined"):
+            out[-1]["status"] = "declined"
+        elif msg.startswith("no_screen_for_images"):
+            out[-1]["status"] = "no_screen"
+    return out
+
+
 def image_outcomes(lines: list[dict[str, Any]]) -> dict[str, int]:
     """How the agent's image searches ended, counted: {"failed": 2, "not_found": 1, "searches": 4, ...}.
 

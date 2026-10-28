@@ -1,9 +1,10 @@
 """
 The LiveKit KB-steps smoke call - one live call to the deployed agent.
 
-Picks one model at random (seed logged; KB_SEED / KB_MODEL / KB_QUESTION_ID
-reproduce or pin it), routes its smoke serial through the workbook, asks one
-question from that model's KB, and validates the answer step by step. A failed
+Picks FHRC28 or FHRC36 at random (seed logged; KB_SEED / KB_MODEL / KB_QUESTION_ID /
+KB_IMAGE reproduce or pin it), routes its smoke serial through the workbook, asks one
+question from that model's KB, and validates the answer step by step. Then asks to see
+one image from that product's knowledge base and checks that exact image is shown. A failed
 call is retried once in a fresh room; both attempts land in the report.
 
 Results: report/data/kb-smoke.json -> tools/build_report.py -> report/index.html.
@@ -42,13 +43,14 @@ async def test_kb_steps_call(product, caller):
     started = datetime.now(timezone.utc)
     selection = choose()
     print(f"\n[kb] seed={selection.seed} (KB_SEED={selection.seed} reproduces this run) "
-          f"model={selection.model} serial={selection.serial} question={selection.entry['id']}")
+          f"model={selection.model} serial={selection.serial} question={selection.entry['id']} "
+          f"image={selection.image['description'] if selection.image else '-'!r}")
     rng = random.Random(selection.seed)
 
     attempts = []
     for number in range(1, RETRIES + 2):
         attempt = await run_attempt(number, selection.entry, selection.serial, selection.model,
-                                    product, caller, rng, sms_phone)
+                                    product, caller, rng, sms_phone, selection.image)
         attempts.append(attempt)
         if attempt.passed:
             break

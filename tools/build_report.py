@@ -176,6 +176,30 @@ def secs(ms: int | None) -> str:
     return f"{ms / 1000:.1f} s" if ms < 120_000 else f"{ms / 60000:.1f} min"
 
 
+def ist_exact(iso: str) -> str:
+    """A timestamp to the second, in IST: 28 Oct 2026, 10:01:07 IST."""
+    if not iso:
+        return "-"
+    try:
+        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    except ValueError:
+        return iso
+    return dt.astimezone(IST).strftime("%d %b %Y, %H:%M:%S IST")
+
+
+def call_length(att: dict) -> str:
+    """How long the call itself took, in the same form as the run duration: 2.7 min."""
+    return secs(att["callMs"]) if att.get("callMs") else "-"
+
+
+def call_span(att: dict) -> str:
+    """When the call started and ended, to the second: 12:12:44 IST → 12:15:24 IST."""
+    start, end = att.get("callStartedAt"), att.get("callEndedAt")
+    if not (start and end):
+        return "-"
+    return f"{ist_exact(start).split(', ')[-1]} → {ist_exact(end).split(', ')[-1]}"
+
+
 def ist(iso: str) -> str:
     if not iso:
         return "-"
@@ -229,6 +253,7 @@ def render_reference(att: dict) -> str:
             f'<div><dt>LiveKit room ID</dt><dd>{e(att.get("roomSid") or "not assigned")}</dd></div>'
             f'<div><dt>Room name</dt><dd>{e(att.get("room") or "-")}</dd></div>'
             f'<div><dt>Call started</dt><dd>{e(ist(att.get("startedAt", "")))}</dd></div>'
+            f'<div><dt>Call duration</dt><dd>{e(call_length(att))}<br><span class="muted">{e(call_span(att))}</span></dd></div>'
             f'<div><dt>Agent participant</dt><dd>{e(att.get("agentIdentity") or "never joined")}</dd></div>'
             '</dl></div>')
 
@@ -283,6 +308,12 @@ def render_tool_calls(att: dict) -> str:
     rows = [
         ("Image sharing", "Searches its image store and pushes pictures to the caller's screen while explaining the steps",
          cps.get("image_triggered"), f'{len(pushes)} push(es)' if pushes else "none"),
+        ("Requested image", "Image tool (share_images) shares the knowledge-base image the caller asks for by name",
+         cps.get("image_requested"),
+         f'asked for “{request["description"]}” · share_images query “{tool["query"]}”, status {tool["status"] or "-"}, '
+         f'shared: ' + (", ".join(f'“{d}”' for d in tool["picked"]) or "nothing")
+         if (request := (att.get("images") or {}).get("request")) and (tool := request.get("tool")) else
+         (f'asked for “{request["description"]}” · image tool not called' if request else "")),
         ("Troubleshooting steps by text", "Sends the steps to the phone number the caller gives",
          cps.get("text_triggered"), " → ".join(att.get("textToolTrace") or []) or "no text tool activity"),
         ("Callback request", "Creates a callback task for the caller's number",
@@ -361,7 +392,8 @@ def render_attempt(att: dict, entry: dict, open_: bool, show_checks: bool = True
     chat = (f'<h3>The call, as it happened</h3>{render_chat(att["events"], att.get("rating"))}'
             if not att["passed"] else "")
     body = (f'<h3>Call reference</h3>{render_reference(att)}'
-            f'<p class="muted">Call length {secs(att["durationMs"])}</p>'
+            f'<p class="muted"><strong>Call duration</strong> (the call itself): {e(call_length(att))} · {e(call_span(att))}<br>'
+            f'<strong>Run duration</strong> (this attempt\'s test run, post-call checks included): {secs(att["durationMs"])}</p>'
             f'{checks}'
             f'{render_qa(att, entry.get("question", ""))}'
             f'<h3>The answer, step by step</h3>{steps}{split}{text_html}'
@@ -418,10 +450,14 @@ def build() -> str:
         return (f'<div class="node"><div class="tl">{label}</div><div class="nv">{value}</div>'
                 + (f'<div class="muted">{sub}</div>' if sub else "") + '</div>')
 
+    attempts = (kb or {}).get("attempts", [])
     meta_html = (
         '<section class="card"><h2>Run details</h2><div class="tiles">'
         + tile("&#128339;", "Run time", e(ist(started)))
-        + tile("&#9201;", "Duration", e(duration))
+        + tile("&#9201;", "Run duration", e(duration))
+        + "".join(tile("&#128222;", "Call duration" + (f' (attempt {a["number"]})' if len(attempts) > 1 else ""),
+                       e(call_length(a)) + f'<div class="tl">{e(call_span(a))}</div>')
+                  for a in attempts)
         + tile("&#127807;", "Branch", e(meta["branch"]))
         + tile("&#128204;", "Commit", commit + run_link)
         + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len((kb or {}).get("attempts", [])) > 1 else ""),
@@ -446,13 +482,17 @@ def build() -> str:
                 + '</div></div></li></ol>'))
 
     # Scenarios where the agent never asked for the rating: noted, never a failure.
-    unasked, no_image = [], []
+    unasked, no_image, long_calls = [], [], []
     for att in (kb or {}).get("attempts", []):
         cp = next((c for c in att["checkpoints"] if c["name"] == "feedback_asked"), None)
         icp = next((c for c in att["checkpoints"] if c["name"] == "image_triggered"), None)
         if icp and icp["passed"] is None and icp.get("optional"):
             no_image.append(f'<li>Attempt {att["number"]}: question <code>{e(sel.get("questionId", ""))}</code> · '
                             f'<code>{e(room_ref(att))}</code><div class="muted">{e(icp["detail"])}</div></li>')
+        if att.get("callMs", 0) > att.get("callTargetMs", 10**9):
+            took, target = att["callMs"] // 1000, att["callTargetMs"] // 1000
+            long_calls.append(f'<li>Attempt {att["number"]}: the call took <strong>{took // 60}:{took % 60:02d}</strong>, '
+                              f'over the {target // 60}:{target % 60:02d} target · <code>{e(room_ref(att))}</code></li>')
         if cp and cp["passed"] is None:
             unasked.append(f'<li>Attempt {att["number"]}: model <strong>{e(sel.get("model", "-"))}</strong>, serial '
                            f'<code>{e(sel.get("serial", "-"))}</code>, question <code>{e(sel.get("questionId", ""))}</code> '
@@ -463,6 +503,10 @@ def build() -> str:
         notes_top += ('<section class="card"><h2>Notes: rating question not asked</h2><p class="muted">The agent did not ask the '
                       'caller to rate the call in these scenarios. This is noted, not failed; every other check still ran.</p>'
                       f'<ul class="plain">{"".join(unasked)}</ul></section>')
+    if long_calls:
+        notes_top += ('<section class="card"><h2>Notes: call longer than target</h2><p class="muted">The call itself (join to '
+                      'hang-up, not the checks after it) should take under 5 minutes. Noted, not failed.</p>'
+                      f'<ul class="plain">{"".join(long_calls)}</ul></section>')
     if no_image:
         notes_top += ('<section class="card"><h2>Notes: no image available</h2><p class="muted">The image tool ran, but the image '
                       'store has nothing for the topic asked about. Noted, not failed.</p>'

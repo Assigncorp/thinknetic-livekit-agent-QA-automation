@@ -11,7 +11,7 @@ help:
 	@echo "make test        - unit, kb, report (no clean/install)"
 	@echo "make unit        - routing + validator + question bank checks (offline); results go to report-internal/"
 	@echo "make settings   - static checks of settings.yaml read from the agent repo (AGENT_SRC, default ../thinknetic-livekit-agents)"
-	@echo "make kb          - the live LiveKit KB-steps call (KB_SEED / KB_MODEL / KB_QUESTION_ID to pin)"
+	@echo "make kb          - the live LiveKit KB-steps call (KB_SEED / KB_MODEL / KB_QUESTION_ID / KB_IMAGE to pin)"
 	@echo "make report      - build report/index.html (management) and report-internal/index.html (unit checks)"
 	@echo "make bank-draft  - regenerate kb/question_bank.draft.yaml from the KBs"
 	@echo "make check-bank  - check kb/question_bank.yaml against the KBs"

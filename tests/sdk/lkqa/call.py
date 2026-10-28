@@ -18,7 +18,7 @@ import json
 import os
 import ssl
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 AGENT_KIND = 4
@@ -34,6 +34,10 @@ HOLDING_PHRASES = (
     "give me a second",
     "hold on",
     "bear with me",
+    "let me get that",
+    "let me log",
+    "let me send",
+    "let me set",
 )
 
 
@@ -113,6 +117,7 @@ class Call:
         # Times are ms since connect() started.
         self.events: list[dict[str, Any]] = []
         self.t0 = 0.0
+        self.started_at: datetime | None = None
         self.agent_joined_at: float | None = None
         self.agent_left_at: float | None = None
         self.room_closed_at: float | None = None
@@ -193,6 +198,7 @@ class Call:
             self.note("connection", str(state))
 
         self.t0 = asyncio.get_running_loop().time()
+        self.started_at = datetime.now(timezone.utc)  # wall clock at t0: the call's start
         await room.connect(self.url, self.token)
         try:
             self.room_sid = await asyncio.wait_for(room.sid, 5)
@@ -294,6 +300,23 @@ class Call:
         if get in done:
             return get.result()
         raise asyncio.TimeoutError
+
+    def drop_unread_turns(self) -> int:
+        """Forget agent turns that arrived while nobody was reading (they stay in the call log).
+        Returns how many were dropped."""
+        dropped = 0
+        while not self._turns.empty():
+            self._turns.get_nowait()
+            dropped += 1
+        return dropped
+
+    @property
+    def caller_spoke_last(self) -> bool:
+        """The caller's last message has had no agent turn after it yet."""
+        for e in reversed(self.events):
+            if e["role"] in ("agent", "caller"):
+                return e["role"] == "caller"
+        return False
 
     @property
     def agent_waiting(self) -> bool:

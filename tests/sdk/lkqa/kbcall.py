@@ -1,9 +1,14 @@
 """
-The KB-steps smoke call: one live call to the deployed agent, sixteen timed checkpoints.
+The KB-steps smoke call: one live call to the deployed agent, seventeen timed checkpoints.
 
-    call_started  greeted  question_asked  answer_received  answer_valid  image_triggered  text_asked
-    text_triggered  callback_asked  callback_task_created  thanks_sent  feedback_asked
-    feedback_answered  call_closed  text_valid  call_log_complete
+    call_started  greeted  question_asked  answer_received  answer_valid  image_triggered
+    image_requested  text_asked  text_triggered  callback_asked  callback_task_created  thanks_sent
+    feedback_asked  feedback_answered  call_closed  text_valid  call_log_complete
+
+After the KB steps, the caller asks to see one image from the product's knowledge base
+(kb/images.yaml, picked with the seed). image_requested is judged from the agent's image tool
+call (`share_images`) in its logs: it passes only when the tool shares that image, matched by
+its description.
 
 The caller asks for the steps by text to SMS_TEST_PHONE (a number other than the caller's).
 text_triggered is judged from the agent's own logs (`lk agent logs`, followed for the whole
@@ -26,9 +31,12 @@ is a fixed script. What the agent does, from its own prompt and phrase catalog
     deletes the room straight away.
   * After 15 s of caller silence: "Are you still there?".
 
-So the caller declines the text, asks for the complete procedure including
-cautions, says "done, what's next?" after every step, and stops collecting as
-soon as the validator has every KB step and caution - or the turn limit hits.
+So the caller declines the text, declines the offer to put the steps on screen,
+asks for the complete procedure including cautions, says "done, what's next?"
+after every step, and stops collecting as soon as the validator has every KB
+step and caution - or the turn limit hits, after reading the agent's reply to
+its last "what's next?". Agent turns left unread before a new request (text,
+callback, thanks) are dropped, so they are never taken as its reply.
 """
 
 from __future__ import annotations
@@ -36,8 +44,9 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from . import agentlogs
@@ -52,10 +61,12 @@ QUIET_S = 8  # after a statement that asks nothing, how long before the caller s
 FEEDBACK_TIMEOUT_S = 60
 CLOSE_TIMEOUT_S = 30
 TEXT_LOG_WAIT_S = 25  # how long to wait for the text to show in the agent's logs
-IMAGE_LOG_WAIT_S = 20  # how long to wait for an image push to show in the agent's logs
+IMAGE_LOG_WAIT_S = 5  # images ride along with the steps, so their pushes are logged by the time the answer ends
 CALLBACK_LOG_WAIT_S = 30  # how long to wait for the callback task to show in the agent's logs
-ANSWER_DEADLINE_S = 90
-ATTEMPT_DEADLINE_S = 5 * 60  # hard cap on one call; the KB answer alone can take 2.5 minutes
+ANSWER_DEADLINE_S = 180  # one step per turn at 15-25 s each, plus the preface and any offers
+ATTEMPT_DEADLINE_S = 8 * 60  # only against a hung call; a normal call is far shorter
+CALL_TARGET_S = 4 * 60 + 59  # how long a call should take, join to hang-up; reported, never enforced
+IMAGE_REQUEST_WAIT_S = 40  # from asking for an image until the agent's image tool must have settled
 KB_CALL_STEPS = int(os.getenv("KB_CALL_STEPS") or "3")  # KB steps the caller asks for before "that's it" (2-3)
 
 CHECKPOINTS = [
@@ -65,6 +76,7 @@ CHECKPOINTS = [
     ("answer_received", "Agent answered"),
     ("answer_valid", "KB steps matched"),
     ("image_triggered", "Image shown"),
+    ("image_requested", "Requested image shown"),
     ("text_asked", "Text asked"),
     ("text_triggered", "Text sent"),
     ("callback_asked", "Callback asked"),
@@ -92,6 +104,7 @@ IDLE = [r"are you still there", r"still here whenever you'?re ready"]
 TEXT_OFFER = [r"\btext (you|it|them|that|those)\b", r"send (you )?the (full )?(list of )?steps",
               r"send you the", r"full list of steps", r"steps for the troubleshooting",
               r"so you have them in front of you"]
+SCREEN_OFFER = [r"on (your|the) screen", r"show (you|them) on"]
 PHONE_ASK = [r"best number to text", r"number (should|can) i text", r"what'?s the best number"]
 TRANSFER = [r"connect you", r"someone in the office", r"transfer you", r"put you through"]
 ANYTHING_ELSE = [r"anything else", r"something else i can help", r"any other question",
@@ -115,6 +128,7 @@ CLOSING = [r"thank you so much for calling", r"take care", r"have a great (one|d
 REQUEST_FULL = ("Please walk me through the complete step-by-step procedure, "
                 "including any cautions or warnings that go with it.")
 DECLINE_TEXT = "No thanks, please don't text it. " + REQUEST_FULL
+DECLINE_SCREEN = "No thanks, just walk me through it here. " + REQUEST_FULL
 CLARIFY = "It's happening right now on the machine. " + REQUEST_FULL
 NEXT_STEP = "Done. What's the next step?"
 NOT_FIXED = "No, that didn't fix it yet. What's the next step?"
@@ -127,6 +141,8 @@ STILL_HERE = "Yes, I'm still here."
 ASK_TEXT = ("Could you also text me those steps? Please send me the complete list of steps, "
             "including the cautions or warnings.")
 CONFIRM = "Yes, that is correct."
+ASK_IMAGE = 'Can you share a picture of the "{description}"?'
+CONFIRM_IMAGE = "Yes, please share that picture."
 ASK_CALLBACK = ("Actually, can you have someone call me back about this? Please create a callback request. "
                 "The callback number is my own number, not the one I gave you for the text: {spoken}.")
 CALLBACK_CONFIRM = "Yes, that's right, my own number, {spoken}. Any time today is fine."
@@ -160,7 +176,10 @@ class Attempt:
     validation: Validation | None = None
     rating: int | None = None
     error: str = ""
-    duration_ms: int = 0
+    duration_ms: int = 0  # the whole attempt, the post-call log checks included
+    call_ms: int = 0  # the call itself, join to hang-up
+    call_started_at: str = ""  # wall clock, UTC ISO: when the test joined the room
+    call_ended_at: str = ""  # wall clock, UTC ISO: when the room closed (or the test hung up)
     log: list[str] = field(default_factory=list)
     worker_log: list[str] = field(default_factory=list)
     worker_log_note: str = ""
@@ -172,6 +191,7 @@ class Attempt:
     caller_phone: str = ""
     images: list[dict[str, Any]] = field(default_factory=list)  # the agent's image pushes, from its logs
     images_received: list[dict[str, Any]] = field(default_factory=list)  # what reached the test caller's screen
+    image_request: dict[str, Any] = field(default_factory=dict)  # the image asked for, and what came back
     text_tool_trace: list[str] = field(default_factory=list)
 
     @property
@@ -196,6 +216,10 @@ class Attempt:
             "answer": [self._safe(t) for t in self.answer_turns],
             "passed": self.passed,
             "durationMs": self.duration_ms,
+            "callMs": self.call_ms,
+            "callStartedAt": self.call_started_at,
+            "callEndedAt": self.call_ended_at,
+            "callTargetMs": CALL_TARGET_S * 1000,
             "error": self.error,
             "rating": self.rating,
             "checkpoints": [{**c.as_dict(), "detail": self._safe(c.detail)} for c in self.checkpoints.values()],
@@ -208,7 +232,7 @@ class Attempt:
                 "validation": self.text_validation.as_dict() if self.text_validation else None,
             },
             "workerLogLines": len(self.worker_log),
-            "images": {"pushes": self.images, "received": self.images_received},
+            "images": {"pushes": self.images, "received": self.images_received, "request": self.image_request},
             "textToolTrace": self.text_tool_trace,
             "workerLog": [self._safe_log(x) for x in self.worker_log],
             "workerLogNote": self.worker_log_note,
@@ -236,6 +260,12 @@ class _Flow:
         await self.call.wait_listening(TURN_TIMEOUT_S)
         await self.call.say(text, tag)
 
+    def drop_unread(self) -> None:
+        """Before a new request: agent turns that arrived during a log wait answer the step
+        before, and read now they would be taken as the reply to this one."""
+        if n := self.call.drop_unread_turns():
+            print(f"[kb] dropped {n} late agent turn(s) before the next request")
+
     async def turn(self, timeout: float = TURN_TIMEOUT_S) -> str | None:
         try:
             _, text = await self.call.next_agent_turn(timeout)
@@ -246,7 +276,7 @@ class _Flow:
 
 async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: str,
                       product: dict[str, str], caller: dict[str, str], rng: random.Random,
-                      sms_phone: str) -> Attempt:
+                      sms_phone: str, image: dict[str, Any] | None = None) -> Attempt:
     entry = short_entry(entry)
     attempt = Attempt(number)
     attempt.sms_phone, attempt.caller_phone = sms_phone, caller["phone"]
@@ -311,6 +341,9 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
 
         await _check_image_triggered(flow)  # images ride along with the answer, so judge them now
 
+        # one named image from the product's knowledge base, by the agent's image tool ----
+        await _request_image(flow, image)
+
         # the same steps by text; the text itself is checked from the agent's logs at the end
         await _request_text(flow, caller["phone"], sms_phone)
         await _check_text_triggered(flow, sms_phone)  # before thanks and the feedback step
@@ -320,6 +353,7 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         await _check_callback_task(flow, caller["phone"])
 
         # 6-8 thanks, feedback ask, rating ------------------------------
+        flow.drop_unread()
         await flow.say(THANKS, "thanks")
         flow.mark("thanks_sent", True)
         await _feedback(flow, rng)  # optional: if no rating is asked, the rest of the call is still checked
@@ -340,6 +374,12 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
         return attempt
     finally:
         await call.hang_up()
+        attempt.call_ms = call.ms(call.room_closed_at or call.agent_left_at or call._now()) or 0
+        if call.started_at:
+            attempt.call_started_at = call.started_at.isoformat(timespec="milliseconds")
+            attempt.call_ended_at = (call.started_at + timedelta(milliseconds=attempt.call_ms)).isoformat(timespec="milliseconds")
+        if attempt.call_ms > CALL_TARGET_S * 1000:
+            print(f"[kb] NOTE the call took {_mmss(attempt.call_ms / 1000)}, over the {_mmss(CALL_TARGET_S)} target")
         attempt.log = call.log_lines
         try:
             await _worker_logs(flow, entry, sms_phone)
@@ -386,6 +426,7 @@ async def _request_text(flow: _Flow, caller_phone: str, sms_phone: str) -> bool:
     call = flow.call
     new, old = agentlogs.last10(sms_phone), agentlogs.last10(caller_phone)
     spoken = " ".join(new)
+    flow.drop_unread()
     await flow.say(ASK_TEXT, "ask text")
     gave = 0
     for _ in range(10):
@@ -419,8 +460,7 @@ async def _request_text(flow: _Flow, caller_phone: str, sms_phone: str) -> bool:
             await flow.say(STILL_HERE)
         elif asks and gave < 3:
             await flow.say("Yes, please text the steps to me.", "confirm text")
-        else:
-            break
+        # else a statement on the way to the result ("Sure, I'll send that now."): keep listening
     flow.mark("text_asked", False, "the agent never confirmed the text")
     return False
 
@@ -431,6 +471,7 @@ async def _request_callback(flow: _Flow, caller_phone: str) -> bool:
     read from the agent's logs, not from what it says."""
     call = flow.call
     spoken = " ".join(agentlogs.last10(caller_phone))
+    flow.drop_unread()
     await flow.say(ASK_CALLBACK.format(spoken=spoken), "ask callback")
     confirmed = 0
     for _ in range(6):
@@ -449,8 +490,7 @@ async def _request_callback(flow: _Flow, caller_phone: str) -> bool:
         elif turn.rstrip().endswith("?") and confirmed < 3:
             confirmed += 1
             await flow.say(CALLBACK_CONFIRM.format(spoken=spoken), "confirm callback")
-        else:
-            break
+        # else a statement on the way to the result ("I'll get that set up."): keep listening
     flow.mark("callback_asked", False, "the agent never confirmed the callback")
     return False
 
@@ -551,6 +591,75 @@ async def _check_image_triggered(flow: _Flow) -> None:
     flow.mark("image_triggered", True,
               f"{len(pushes)} image push(es), {shown} image(s), for: {queries or '-'}; "
               f"{got} received by the test caller")
+
+
+def _same_image(received: dict[str, Any], wanted: dict[str, Any]) -> bool:
+    """The agent sends the stored description with each image, so that is what identifies it."""
+    def norm(text: str) -> str:
+        return " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
+    return norm(received.get("description", "")) == norm(wanted["description"])
+
+
+async def _request_image(flow: _Flow, image: dict[str, Any] | None) -> None:
+    """Ask for one knowledge-base image by its description. Judged only from the agent's image tool
+    call (`share_images`) in its logs: the tool must run for the request and settle with that image
+    picked and shared. `discarded` - the same picture was shared just before - counts as shared."""
+    call, attempt, tail = flow.call, flow.attempt, flow.tail
+    if image is None:
+        attempt.checkpoints["image_requested"].optional = True
+        flow.mark("image_requested", False, "no image list for this model in kb/images.yaml")
+        return
+    request = attempt.image_request = {"description": image["description"], "id": image["id"],
+                                       "tool": None, "matched": False}
+    if tail is None:
+        flow.mark("image_requested", False, attempt.worker_log_note or "the agent's logs could not be followed")
+        return
+    log_from = len(tail.lines)
+    flow.drop_unread()
+    await flow.say(ASK_IMAGE.format(description=image["description"]), "ask image")
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + IMAGE_REQUEST_WAIT_S
+    replies = 0
+    while loop.time() < deadline and not any(r["status"] for r in agentlogs.image_requests(tail.lines[log_from:])):
+        turn = await flow.turn(min(2.0, max(0.1, deadline - loop.time())))
+        if turn is None:
+            if call.closed:
+                break
+            continue
+        if is_holding(turn):
+            call.tag_last_agent_turn("holding")
+            continue
+        call.tag_last_agent_turn("image reply")
+        if text_matches(turn, IDLE):
+            await flow.say(STILL_HERE)
+        elif turn.rstrip().endswith("?") and replies < 2:
+            replies += 1
+            await flow.say(CONFIRM_IMAGE, "confirm image")
+
+    lines = tail.lines[log_from:]
+    calls = agentlogs.image_requests(lines)
+    wanted = f'"{image["description"]}"'
+    if not calls:
+        seen = agentlogs.image_outcomes(lines)
+        why = ", ".join(f"{k} x{n}" for k, n in sorted(seen.items())) or "no image activity in its logs"
+        flow.mark("image_requested", False, f"asked for {wanted}; the agent never called its image tool ({why})")
+        return
+    hit = next((c for c in calls if c["status"] in ("shared", "discarded")
+                and any(_same_image({"description": d}, image) for d in c["descriptions"])), None)
+    used = hit or calls[-1]
+    request["tool"] = {"query": used["query"], "status": used["status"], "picked": used["descriptions"]}
+    tool = f'share_images query="{used["query"]}" settled {used["status"] or "-"}'
+    if hit:
+        request["matched"] = True
+        flow.mark("image_requested", True, f"{wanted} shared by the image tool ({tool})")
+    elif used["status"] in ("shared", "discarded"):
+        flow.mark("image_requested", False, f"asked for {wanted} but the image tool shared: "
+                  + (", ".join(f'"{d}"' for d in used["descriptions"]) or "-") + f" ({tool})")
+    elif used["status"] is None:
+        flow.mark("image_requested", False,
+                  f"asked for {wanted}; the image tool had not finished within {IMAGE_REQUEST_WAIT_S}s ({tool})")
+    else:
+        flow.mark("image_requested", False, f"asked for {wanted}; the image tool did not share it ({tool})")
 
 
 async def _check_text_triggered(flow: _Flow, sms_phone: str) -> None:
@@ -692,6 +801,7 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
     max_turns = 3 * len(entry["steps"]) + 3
     endings = 0
     timeout = TURN_TIMEOUT_S
+    timed_out = False
     for _ in range(max_turns):
         if loop.time() > deadline:
             break
@@ -704,6 +814,7 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
                 await flow.say(NEXT_STEP, "next")
                 timeout = TURN_TIMEOUT_S
                 continue
+            timed_out = True
             break
         timeout = TURN_TIMEOUT_S
         if is_holding(turn):
@@ -724,6 +835,8 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
         asks = turn.rstrip().endswith("?")
         if text_matches(turn, PHONE_ASK):
             await flow.say("Actually, please don't text it. " + REQUEST_FULL, "decline text")
+        elif text_matches(turn, SCREEN_OFFER) and asks:
+            await flow.say(DECLINE_SCREEN, "decline screen")
         elif text_matches(turn, TEXT_OFFER) and asks:
             await flow.say(DECLINE_TEXT, "decline text")
         elif text_matches(turn, TRANSFER) and asks:
@@ -744,11 +857,33 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
             timeout = QUIET_S  # a statement: it may go on by itself
         if endings >= 2:
             break
+    # Stopped on the deadline or turn limit right after asking for more: the agent's reply to that
+    # is still part of the answer, and left unread it would be taken as the reply to the text request.
+    if not timed_out and not call.closed and call.caller_spoke_last:
+        await _read_owed_reply(flow)
     if not attempt.answer_turns:
         flow.mark("answer_received", False, "no answer after the question")
     missing = _outstanding(entry, attempt.answer_turns)
     if missing:
         print(f"[kb] stopped collecting with {len(missing)} item(s) still not said: {', '.join(missing)}")
+
+
+async def _read_owed_reply(flow: _Flow) -> None:
+    """Wait for the agent's reply to the caller's last message and keep it as answer text."""
+    call, attempt = flow.call, flow.attempt
+    for _ in range(3):
+        turn = await flow.turn(TURN_TIMEOUT_S)
+        if turn is None:
+            return
+        if is_holding(turn):
+            call.tag_last_agent_turn("holding")
+            continue
+        if text_matches(turn, IDLE) and len(turn) < 80:
+            call.tag_last_agent_turn("idle")
+            return
+        attempt.answer_turns.append(turn)
+        call.tag_last_agent_turn("answer")
+        return
 
 
 async def _feedback(flow: _Flow, rng: random.Random) -> bool:
@@ -783,6 +918,10 @@ async def _feedback(flow: _Flow, rng: random.Random) -> bool:
     return False
 
 
+def _mmss(seconds: float) -> str:
+    return f"{int(seconds) // 60}:{int(seconds) % 60:02d}"
+
+
 async def _wait_close(flow: _Flow) -> None:
     call = flow.call
     loop = asyncio.get_running_loop()
@@ -795,6 +934,8 @@ async def _wait_close(flow: _Flow) -> None:
             await flow.say("No, that's all. Goodbye.", "goodbye")
     closed = await call.wait_closed(max(0.0, deadline - loop.time()))
     if closed:
-        flow.mark("call_closed", True, "the agent left and closed the room")
+        took = (call.ms(call.room_closed_at or call.agent_left_at or call._now()) or 0) / 1000
+        flow.mark("call_closed", True,
+                  f"the agent left and closed the room; the call took {_mmss(took)} (target under {_mmss(CALL_TARGET_S)})")
     else:
         flow.mark("call_closed", False, f"the agent did not end the call within {CLOSE_TIMEOUT_S}s of the rating")

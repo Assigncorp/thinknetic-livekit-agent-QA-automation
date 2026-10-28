@@ -1,35 +1,55 @@
-# The agent smoke test: unit checks, then one live LiveKit KB-steps call - and a
-# published HTML report on every run, pass or fail. The published report (report/)
-# is the phone-call check only; the unit checks go to report-internal/, which is
-# kept as a separate artifact and never published to Pages.
+# The agent QA workflow: unit checks, settings checks and the live LiveKit KB-steps call,
+# with a published HTML report on every run that makes a call, pass or fail. The published
+# report (report/) is the phone-call check only; the unit checks go to report-internal/,
+# which is kept as a separate artifact and never published to Pages.
 #
-# Same steps as `make smoke`. Secrets come from repository secrets
-# (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, SMS_TEST_PHONE) and are never printed.
+# Secrets come from repository secrets (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET,
+# SMS_TEST_PHONE) and are never printed.
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
-# The one smoke workflow. Triggers: every push to any branch, on demand from the Actions
-# tab, and Monday to Friday at 06:00 IST. GitHub only runs scheduled workflows from the
-# repository's default branch, so the schedule does nothing until this file is on it.
+# Triggers and suites:
+#   schedule  - Monday to Friday at 06:00 IST, always the smoke suite. GitHub only runs scheduled
+#               workflows from the repository's default branch, so the schedule does nothing
+#               until this file is on it.
+#   push      - every push to any branch, always the smoke suite.
+#   manual    - Actions tab > qa > Run workflow, pick the suite:
+#                 smoke     unit + settings + live call (the same as the scheduled run)
+#                 unit      unit checks only (offline)
+#                 settings  settings checks only (agent repo's settings.yaml)
+#                 live      live call only
 #
-# Stages: unit checks, static checks of the agent repo's settings.yaml (read fresh from
-# Assigncorp/thinknetic-livekit-agents with the SETTINGFILE_FINEGRAINED_TOKEN secret:
-# Contents read on that repo only), then the live LiveKit call. All three must pass.
-name: smoke
+# Settings checks read the agent repo's settings.yaml fresh from
+# Assigncorp/thinknetic-livekit-agents with the SETTINGFILE_FINEGRAINED_TOKEN secret
+# (Contents read on that repo only). Every stage in the suite must pass.
+name: qa
+run-name: ${{ inputs.suite || 'smoke' }} (${{ github.event_name }}) - ${{ github.ref_name }}
 
 on:
   push:
     branches: ["**"]
-  # Scheduled run: Monday to Friday, 06:00 IST = 00:30 UTC (five fields, UTC: minute hour
+  # Scheduled smoke: Monday to Friday, 06:00 IST = 00:30 UTC (five fields, UTC: minute hour
   # day-of-month month day-of-week). IST is UTC+5:30, so the weekday is the same in both.
   schedule:
     - cron: "30 0 * * 1-5"
   workflow_dispatch:
     inputs:
+      suite:
+        description: "Test type to run"
+        type: choice
+        default: smoke
+        options:
+          - smoke
+          - unit
+          - settings
+          - live
       kb_seed:
         description: "KB_SEED - reproduce a run's model and question (blank = random)"
         required: false
       kb_model:
-        description: "KB_MODEL - pin the model: VHRS28, FHRC28, VHRS36 or FHRC36 (blank = random)"
+        description: "KB_MODEL - pin the model: VHRS28, FHRC28, VHRS36 or FHRC36 (blank = FHRC28 or FHRC36 at random)"
+        required: false
+      kb_image:
+        description: "KB_IMAGE - pin the image asked for, by its description in kb/images.yaml (blank = random)"
         required: false
       kb_question_id:
         description: "KB_QUESTION_ID - pin one question bank entry (blank = random)"
@@ -38,7 +58,7 @@ on:
         description: "KB_PASS_THRESHOLD - share of KB steps and cautions that must match, 0 to 1 (blank = 0.95)"
         required: false
 
-# One smoke run at a time: the live call uses the shared dev agent.
+# One run at a time: the live call uses the shared dev agent.
 concurrency:
   group: smoke
   cancel-in-progress: false
@@ -49,9 +69,12 @@ permissions:
   id-token: write
 
 jobs:
-  smoke:
+  qa:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      suite: ${{ steps.plan.outputs.suite }}
+      publish: ${{ steps.plan.outputs.kb }}
     env:
       LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
       LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
@@ -60,6 +83,7 @@ jobs:
       KB_SEED: ${{ inputs.kb_seed }}
       KB_MODEL: ${{ inputs.kb_model }}
       KB_QUESTION_ID: ${{ inputs.kb_question_id }}
+      KB_IMAGE: ${{ inputs.kb_image }}
       KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
       SMS_TEST_PHONE: ${{ secrets.SMS_TEST_PHONE }}
       AGENT_SRC: ${{ github.workspace }}/agents-src
@@ -69,8 +93,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Which stages this suite runs. Push and schedule have no inputs, so they get smoke.
+      - name: Plan the suite
+        id: plan
+        run: |
+          suite="${{ inputs.suite || 'smoke' }}"
+          case "$suite" in
+            smoke)    unit=true;  settings=true;  kb=true ;;
+            unit)     unit=true;  settings=false; kb=false ;;
+            settings) unit=false; settings=true;  kb=false ;;
+            live)     unit=false; settings=false; kb=true ;;
+            *) echo "::error::unknown suite '$suite'"; exit 1 ;;
+          esac
+          { echo "suite=$suite"; echo "unit=$unit"; echo "settings=$settings"; echo "kb=$kb"; } >> "$GITHUB_OUTPUT"
+          echo "suite=$suite unit=$unit settings=$settings kb=$kb"
+
       # Without these the live test skips instead of failing, which would look like a pass.
       - name: Check the LiveKit secrets are set
+        if: steps.plan.outputs.kb == 'true'
         run: |
           for v in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET SMS_TEST_PHONE; do
             if [ -z "${!v}" ]; then echo "::error::repository secret $v is not set"; missing=1; fi
@@ -78,6 +118,7 @@ jobs:
           test -z "${missing:-}"
 
       - name: Check the agent-repo token is set
+        if: steps.plan.outputs.settings == 'true'
         env:
           TOKEN: ${{ secrets.SETTINGFILE_FINEGRAINED_TOKEN }}
         run: |
@@ -88,6 +129,7 @@ jobs:
       # below then fails on its own, with the reason, and the verdict stays red.
       - name: Fetch the agent repo (config only)
         id: agentsrc
+        if: steps.plan.outputs.settings == 'true'
         continue-on-error: true
         uses: actions/checkout@v4
         with:
@@ -117,17 +159,20 @@ jobs:
 
       # The agent runs on LiveKit Cloud; the live call reads its worker logs with `lk agent logs`.
       - name: Install the LiveKit CLI
+        if: steps.plan.outputs.kb == 'true'
         run: |
           curl -sSL https://get.livekit.io/cli | bash
           lk --version
 
       - name: Unit checks (routing, validator, question bank)
         id: unit
+        if: steps.plan.outputs.unit == 'true'
         continue-on-error: true
         run: make unit
 
       - name: Settings checks (agent repo's settings.yaml)
         id: settings
+        if: steps.plan.outputs.settings == 'true'
         continue-on-error: true
         run: |
           if [ "${{ steps.agentsrc.outcome }}" != success ]; then
@@ -137,9 +182,10 @@ jobs:
           echo "agent commit: $(git -C agents-src rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"
           make settings
 
+      # In smoke, a unit failure stops the run before the live call.
       - name: LiveKit KB-steps call
         id: kb
-        if: steps.unit.outcome == 'success'
+        if: steps.plan.outputs.kb == 'true' && (steps.plan.outputs.unit != 'true' || steps.unit.outcome == 'success')
         continue-on-error: true
         run: make kb
 
@@ -148,10 +194,10 @@ jobs:
         run: make report
 
       - name: Keep this run's report as an artifact
-        if: always()
+        if: always() && steps.plan.outputs.kb == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-report-${{ github.run_number }}
+          name: ${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}
           path: report/
           if-no-files-found: warn
 
@@ -163,46 +209,55 @@ jobs:
           path: report-internal/
           if-no-files-found: warn
 
+      # Only runs with a live call publish, so a unit- or settings-only run never replaces
+      # the latest call report on Pages with an empty one.
       - name: Stage the report for GitHub Pages
-        if: always()
+        if: always() && steps.plan.outputs.kb == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: report/
 
+      # A stage outside the suite is skipped and not counted; every stage in it must pass.
       - name: Verdict
         if: always()
         run: |
-          echo "unit=${{ steps.unit.outcome }} settings=${{ steps.settings.outcome }} kb=${{ steps.kb.outcome }}"
+          echo "suite=${{ steps.plan.outputs.suite }} unit=${{ steps.unit.outcome }} settings=${{ steps.settings.outcome }} kb=${{ steps.kb.outcome }}"
           {
-            echo "## Smoke test"
+            echo "## QA run: ${{ steps.plan.outputs.suite }}"
             echo "| Stage | Result |"
             echo "|---|---|"
-            echo "| Unit checks | ${{ steps.unit.outcome }} |"
-            echo "| Settings checks | ${{ steps.settings.outcome }} |"
-            echo "| LiveKit KB-steps call | ${{ steps.kb.outcome }} |"
+            echo "| Unit checks | ${{ steps.unit.outcome || 'not in suite' }} |"
+            echo "| Settings checks | ${{ steps.settings.outcome || 'not in suite' }} |"
+            echo "| LiveKit KB-steps call | ${{ steps.kb.outcome || 'not in suite' }} |"
             echo ""
-            echo "Report: see the **publish** job below for the link, or download the \`smoke-report-${{ github.run_number }}\` artifact."
+            if [ "${{ steps.plan.outputs.kb }}" = true ]; then
+              echo "Report: see the **publish** job below for the link, or download the \`${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}\` artifact."
+            else
+              echo "Results: download the \`internal-unit-checks-${{ github.run_number }}\` artifact."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
-          test "${{ steps.unit.outcome }}" = success
-          test "${{ steps.settings.outcome }}" = success
-          test "${{ steps.kb.outcome }}" = success
+          status=0
+          if [ "${{ steps.plan.outputs.unit }}" = true ] && [ "${{ steps.unit.outcome }}" != success ]; then status=1; fi
+          if [ "${{ steps.plan.outputs.settings }}" = true ] && [ "${{ steps.settings.outcome }}" != success ]; then status=1; fi
+          if [ "${{ steps.plan.outputs.kb }}" = true ] && [ "${{ steps.kb.outcome }}" != success ]; then status=1; fi
+          exit $status
 
   publish:
-    needs: smoke
-    if: always() && needs.smoke.result != 'cancelled'
+    needs: qa
+    if: always() && needs.qa.result != 'cancelled' && needs.qa.outputs.publish == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Publish the report (latest run only)
+      - name: Publish the report (latest call run only)
         id: deployment
         uses: actions/deploy-pages@v4
 
       - name: Link the report in the job summary
         run: |
           {
-            echo "## Smoke test report"
+            echo "## ${{ needs.qa.outputs.suite }} report"
             echo ""
-            echo "**[Open the report](${{ steps.deployment.outputs.page_url }})** - smoke run ${{ needs.smoke.result == 'success' && 'PASSED' || 'FAILED' }}"
+            echo "**[Open the report](${{ steps.deployment.outputs.page_url }})** - ${{ needs.qa.outputs.suite }} run ${{ needs.qa.result == 'success' && 'PASSED' || 'FAILED' }}"
           } >> "$GITHUB_STEP_SUMMARY"

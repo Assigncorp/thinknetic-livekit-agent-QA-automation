@@ -1,0 +1,282 @@
+# The images in each product's knowledge base (admin: Products > Edit > Knowledge base > Images).
+# The agent's image tool searches these by description and pushes the picks to the caller's
+# screen. The image check asks for one of them by its description and expects that image back.
+#
+# FHRC36 uses the same images as FHRC28, so one list serves both; the check matches an image by
+# its description, never by id, so it holds whichever product's copy the agent pushes.
+#
+# Read once from the admin app's knowledge-files API on 2026-10-28 (the FHRC28 product). Re-read
+# it when images are added, renamed or removed there. Download links are left out: they are signed
+# and expire.
+products:
+- models: [FHRC28, FHRC36]
+  product_id: d825aa7a-3e7b-4bcf-a87e-16e4104e42ed
+  slug: chip-spreader-fhrc28
+  knowledge_base_id: 4fe53d7a-6ca9-4026-a02e-9b0d47c45118
+  images:
+  - id: ac20c4d5-bf63-43ec-8b78-a9f6b32bf2ef
+    description: 50-pin connector
+    context: Part of the controller system - to connect various controls and sensors.
+    file_name: EngineLeftSide.jpg
+  - id: 2083507d-af74-4d28-9dd4-bc3adc792555
+    description: Aggregate application rate, aggregate size, and the chipspreader speed
+    context: Display on control panel
+    file_name: ApplicationRate_AggregateSize_Speed.jpg
+  - id: 908b9066-8c68-4a9d-a3fd-699be8e1150a
+    description: Air oiler
+    context: Oil reservoir
+    file_name: Air_oiler.jpg
+  - id: 68d516c0-dc7b-408f-96dc-3f76c431e1a7
+    description: Air system
+    context: Schematic design
+    file_name: AirSystem.jpg
+  - id: 2d6fc987-6732-4c86-87a5-0a2ad653f26c
+    description: Canvas for hopper calibration
+    context: Hopper calibration in the field.
+    file_name: Hopper_Calibration_Canvas.jpg
+  - id: 075a8e06-c136-4ef8-90a0-3a1e856fff8e
+    description: Carrying arms, hopper pin and latch pin
+    context: Front of chipspreader
+    file_name: FrontOfChipspreader.jpg
+  - id: 8d403899-a88f-4e98-a4b4-7f7385902247
+    description: Charge pressure adjustment
+    context: Hydrostatic Drive Pump
+    file_name: ChargePressureAdjustment.jpg
+  - id: 1ffd7e64-359e-4249-8312-7245f8588ca1
+    description: Conveyor manifold - LS and TP port
+    context: for conveyor pressure and flow adjustments
+    file_name: ConveyorManifold.jpg
+  - id: 4f1bdfca-cad5-42e5-aef2-6143e9a7e551
+    description: DEF Refractometer
+    context: Used in testing the concentration of DEF
+    file_name: DEF_Refractometer.jpg
+  - id: 0b117386-750d-4c9c-a502-67d777babbb0
+    description: Diaphragm switch
+    context: To automatically start and stop the conveyor
+    file_name: ConveyorDiaphragmSwitches.jpg
+  - id: 5d34804e-6269-498c-ba77-26da4e0f824b
+    description: Drive mode setup - 4WD or 2WD
+    context: Display on control panel
+    file_name: Setup_Drive_4Wheel_2Wheel.jpg
+  - id: b479111f-95ad-4be3-9656-01906fca5205
+    description: Engine belt routing
+    context: Schematic design
+    file_name: EngineBeltRouting.jpg
+  - id: 1f276337-fa11-4ebb-8663-08a2067d8acb
+    description: Engine run hours and aggregate application distance
+    context: Display on control panel
+    file_name: EngineHrs_ChippedDistance.jpg
+  - id: 3eb81498-6636-4368-87a2-92ac320b4c8d
+    description: Fan valve - M port
+    context: To gauge and adjust fan valve relief pressure to ensure the correct fan system operation
+    file_name: FanValve.jpg
+  - id: 9e84f382-de51-479a-b93d-207bee9f96c4
+    description: Field aggregate calibration
+    context: Hopper or aggregate calibration in the field
+    file_name: Hopper_Calibration.jpg
+  - id: 15a232b4-cebf-46cc-9b73-74858304b2d2
+    description: Fixed link behind the hopper
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Fixed_link_behind_the_hopper.jpg
+  - id: 7c7741f5-d088-487c-bc01-3d346a82150f
+    description: Gate close delay setup
+    context: Display on control panel
+    file_name: Setup_VariableHopper_RightGate_ShutDelay.jpg
+  - id: d9e946ad-fc77-4540-8f69-b3e1ed7abf24
+    description: Gate close setup
+    context: Display on control panel
+    file_name: Setup_RightGate_Close.jpg
+  - id: 1f8f7e8e-11fe-44f8-b83a-fcda847f8d7b
+    description: Gate close speed setup
+    context: Display on control panel
+    file_name: Setup_RightGate_CloseSpeed.jpg
+  - id: 38640f38-76d0-4a85-aea9-f94c038cb35f
+    description: Gate open delay setup
+    context: Display on control panel
+    file_name: Setup_VariableHopper_GateOpenDelay.jpg
+  - id: 64303a5a-3186-48b7-a2f0-619b8620e73a
+    description: Gate open setup
+    context: Display on control panel
+    file_name: Setup_rightGate_Open.jpg
+  - id: 416ee855-8eda-411b-83a8-91705b512dfc
+    description: Gate open speed setup
+    context: Display on control panel
+    file_name: Setup_RightGate_OpenSpeed.jpg
+  - id: 1e297465-3e6b-4628-a1a9-c2bf0b9d668a
+    description: Gate relief valve
+    context: ''
+    file_name: GateReliefValve.jpg
+  - id: 05e0a825-88d8-4682-a1e5-cf1e42dbefa0
+    description: Gate valve
+    context: Controls the flow of hydraulic oil to the pumps
+    file_name: GateValve.jpg
+  - id: 13deab89-7471-452b-86e1-aba47f07aa9c
+    description: Gate wear plate
+    context: At the hopper gate - to protect the gates from wear
+    file_name: GateWearPlate.jpg
+  - id: 569e9f29-4d64-4f77-8704-59959b38fc73
+    description: Ground speed magnetic pickup
+    context: Mounted on the front axle motor output to measure how fast the machine is moving by detecting the rotation of
+      a gear as you drive.
+    file_name: GroundSpeedPickup.jpg
+  - id: 3df14307-4033-46c7-8fae-f75ba2612f32
+    description: High pressure relief setting
+    context: Hydrostatic Drive Pump
+    file_name: HighPressureReliefSetting.jpg
+  - id: f0404b43-572c-47cb-bd5b-fe38e87d21c8
+    description: Hopper gates and spread roll assembly, Figure 4, M-213-16
+    context: Chipspreader hopper
+    file_name: HopperGates.jpg
+  - id: 0aa240f0-3d7f-4c85-883c-b21c4b545bb8
+    description: Hopper gates opening mechanism
+    context: Hopper, Figure 11 M-213-16
+    file_name: IndividualGates.jpg
+  - id: ca649976-4fd8-448b-afa3-fb4858816999
+    description: Hopper transducer gate potentiometer
+    context: Measures the position of the gate on the hopper.
+    file_name: HopperTransducer.jpg
+  - id: 3e4ae382-3e31-402b-8795-9c6c516bed42
+    description: Hopper type setup - Fixed or Variable
+    context: Display on control panel
+    file_name: Setup_Hopper_Variable_Fixed.jpg
+  - id: ed595619-42fd-4610-b3f9-97bb23586870
+    description: Hydraulic control assembly
+    context: Schematic design
+    file_name: HydraulicControlAssembly.jpg
+  - id: 156faf24-b91b-4d17-8267-3236ac0854ad
+    description: Hydraulic hoses and counterbalance valve
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Hydraulic_hoses_and_counterbalance_valve.jpg
+  - id: be3e7938-f21b-4589-b5ab-8f4f57011458
+    description: Hydraulic oil temperature, Engine RPM, and Battery level
+    context: Display on control panel
+    file_name: HydOilTemp_EngineRPM_BatteryLevel.jpg
+  - id: 98df9ade-f497-4558-b5e9-a08099540678
+    description: Hydrostatic pump
+    context: The main drive pump for your Chip Spreader. It powers the ground drive system by supplying hydraulic pressure
+      to the drive motors, allowing the machine to move forward and reverse.
+    file_name: HydrostaticPump.jpg
+  - id: c9a55bab-8915-4746-baba-e5ca28dad7fa
+    description: Install electrical connectors to hopper raise lower valve
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Install_electrical_connectors_to_hopper_raise_lower_valve.jpg
+  - id: 82660060-ae3e-48d5-845b-3df22f508d1a
+    description: Install load sense hose to hopper raise lower valve
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Install_load_sense_hose_to_hopper_raise_lower_valve.jpg
+  - id: c64414fa-933a-449f-8034-63fa74b32cc7
+    description: Install pressure hose to hopper raise lower valve
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Install_pressure_hose_to_hopper_raise_lower_valve.jpg
+  - id: 6d741ba3-7ff3-43e7-bb62-fa2469f2f183
+    description: Install return hose to hopper raise lower valve
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Install_return_hose_to_hopper_raise_lower_valve.jpg
+  - id: bf7286a5-3822-4e1b-8d24-bbb493b68fe5
+    description: Joystick - speed and direction control handle
+    context: Speed and direction control. Gate and spreadroll switch. Control panel.
+    file_name: SpeedDirectionControlHandle.jpg
+  - id: 5bc0f663-8c7b-4669-9a05-0754dba5cc12
+    description: Joystick setup
+    context: Display on control panel...
+    file_name: Setup_Joystick.jpg
+  - id: d2b7ebe8-dc08-4762-933a-f612a9a529c6
+    description: Left and right auger speeds
+    context: Display on control panel
+    file_name: AugerSpeeds.jpg
+  - id: 29d55db1-429c-42c2-8391-3daa0da7faf9
+    description: Left and right conveyor speeds
+    context: Display on control panel
+    file_name: ConveyorSpeeds.jpg
+  - id: dbf32fd8-7ab7-4298-a631-ce5928a0e0cc
+    description: Left hopper calibration
+    context: Display on control panel
+    file_name: Left_Hopper_Calibration.jpg
+  - id: 05f84e89-6d4d-45f7-8720-5d16f540642a
+    description: Lubrication chart
+    context: Lubricant, lubrication interval, lubrication points, and quantity
+    file_name: Lubrication_chart.jpg
+  - id: c1afd8da-dd32-4b1e-8caf-501edb9fcbce
+    description: Maximum gate opening
+    context: Display on control panel
+    file_name: Setup_GateOpening.jpg
+  - id: 68bc7a2f-0b4f-43c6-8f5e-de5e5658c198
+    description: Mode setup - work or ship
+    context: Display on control panel
+    file_name: Setup_Mode_Ship_Work.jpg
+  - id: f640b425-1b51-48e8-bdea-d172d8ca56e5
+    description: Mount hydraulic valve to chipspreader frame
+    context: Hopper Raise/Lower Conversion Instructions
+    file_name: Mount_hydraulic_valve_to_chipspreader_frame.jpg
+  - id: 86e37520-aef1-4e7d-9596-b35720c15f42
+    description: Operation shows spreading aggregate
+    context: Field operation
+    file_name: Variable_Hopper_Aggregate_Application.jpg
+  - id: a3afe675-f9c3-4da9-95b9-e44dd5c1af0b
+    description: Operation shows spreading aggregate from the hopper
+    context: Field operation
+    file_name: Hopper_Aggregate_Application.jpg
+  - id: a6c5b551-73d5-4f52-ac01-6cef10ef6d23
+    description: Operator control panel or console
+    context: Switches and displays for quick and easy operation from the operator’s seat.
+    file_name: Chipspreader_Control_Panel.jpg
+  - id: 2058f36d-4ebd-47fa-aa23-35fbec64af51
+    description: Operator controls
+    context: Control panel
+    file_name: ControlPanel.jpg
+  - id: 4b9752a3-5320-488f-ab3d-d4b7d9c81c05
+    description: Pressure over-ride (POR) adjustment
+    context: Hydrostatic Drive Pump
+    file_name: PORSetting.jpg
+  - id: a361585e-1c7a-47c3-b549-d4ded993dea6
+    description: Pumps
+    context: ''
+    file_name: Pumps.jpg
+  - id: 9c17b4f5-c77e-4520-bd8f-481c91971fd1
+    description: RC 28 Controller Pinout Diagram
+    context: Schematic diagram
+    file_name: RC28_Controller.jpg
+  - id: c47fb21d-2705-44dd-92e9-e20324c37792
+    description: RC 28 Controller with Pins
+    context: Schematic diagram with pin connections
+    file_name: RC28_Controller_Pins.jpg
+  - id: 6480583d-134a-44b2-b6d7-4a30a181c6c8
+    description: Rear of hopper
+    context: ''
+    file_name: RearOfHopper.jpg
+  - id: 0c540912-6a0a-4e4f-bc5d-77c9817cdba6
+    description: Right hopper calibration
+    context: Display on control panel
+    file_name: Right_Hopper_Calibration.jpg
+  - id: ce87beb6-e0f1-486c-bec3-45b545d4e730
+    description: Seat position switch
+    context: Control panel.
+    file_name: SeatPositionSwitch.jpg
+  - id: 6de1ad42-9cbf-440c-842c-0cb9e5b0f7c6
+    description: Spreadroll flow control valve
+    context: Used for speed adjustment
+    file_name: SpreadrollFlowControlValve.jpg
+  - id: ea650db4-ba61-4864-a719-ed1104d1fcbf
+    description: Spreadroll straightening
+    context: Front hopper spreadroll straightening procedure
+    file_name: Spreadroll_Straightening.jpg
+  - id: 4501e7ee-c023-4d3c-8603-d92985d30a96
+    description: Spreadroll wear plate
+    context: ''
+    file_name: SpreadRollWearPlate.jpg
+  - id: 638fbe4d-5f44-401b-9d41-04428b59b542
+    description: System of units setup - English or Metric
+    context: Display on control panel
+    file_name: Setup_Units_English_Metric.jpg
+  - id: 370cbfdf-cdef-4531-b45d-1fe711d85920
+    description: Truck hitch tow bar schematic
+    context: Truck carrying aggregate
+    file_name: TruckHitchTowBar.jpg
+  - id: 941f0ddd-60c4-44a8-8b22-4e21e7e4fb6c
+    description: Ultrasonic sensor
+    context: Programming Direction of Operation and Distance to Aggregate
+    file_name: Ultrasonic_Sensor.jpg
+  - id: 231e574d-f946-4361-b6e9-9f4d227bf12e
+    description: Water temperature, oil pressure, and fuel level
+    context: Display on control panel
+    file_name: WaterTemp_OilPressure_FuelLevel.jpg

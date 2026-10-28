@@ -202,3 +202,31 @@ def test_text_tool_trace_keeps_the_order_and_drops_repeats():
                                "text_sent to=+1 parts=1")]
     assert agentlogs.text_tool_trace(lines) == ["text_requested", "phone_number_confirmed", "sending_text",
                                                 "sms_accepted", "text_sent"]
+
+
+def test_image_tool_call_is_read_with_what_it_shared():
+    lines = [
+        line("image_requested query=Air oiler query_context=-", name="product-kb-tools"),
+        line("searching_images kb_id=k scope={} query='Air oiler'", name="image-sharing"),
+        line("pushing_images to=qa-caller-1 images=1 chat_id=None bytes=376", name="image-sharing"),
+        line("images_delivered ack='ok'", name="image-sharing"),
+        line("image_outcome_noted status=shared query='Air oiler' description=Air oiler", name="image-sharing"),
+        line("image_request_settled status=shared query=Air oiler", name="product-kb-tools"),
+    ]
+    [call] = agentlogs.image_requests(lines)
+    assert (call["query"], call["status"], call["descriptions"]) == ("Air oiler", "shared", ["Air oiler"])
+
+
+def test_image_tool_call_not_found_or_unsettled():
+    found_nothing = [line("image_requested query=Gate valve query_context=hopper"),
+                     line("image_outcome_noted status=not_found query='Gate valve' description=-"),
+                     line("image_request_settled status=not_found query=Gate valve")]
+    assert agentlogs.image_requests(found_nothing)[0] | {"timestamp": ""} == {
+        "query": "Gate valve", "status": "not_found", "descriptions": [], "timestamp": ""}
+    assert agentlogs.image_requests([line("image_requested query=Pumps query_context=-")])[0]["status"] is None
+    assert agentlogs.image_requests([line("image_requested query=Pumps query_context=-"),
+                                     line("no_screen_for_images reason=no_screen_participant")])[0]["status"] == "no_screen"
+
+
+def test_side_channel_outcomes_outside_a_tool_call_are_ignored():
+    assert agentlogs.image_requests([line("image_outcome_noted status=shared query='x' description=Air oiler")]) == []
