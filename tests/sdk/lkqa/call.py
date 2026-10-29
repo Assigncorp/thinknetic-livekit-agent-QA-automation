@@ -209,7 +209,7 @@ class Call:
             self._maybe_agent(p)
         try:
             await asyncio.wait_for(self._agent_joined.wait(), agent_join_timeout_s)
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             raise AgentNeverJoined(
                 f"connected but no agent joined within {agent_join_timeout_s:.0f}s - "
                 f"check AGENT_NAME={os.getenv('AGENT_NAME')!r} is the name the worker registers with"
@@ -218,8 +218,6 @@ class Call:
     def _register_image_receiver(self) -> None:
         """Act as the caller's screen: the agent shows images by an RPC call, and without a handler
         that push fails with 'Method not supported at destination' whatever the agent did right."""
-        import json
-
         async def display_images(data: Any) -> str:
             try:
                 body = json.loads(data.payload)
@@ -281,8 +279,9 @@ class Call:
 
     def _log(self, who: str, text: str) -> None:
         """Each turn as it happens, in full, so a long call shows progress instead of looking hung."""
-        print(f"  [call {(self.ms(self._now()) or 0) / 1000:6.1f}s] {who}: {text}", flush=True)
-        self.log_lines.append(f"{(self.ms(self._now()) or 0) / 1000:6.1f}s  {who.strip().lower():<13} {text}")
+        at = (self.ms(self._now()) or 0) / 1000  # once, so the printed line and the log line agree
+        print(f"  [call {at:6.1f}s] {who}: {text}", flush=True)
+        self.log_lines.append(f"{at:6.1f}s  {who.strip().lower():<13} {text}")
 
     async def next_agent_turn(self, timeout_s: float) -> tuple[float, str]:
         """(when the turn started streaming, its text). Gives up at once - with
@@ -299,7 +298,7 @@ class Call:
                 get.cancel()
         if get in done:
             return get.result()
-        raise asyncio.TimeoutError
+        raise TimeoutError
 
     def drop_unread_turns(self) -> int:
         """Forget agent turns that arrived while nobody was reading (they stay in the call log).
@@ -334,7 +333,7 @@ class Call:
                 raise AssertionError(f"agent stuck in state {self.agent_state!r}")
             try:
                 await asyncio.wait_for(self._state_changed.wait(), remaining)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
     async def say(self, text: str, tag: str = "") -> None:
@@ -362,7 +361,7 @@ class Call:
         try:
             await asyncio.wait_for(self._closed.wait(), timeout_s)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False
 
     async def hang_up(self) -> None:

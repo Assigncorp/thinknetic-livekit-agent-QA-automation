@@ -22,6 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 KB_DIR = ROOT / "kb"
@@ -91,31 +92,33 @@ def _index(workbook: Path = WORKBOOK) -> dict[str, Classification]:
 
     wb = openpyxl.load_workbook(workbook, read_only=True, data_only=True)
     found: dict[str, Classification] = {}
-    for sheet in ("RC28 Classified", "RC36 Classified"):
-        rows = wb[sheet].iter_rows(values_only=True)
-        header = [str(h).strip() if h is not None else "" for h in next(rows)]
-        col = {name: header.index(name) for name in
-               ("Parent Part Number", "Parent Description", "Hopper Type", "Classification Basis")}
-        for row in rows:
-            serial = row[col["Parent Part Number"]]
-            if not serial:
-                continue
-            key = _norm_serial(serial)
-            hopper = str(row[col["Hopper Type"]] or "").strip().upper()
-            if (sheet, hopper) not in ROUTES:
-                raise RoutingError(f"{workbook.name}: {sheet} row {key} has Hopper Type {hopper!r}")
-            if key in found:
-                raise RoutingError(
-                    f"{workbook.name}: serial {key} is in both {found[key].sheet} and {sheet}"
+    try:  # read-only workbooks hold the file open until closed, so close it on a bad row too
+        for sheet in ("RC28 Classified", "RC36 Classified"):
+            rows = wb[sheet].iter_rows(values_only=True)
+            header = [str(h).strip() if h is not None else "" for h in next(rows)]
+            col = {name: header.index(name) for name in
+                   ("Parent Part Number", "Parent Description", "Hopper Type", "Classification Basis")}
+            for row in rows:
+                serial = row[col["Parent Part Number"]]
+                if not serial:
+                    continue
+                key = _norm_serial(serial)
+                hopper = str(row[col["Hopper Type"]] or "").strip().upper()
+                if (sheet, hopper) not in ROUTES:
+                    raise RoutingError(f"{workbook.name}: {sheet} row {key} has Hopper Type {hopper!r}")
+                if key in found:
+                    raise RoutingError(
+                        f"{workbook.name}: serial {key} is in both {found[key].sheet} and {sheet}"
+                    )
+                found[key] = Classification(
+                    serial=key,
+                    sheet=sheet,
+                    parent_description=str(row[col["Parent Description"]] or "").strip(),
+                    hopper_type=hopper,
+                    basis=str(row[col["Classification Basis"]] or "").strip(),
                 )
-            found[key] = Classification(
-                serial=key,
-                sheet=sheet,
-                parent_description=str(row[col["Parent Description"]] or "").strip(),
-                hopper_type=hopper,
-                basis=str(row[col["Classification Basis"]] or "").strip(),
-            )
-    wb.close()
+    finally:
+        wb.close()
     return found
 
 
@@ -137,10 +140,17 @@ def kb_for_serial(serial: str) -> tuple[str, str]:
     return c.model, c.kb_file
 
 
-def smoke_serials() -> list[dict[str, str]]:
+def load_yaml(path: Path) -> Any:
+    """yaml.safe_load of a file, through libyaml's C parser when PyYAML has it: the same
+    data, parsed many times faster (the question bank alone is ~4,000 lines)."""
     import yaml
 
-    return yaml.safe_load(SMOKE_SERIALS.read_text(encoding="utf-8"))["serials"]
+    loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+    return yaml.load(path.read_text(encoding="utf-8"), Loader=loader)  # noqa: S506 - a safe loader
+
+
+def smoke_serials() -> list[dict[str, str]]:
+    return load_yaml(SMOKE_SERIALS)["serials"]
 
 
 def verify_smoke_serials() -> dict[str, Classification]:

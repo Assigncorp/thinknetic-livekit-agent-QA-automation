@@ -20,7 +20,7 @@ import random
 from dataclasses import dataclass
 from typing import Any
 
-from .routing import KB_DIR, Classification, verify_smoke_serials
+from .routing import KB_DIR, Classification, load_yaml, verify_smoke_serials
 
 BANK = KB_DIR / "question_bank.yaml"
 IMAGES = KB_DIR / "images.yaml"
@@ -28,17 +28,13 @@ SMOKE_MODELS = ("FHRC28", "FHRC36")  # the fixed-hopper models; KB_MODEL can sti
 
 
 def load_bank() -> list[dict[str, Any]]:
-    import yaml
-
-    data = yaml.safe_load(BANK.read_text(encoding="utf-8"))
+    data = load_yaml(BANK)
     return data["entries"] if isinstance(data, dict) else data
 
 
 def load_images(model: str) -> list[dict[str, Any]]:
     """The knowledge-base images of the product a model's calls resolve to; [] if none are listed."""
-    import yaml
-
-    data = yaml.safe_load(IMAGES.read_text(encoding="utf-8"))
+    data = load_yaml(IMAGES)
     return next((p["images"] for p in data["products"] if model in p["models"]), [])
 
 

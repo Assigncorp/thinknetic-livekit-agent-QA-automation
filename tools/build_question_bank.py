@@ -50,6 +50,9 @@ INLINE_CAUTION = re.compile(r"^(\s*)\*\*(WARNING|CAUTION|DANGER)\s*:?\*\*\s*:?\s
 IN_STEP_CAUTION = re.compile(
     r"((?:\b(?i:warning|caution|danger)\s*:|\bDo NOT\b|\bDO NOT\b|\bDo not\b|\bNever\b|\bNEVER\b)[^.!]*[.!]?)"
 )
+NOTE_LEAD = re.compile(r"\*\*NOTE", re.IGNORECASE)
+BOLD_LEAD = re.compile(r"^\*\*(?!Step\b)[^*]{0,60}\*\*")  # "**Note on …:**" - any bold lead-in but a step
+CAUTION_LEAD = re.compile(r"^\*\*(?:warning|caution|danger)", re.IGNORECASE)
 # Not procedures: dialogue scripts, reference lists, the KB's own how-to-use notes.
 SKIP_HEADINGS = re.compile(
     r"^(?:call script|script \d|section \d+ — (?:how to use|warranty|header)|major systems|"
@@ -76,8 +79,11 @@ class Section:
     cautions: list[Caution] = field(default_factory=list)
 
 
+_SPACES = re.compile(r"\s+")
+
+
 def _clean(text: str) -> str:
-    return re.sub(r"\s+", " ", text.replace("\\", "")).strip()
+    return _SPACES.sub(" ", text.replace("\\", "")).strip()
 
 
 def sections(model: str) -> list[Section]:
@@ -116,10 +122,9 @@ def _parse(sec: Section) -> None:
         if line.lstrip().startswith(">"):
             # continuation of a quoted caution, or a NOTE (not a caution)
             body = line.lstrip()[1:].strip()
-            if pending and pending[-1][2] == len(steps) - 1 and not re.match(r"\*\*NOTE", body, re.I):
-                if body:
-                    t, f, i = pending[-1]
-                    pending[-1] = (_clean(t + " " + body), f, i)
+            if body and pending and pending[-1][2] == len(steps) - 1 and not NOTE_LEAD.match(body):
+                t, f, i = pending[-1]
+                pending[-1] = (_clean(t + " " + body), f, i)
             continue
         b = BOLD_STEP.match(line.strip())
         if b:
@@ -128,15 +133,14 @@ def _parse(sec: Section) -> None:
             steps.append([int(num), text])
             in_list, mode = True, "bold"
             continue
-        n = NUMBERED.match(line)
-        if n and (not n.group(1) or len(n.group(1)) <= 3) and mode != "bold":
+        n = NUMBERED.match(line)  # its pattern already caps the indent at 3 spaces
+        if n and mode != "bold":
             steps.append([int(n.group(2)), _clean(n.group(3))])
             in_list, mode = True, "list"
             continue
         if mode == "bold" and steps:
             stripped = line.strip()
-            if re.match(r"^\*\*(?!Step\b)[^*]{0,60}\*\*", stripped) and not re.match(
-                    r"^\*\*(?:warning|caution|danger)", stripped, re.I):
+            if BOLD_LEAD.match(stripped) and not CAUTION_LEAD.match(stripped):
                 mode, in_list = "", False  # a new bold lead-in ("**Note on …:**") ends the step run
                 continue
             if not stripped.startswith(("|", "#")):
@@ -185,6 +189,8 @@ _VALUE = re.compile(
     r"(?:PSI|psi|FPM|RPM|seconds?|minutes?|amps?|°F|VDC|VAC|volts?|inch(?:es)?|\"|gallons?|ohms?|%)"
 )
 _BOLD = re.compile(r"\*\*([^*]{2,40})\*\*")
+_BOLD_SPAN = re.compile(r"\*\*[^*]+\*\*")
+_CAPS_WORD = re.compile(r"\b[A-Z]{2,}\b")
 
 
 def draft_keywords(text: str) -> list[dict]:
@@ -202,7 +208,7 @@ def draft_keywords(text: str) -> list[dict]:
     for m in _BOLD.finditer(text):
         word = m.group(1).strip()
         add(word, "position" if word.upper() in POSITIONS else "term")
-    for word in re.findall(r"\b[A-Z]{2,}\b", re.sub(r"\*\*[^*]+\*\*", "", text)):
+    for word in _CAPS_WORD.findall(_BOLD_SPAN.sub("", text)):
         if word in POSITIONS:
             add(word, "position")
     return kws
@@ -225,12 +231,16 @@ def candidates() -> tuple[list[Section], list[tuple[Section, str]]]:
     return kept, dropped
 
 
+_NOT_SLUG = re.compile(r"[^A-Z0-9]+")
+_Q_PREFIX = re.compile(r"^Q:\s*")
+
+
 def _slug(text: str) -> str:
-    return re.sub(r"[^A-Z0-9]+", "-", text.upper()).strip("-")[:40]
+    return _NOT_SLUG.sub("-", text.upper()).strip("-")[:40]
 
 
 def to_entry(sec: Section) -> dict:
-    question = re.sub(r"^Q:\s*", "", sec.heading)
+    question = _Q_PREFIX.sub("", sec.heading)
     return {
         "id": f"{sec.model}-{_slug(question)}",
         "model": sec.model,

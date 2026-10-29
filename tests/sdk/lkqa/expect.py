@@ -17,8 +17,9 @@ phrase matching, no LLM.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 ROLES = {"assistant": "agent", "user": "caller", "agent": "agent", "caller": "caller"}
 

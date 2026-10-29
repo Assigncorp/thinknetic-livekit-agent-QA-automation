@@ -45,7 +45,8 @@ e = html.escape
 
 def _git(*args: str) -> str:
     try:
-        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
+        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=10,
+                              check=False).stdout.strip()
     except Exception:  # noqa: BLE001
         return ""
 
@@ -76,7 +77,9 @@ def unit_results() -> dict | None:
         for case in s_.iter("testcase"):
             tests += 1
             name = f"{case.get('classname', '').split('.')[-1]}::{case.get('name')}"
-            bad = case.find("failure") if case.find("failure") is not None else case.find("error")
+            bad = case.find("failure")
+            if bad is None:
+                bad = case.find("error")
             if case.find("skipped") is not None:
                 skipped += 1
                 status, detail = "skipped", ""
@@ -176,15 +179,20 @@ def secs(ms: int | None) -> str:
     return f"{ms / 1000:.1f} s" if ms < 120_000 else f"{ms / 60000:.1f} min"
 
 
+def _parse_iso(iso: str) -> datetime | None:
+    """An ISO timestamp (a trailing Z too), or None if it is not one."""
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
 def ist_exact(iso: str) -> str:
     """A timestamp to the second, in IST: 28 Oct 2026, 10:01:07 IST."""
     if not iso:
         return "-"
-    try:
-        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    except ValueError:
-        return iso
-    return dt.astimezone(IST).strftime("%d %b %Y, %H:%M:%S IST")
+    dt = _parse_iso(iso)
+    return iso if dt is None else dt.astimezone(IST).strftime("%d %b %Y, %H:%M:%S IST")
 
 
 def call_length(att: dict) -> str:
@@ -203,11 +211,8 @@ def call_span(att: dict) -> str:
 def ist(iso: str) -> str:
     if not iso:
         return "-"
-    try:
-        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    except ValueError:
-        return iso
-    return dt.astimezone(IST).strftime("%d %b %Y, %I:%M %p IST")
+    dt = _parse_iso(iso)
+    return iso if dt is None else dt.astimezone(IST).strftime("%d %b %Y, %I:%M %p IST")
 
 
 def render_steps_table(validation: dict) -> str:
@@ -366,7 +371,7 @@ def render_checks(att: dict) -> str:
     return f'<ol class="checks">{"".join(items)}</ol>{err}'
 
 
-def render_attempt(att: dict, entry: dict, open_: bool, show_checks: bool = True) -> str:
+def render_attempt(att: dict, entry: dict, show_checks: bool = True) -> str:
     v = att.get("validation")
     steps = render_steps_table(v) if v else '<p class="muted">No answer was validated in this attempt.</p>'
     if v:
@@ -400,7 +405,7 @@ def render_attempt(att: dict, entry: dict, open_: bool, show_checks: bool = True
             f'{chat}')
     title = (f'Attempt {att["number"]} {pill(att["passed"])} '
              f'<span class="time">{e(att.get("roomSid") or att.get("room") or "")}</span>')
-    # Closed by default like the other sections; `open_` is kept for callers but no longer opens it.
+    # Closed by default, like the other sections.
     return (f'<details class="card sec"><summary><h2>{title}</h2><span class="more">Click to see more</span></summary>'
             f'{body}</details>')
 
@@ -418,6 +423,8 @@ def build() -> str:
 
     sel = (kb or {}).get("selection", {})
     entry = (kb or {}).get("entry", {})
+    attempts = (kb or {}).get("attempts", [])
+    last = attempts[-1] if attempts else None  # the verdict attempt
     started = meta["startedAt"] or (kb or {}).get("startedAt", "")
     finished = (kb or {}).get("finishedAt", "")
     duration = "-"
@@ -434,10 +441,8 @@ def build() -> str:
     commit = (f'<a href="{e(meta["commitUrl"])}">{e(meta["commit"])}</a>' if meta["commitUrl"] else e(meta["commit"]))
     run_link = f' · <a href="{e(meta["runUrl"])}">CI run</a>' if meta["runUrl"] else ""
 
-    refs: list[str] = []
-    for att in (kb or {}).get("attempts", []):
-        if not att.get("passed"):
-            refs.append(f'Phone-call check, attempt {att["number"]}: <code>{e(room_ref(att))}</code>')
+    refs = [f'Phone-call check, attempt {att["number"]}: <code>{e(room_ref(att))}</code>'
+            for att in attempts if not att.get("passed")]
     refs_html = ('<p><strong>Reference for what failed</strong></p><ul class="refs">'
                  + "".join(f"<li>{r}</li>" for r in refs) + "</ul>") if refs else ""
     banner = (f'<section class="banner {"pass" if overall else "fail"}"><div class="big">{"PASS" if overall else "FAIL"}</div>'
@@ -450,7 +455,6 @@ def build() -> str:
         return (f'<div class="node"><div class="tl">{label}</div><div class="nv">{value}</div>'
                 + (f'<div class="muted">{sub}</div>' if sub else "") + '</div>')
 
-    attempts = (kb or {}).get("attempts", [])
     meta_html = (
         '<section class="card"><h2>Run details</h2><div class="tiles">'
         + tile("&#128339;", "Run time", e(ist(started)))
@@ -460,9 +464,9 @@ def build() -> str:
                   for a in attempts)
         + tile("&#127807;", "Branch", e(meta["branch"]))
         + tile("&#128204;", "Commit", commit + run_link)
-        + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len((kb or {}).get("attempts", [])) > 1 else ""),
+        + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len(attempts) > 1 else ""),
                        f'<code>{e(a.get("roomSid") or "-")}</code><div class="muted">{e(a.get("room") or "")}</div>')
-                  for a in (kb or {}).get("attempts", []))
+                  for a in attempts)
         + '</div><h3>How the test machine was chosen</h3><div class="flow">'
         + node("Serial number used", e(sel.get("serial", "-")))
         + '<span class="arrow">&#10140;</span>'
@@ -478,12 +482,12 @@ def build() -> str:
                 f'{pill(kb["passed"] if kb else None)}<div class="muted">A test caller asked the agent a real question '
                 f'and checked the answer against the manual'
                 + (" · retried once" if kb and kb.get("retried") else "")
-                + "".join(f' · <code>{e(room_ref(a))}</code>' for a in (kb or {}).get("attempts", []))
+                + "".join(f' · <code>{e(room_ref(a))}</code>' for a in attempts)
                 + '</div></div></li></ol>'))
 
     # Scenarios where the agent never asked for the rating: noted, never a failure.
     unasked, no_image, long_calls = [], [], []
-    for att in (kb or {}).get("attempts", []):
+    for att in attempts:
         cp = next((c for c in att["checkpoints"] if c["name"] == "feedback_asked"), None)
         icp = next((c for c in att["checkpoints"] if c["name"] == "image_triggered"), None)
         if icp and icp["passed"] is None and icp.get("optional"):
@@ -513,16 +517,15 @@ def build() -> str:
                       f'<ul class="plain">{"".join(no_image)}</ul></section>')
 
     checks_top = ""
-    if kb and kb.get("attempts"):
-        checks_top = f'<section class="card"><h2>The checks</h2>{render_checks(kb["attempts"][-1])}</section>'
+    if attempts:
+        checks_top = f'<section class="card"><h2>The checks</h2>{render_checks(last)}</section>'
 
     # The steps, up front: every KB step and caution against what the agent said, for the verdict attempt.
     steps_top = ""
-    last = (kb or {}).get("attempts", [None])[-1] if kb and kb.get("attempts") else None
     if last and last.get("validation"):
         v = last["validation"]
         matched = sum(1 for i in v["items"] if i["result"] == "pass")
-        which = (f' (attempt {last["number"]} of {len(kb["attempts"])}, the last one)' if len(kb["attempts"]) > 1 else "")
+        which = (f' (attempt {last["number"]} of {len(attempts)}, the last one)' if len(attempts) > 1 else "")
         steps_top = section("The steps: knowledge base vs what the agent said", (
                      f'<p class="muted">Question: “{e(sel.get("question", ""))}” · knowledge base section “{e(sel.get("kbSection", ""))}”{e(which)}. '
                      f'{matched} of {len(v["items"])} steps and cautions matched ({v["score"]:.0%}); '
@@ -530,16 +533,14 @@ def build() -> str:
                      + render_steps_table(v)))
 
     images_top = ""
-    if kb and kb.get("attempts"):
-        images_top = section("Images shown", render_images(kb["attempts"][-1], sel.get("question", "")))
+    if attempts:
+        images_top = section("Images shown", render_images(last, sel.get("question", "")))
 
     tools_top = ""
-    if kb and kb.get("attempts"):
-        tools_top = section("Tool calls verified", render_tool_calls(kb["attempts"][-1]))
+    if attempts:
+        tools_top = section("Tool calls verified", render_tool_calls(last))
 
-    call = ""
     if kb:
-        attempts = kb.get("attempts", [])
         retry_note = ('<p class="muted">The first call failed, so it was tried once more in a fresh room. '
                       'The verdict is the last attempt; every attempt is shown.</p>' if kb.get("retried") else "")
         call = (section("The phone-call check", (
@@ -547,8 +548,8 @@ def build() -> str:
                 f'<p class="muted">From the knowledge base section “{e(sel.get("kbSection", ""))}” '
                 f'({len(entry.get("steps", []))} steps, {len(entry.get("cautions", []))} cautions) · '
                 f'question <code>{e(sel.get("questionId", ""))}</code> · seed <code>{e(str(sel.get("seed", "")))}</code></p>'
-                f'{retry_note}')) 
-                + "".join(render_attempt(a, entry, i == len(attempts) - 1, i != len(attempts) - 1) for i, a in enumerate(attempts)))
+                f'{retry_note}'))
+                + "".join(render_attempt(a, entry, show_checks=i != len(attempts) - 1) for i, a in enumerate(attempts)))
     else:
         call = section("The phone-call check", "<p>Did not run.</p>")
 
@@ -557,7 +558,7 @@ def build() -> str:
             + (f'<li>Re-run this exact call: <code>KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>' if sel else "")
             + "</ul>"))
 
-    logs = render_logs(kb["attempts"]) if kb and kb.get("attempts") else ""
+    logs = render_logs(attempts) if attempts else ""
 
     return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"

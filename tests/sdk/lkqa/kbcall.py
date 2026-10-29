@@ -52,6 +52,7 @@ from typing import Any
 from . import agentlogs
 from .call import Call, agent_token, is_holding
 from .expect import text_matches
+from .routing import ROOT
 from .validator import PASS_THRESHOLD, Validation, validate
 
 AGENT_JOIN_TIMEOUT_S = 15
@@ -123,6 +124,7 @@ CALLBACK_DONE = [r"callback (is|has been|was) (arranged|requested|set|scheduled|
                  r"(arranged|scheduled|requested|logged) (the|your|a) call ?back", r"someone .{0,40}will (call|reach)",
                  r"\bwill (call|reach out to) you"]
 CLOSING = [r"thank you so much for calling", r"take care", r"have a great (one|day)", r"goodbye"]
+WAITS_FOR_CALLER = [r"let me know", r"once you'?ve", r"when you'?re (done|ready)"]
 
 # --- what the caller says -------------------------------------------------
 REQUEST_FULL = ("Please walk me through the complete step-by-step procedure, "
@@ -252,7 +254,8 @@ class _Flow:
     def mark(self, name: str, passed: bool, detail: str = "") -> None:
         cp = self.attempt.checkpoints[name]
         now = self.call.ms(self.call._now()) or 0
-        cp.passed, cp.at_ms, cp.took_ms, cp.detail = (None if cp.optional and not passed else passed), now, now - self._last_mark, detail
+        cp.passed = None if cp.optional and not passed else passed  # an optional miss is noted, not failed
+        cp.at_ms, cp.took_ms, cp.detail = now, now - self._last_mark, detail
         self._last_mark = now
         print(f"[kb] {'PASS' if passed else ('NOTE' if cp.optional else 'FAIL')} {name} @{now / 1000:.1f}s {detail}")
 
@@ -270,7 +273,7 @@ class _Flow:
         try:
             _, text = await self.call.next_agent_turn(timeout)
             return text
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
 
@@ -364,7 +367,7 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
     try:
         await asyncio.wait_for(_run(), ATTEMPT_DEADLINE_S)
         return attempt
-    except asyncio.TimeoutError:
+    except TimeoutError:
         attempt.error = f"the call did not finish within {ATTEMPT_DEADLINE_S // 60} min - stopped"
         print(f"[kb] attempt {number} error: {attempt.error}")
         return attempt
@@ -403,8 +406,6 @@ async def run_attempt(number: int, entry: dict[str, Any], serial: str, model: st
 def _write_call_log(attempt: Attempt) -> None:
     """Everything the room delivered, for engineers: report-internal/call-log-attempt-N.txt.
     Not part of the management report."""
-    from .routing import ROOT
-
     path = ROOT / "report-internal" / f"call-log-attempt-{attempt.number}.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
     head = f"room={attempt.room} sid={attempt.room_sid or '-'} agent={attempt.agent_identity or '-'}\n"
@@ -421,8 +422,6 @@ async def _request_text(flow: _Flow, caller_phone: str, sms_phone: str) -> bool:
     the caller's own number; the caller refuses it and gives the SMS number, then confirms the
     read-back. Stops once the agent says whether the text went. What was sent, and to whom, is
     read later from the agent's logs."""
-    import re
-
     call = flow.call
     new, old = agentlogs.last10(sms_phone), agentlogs.last10(caller_phone)
     spoken = " ".join(new)
@@ -782,8 +781,6 @@ async def _intake(flow: _Flow, turn: str, entry: dict[str, Any], serial: str, mo
 
 def _pick_option(turn: str, model: str) -> str:
     """'Option 1, Variable Hopper … Option 2, Fixed Hopper …' -> the option for this model."""
-    import re
-
     want = "variable" if model.startswith("V") else "fixed"
     for num, desc in re.findall(r"option (\d+)[,:]?\s*([^.]*)", turn, re.IGNORECASE):
         if want in desc.lower():
@@ -853,17 +850,14 @@ async def _collect_answer(flow: _Flow, entry: dict[str, Any]) -> None:
             await flow.say(DECLINE_TEXT, "decline text")
         elif text_matches(turn, TRANSFER) and asks:
             await flow.say(DECLINE_TRANSFER, "decline transfer")
-        elif text_matches(turn, NO_INFO):
-            endings += 1
-            await flow.say(ASK_REMAINING, "ask remaining")
-        elif text_matches(turn, ANYTHING_ELSE):
+        elif text_matches(turn, NO_INFO) or text_matches(turn, ANYTHING_ELSE):
             endings += 1
             await flow.say(ASK_REMAINING, "ask remaining")
         elif text_matches(turn, RESOLVED_ASK):
             await flow.say(NOT_FIXED, "next")
         elif asks and len(attempt.answer_turns) == 1:
             await flow.say(CLARIFY, "clarify")
-        elif asks or text_matches(turn, [r"let me know", r"once you'?ve", r"when you'?re (done|ready)"]):
+        elif asks or text_matches(turn, WAITS_FOR_CALLER):
             await flow.say(NEXT_STEP, "next")
         else:
             timeout = QUIET_S  # a statement: it may go on by itself

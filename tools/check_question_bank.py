@@ -23,37 +23,43 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests" / "sdk"))
 
-from lkqa.routing import KB_DIR, KB_FILES  # noqa: E402
+from lkqa.routing import KB_DIR, KB_FILES, load_yaml  # noqa: E402
 from lkqa.validator import Keyword, contains_phrase, normalize, validate  # noqa: E402
 
 BANK = KB_DIR / "question_bank.yaml"
 ID_RE = re.compile(r"^(VHRS28|VHRS36|FHRC28|FHRC36)-[A-Z0-9-]+$")
 LABEL_RE = re.compile(r"^(?:WARNING|CAUTION|DANGER)\s*:\s*", re.IGNORECASE)
+QUOTE_RE = re.compile(r"^\s*>\s?", re.MULTILINE)
+BULLET_RE = re.compile(r"^\s*[-*•]\s+", re.MULTILINE)
+SPACES_RE = re.compile(r"\s+")
+HEADINGS_RE = re.compile(r"^#{2,4}\s+(.*?)\s*$", re.MULTILINE)  # every heading in a KB
+HEADING_RE = re.compile(r"^(#{2,4})\s+(.*?)\s*$")  # one line: (hashes, heading)
 
 
 def canon(text: str) -> str:
     """Markdown-blind, whitespace-blind form for the verbatim check."""
     t = text.replace("\\", "").replace("**", "").replace("__", "")
-    t = re.sub(r"^\s*>\s?", "", t, flags=re.MULTILINE)
-    t = re.sub(r"^\s*[-*•]\s+", "", t, flags=re.MULTILINE)  # list bullets
+    t = QUOTE_RE.sub("", t)
+    t = BULLET_RE.sub("", t)  # list bullets
     t = t.replace("’", "'").replace("“", '"').replace("”", '"')
-    return re.sub(r"\s+", " ", t).strip()
+    return SPACES_RE.sub(" ", t).strip()
 
 
 def _headings(kb_text: str) -> list[str]:
-    return [m.group(1).strip() for m in re.finditer(r"^#{2,4}\s+(.*?)\s*$", kb_text, re.MULTILINE)]
+    return [m.group(1).strip() for m in HEADINGS_RE.finditer(kb_text)]
 
 
 def _section_text(kb_text: str, heading: str) -> str:
     lines = kb_text.splitlines()
     out, inside, level = [], False, 0
     for line in lines:
-        m = re.match(r"^(#{2,4})\s+(.*?)\s*$", line)
+        m = HEADING_RE.match(line)
         if m:
             if inside and len(m.group(1)) <= level:
                 break
@@ -102,7 +108,9 @@ def check_entry(entry: dict, kb_cache: dict[str, str]) -> list[str]:
     if entry["kb_file"] != KB_FILES[model]:
         err(f"kb_file {entry['kb_file']!r} is not {model}'s KB ({KB_FILES[model]})")
         return p
-    kb_text = kb_cache.setdefault(model, (KB_DIR / KB_FILES[model]).read_text(encoding="utf-8"))
+    if model not in kb_cache:  # not setdefault(): that would read the file again on every call
+        kb_cache[model] = (KB_DIR / KB_FILES[model]).read_text(encoding="utf-8")
+    kb_text = kb_cache[model]
     if entry["kb_section"] not in _headings(kb_text):
         err(f"kb_section {entry['kb_section']!r} is not a heading in {entry['kb_file']}")
         section = kb_text
@@ -162,7 +170,7 @@ def check_entry(entry: dict, kb_cache: dict[str, str]) -> list[str]:
     return p
 
 
-def _check_keywords(err, where: str, kws: list, text: str) -> None:
+def _check_keywords(err: Callable[[str], None], where: str, kws: list, text: str) -> None:
     norm = normalize(text)
     for raw in kws:
         try:
@@ -196,9 +204,7 @@ def check_bank(entries: list[dict]) -> list[str]:
 
 
 def load(path: Path = BANK) -> list[dict]:
-    import yaml
-
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data = load_yaml(path)
     return data["entries"] if isinstance(data, dict) else data
 
 

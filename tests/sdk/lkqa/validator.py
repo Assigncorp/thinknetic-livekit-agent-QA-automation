@@ -27,6 +27,8 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
+from itertools import pairwise
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -47,19 +49,19 @@ _SCALE_WORDS = {"hundred": 100, "thousand": 1000}
 _NUMBER_WORDS = set(_UNITS_WORDS) | set(_TENS_WORDS) | set(_SCALE_WORDS)
 
 # Spoken fractions the KBs use for clearances.
-_FRACTIONS = {
-    r"\bone[\s-]+sixteenths?\b": "1/16",
-    r"\bone[\s-]+thirty[\s-]+seconds?\b(?=\s+(?:of\s+an?\s+)?inch)": "1/32",
-    r"\bone[\s-]+eighths?\b": "1/8",
-    r"\bone[\s-]+quarters?\b": "1/4",
-    r"\bthree[\s-]+eighths?\b": "3/8",
-    r"\bfive[\s-]+eighths?\b": "5/8",
-    r"\bone[\s-]+half\b": "1/2",
-    r"\ba\s+half\b": "1/2",
-}
+_FRACTIONS = [(re.compile(p), repl) for p, repl in (
+    (r"\bone[\s-]+sixteenths?\b", "1/16"),
+    (r"\bone[\s-]+thirty[\s-]+seconds?\b(?=\s+(?:of\s+an?\s+)?inch)", "1/32"),
+    (r"\bone[\s-]+eighths?\b", "1/8"),
+    (r"\bone[\s-]+quarters?\b", "1/4"),
+    (r"\bthree[\s-]+eighths?\b", "3/8"),
+    (r"\bfive[\s-]+eighths?\b", "5/8"),
+    (r"\bone[\s-]+half\b", "1/2"),
+    (r"\ba\s+half\b", "1/2"),
+)]
 
 # Multi-word unit spellings -> one token. Order matters (longest first).
-_UNIT_PHRASES = [
+_UNIT_PHRASES = [(re.compile(p), f" {repl} ") for p, repl in (
     (r"\bpounds?\s+per\s+square\s+inch\b", "psi"),
     (r"\bp\s*\.?\s*s\s*\.?\s*i\b\.?", "psi"),
     (r"\bfeet\s+per\s+minute\b", "fpm"),
@@ -78,12 +80,23 @@ _UNIT_PHRASES = [
     (r"\binch(?:es)?\b|(?<=\d)\s*\"", "inch"),
     (r"\bgallons?\b", "gallon"),
     (r"\bohms?\b|Ω", "ohm"),
-]
+)]
 
 UNIT_TOKENS = {"psi", "fpm", "rpm", "lbyd2", "degf", "amp", "second", "minute",
                "inch", "gallon", "ohm", "volt", "%"}
 
 _RANGE_SEP = re.compile(r"(?<=\d)\s*(?:–|—|-|to|through|and)\s*(?=\d)")
+_NUMBER_WORD_SPLIT = re.compile(r"(\s+|-)")
+_MARKDOWN = re.compile(r"\*\*|__|`")
+_OF_AN_INCH = re.compile(r"(?<=\d)\s+of\s+an?\s+inch")
+_THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d{3}\b)")
+_SPOKEN_POINT = re.compile(r"\b(\d+)\s+point\s+(\d+)\b")
+_TRAILING_ZEROS = re.compile(r"\b(\d+)\.(\d*?)0+\b")
+_DIGIT_THEN_UNIT = re.compile(r"(?<=\d)(?=[a-z%])")
+_VOLT = re.compile(r"\bvolts?\b|\bv\b(?=\s|$)")
+_STRAY_DOT = re.compile(r"(?<!\d)\.|\.(?!\d)")
+_WORD_SLASH = re.compile(r"(?<=[a-z])\s*/\s*(?=[a-z])")
+_NOT_TOKEN = re.compile(r"[^a-z0-9/%.²]+")
 
 
 def _words_to_number(words: list[str]) -> int | None:
@@ -107,7 +120,7 @@ def _words_to_number(words: list[str]) -> int | None:
 def _spoken_numbers_to_digits(text: str) -> str:
     """'forty to sixty' -> '40 to 60'; 'twenty two hundred' -> '2200';
     'seven thousand' -> '7000'. Runs of number words become one number."""
-    tokens = re.split(r"(\s+|-)", text)
+    tokens = _NUMBER_WORD_SPLIT.split(text)
     out: list[str] = []
     run: list[str] = []
     pending_sep: list[str] = []
@@ -163,35 +176,38 @@ def _singular(token: str) -> str:
     return token
 
 
+# Pure, and validate() asks for the same keyword terms and synonyms over and over (every window
+# of every step, every turn of a live call), so each distinct text is worked out once.
+@lru_cache(maxsize=4096)
 def normalize(text: str) -> str:
     """One canonical form for both KB keywords and agent text."""
     t = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
-    t = re.sub(r"\*\*|__|`", "", t)  # markdown emphasis
+    t = _MARKDOWN.sub("", t)  # markdown emphasis
     t = t.lower()
-    for pattern, repl in _FRACTIONS.items():
-        t = re.sub(pattern, repl, t)
+    for pattern, repl in _FRACTIONS:
+        t = pattern.sub(repl, t)
     t = _spoken_numbers_to_digits(t)
-    t = re.sub(r"(?<=\d)\s+of\s+an?\s+inch", " inch", t)  # 1/16 of an inch -> 1/16 inch
-    t = re.sub(r"(?<=\d),(?=\d{3}\b)", "", t)  # 7,000 -> 7000
-    t = re.sub(r"\b(\d+)\s+point\s+(\d+)\b", r"\1.\2", t)  # "zero point nine" -> 0.9
-    t = re.sub(r"\b(\d+)\.(\d*?)0+\b", lambda m: m.group(1) + ("." + m.group(2) if m.group(2) else ""), t)  # 4.00 -> 4
+    t = _OF_AN_INCH.sub(" inch", t)  # 1/16 of an inch -> 1/16 inch
+    t = _THOUSANDS_COMMA.sub("", t)  # 7,000 -> 7000
+    t = _SPOKEN_POINT.sub(r"\1.\2", t)  # "zero point nine" -> 0.9
+    t = _TRAILING_ZEROS.sub(lambda m: m.group(1) + ("." + m.group(2) if m.group(2) else ""), t)  # 4.00 -> 4
     for pattern, repl in _UNIT_PHRASES:
-        t = re.sub(pattern, f" {repl} ", t)
-    t = re.sub(r"(?<=\d)(?=[a-z%])", " ", t)  # 30psi -> 30 psi, 96rpm
+        t = pattern.sub(repl, t)
+    t = _DIGIT_THEN_UNIT.sub(" ", t)  # 30psi -> 30 psi, 96rpm
     t = _RANGE_SEP.sub(" to ", t)  # 40–60 / 40-60 / 40 through 60 -> 40 to 60
-    t = re.sub(r"\bvolts?\b|\bv\b(?=\s|$)", "volt", t)
+    t = _VOLT.sub("volt", t)
     # keep '/', '.', '%' inside numbers and units; everything else is a space
-    t = re.sub(r"(?<!\d)\.|\.(?!\d)", " ", t)
-    t = re.sub(r"(?<=[a-z])\s*/\s*(?=[a-z])", " ", t)  # park/drive -> park drive
-    t = re.sub(r"[^a-z0-9/%.²]+", " ", t)
+    t = _STRAY_DOT.sub(" ", t)
+    t = _WORD_SLASH.sub(" ", t)  # park/drive -> park drive
+    t = _NOT_TOKEN.sub(" ", t)
     tokens = [_singular(tok) for tok in t.split()]
     return " ".join(tokens)
 
 
 def contains_phrase(haystack_norm: str, phrase_norm: str) -> bool:
-    if not phrase_norm:
-        return False
-    return re.search(r"(?:^| )" + re.escape(phrase_norm) + r"(?: |$)", haystack_norm) is not None
+    """The phrase, as whole words, in the text. Both sides come from normalize(): words one space
+    apart, no line breaks - so padding with spaces finds word boundaries without a regex per phrase."""
+    return bool(phrase_norm) and f" {phrase_norm} " in f" {haystack_norm} "
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +229,7 @@ _MARKER = re.compile(
     re.IGNORECASE,
 )
 _SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
+_HAS_ALNUM = re.compile(r"[A-Za-z0-9]")
 
 
 @dataclass
@@ -231,14 +248,14 @@ def split_steps(turns: list[str]) -> tuple[list[Segment], str]:
     for ti, turn in enumerate(turns):
         if has_markers:
             starts = [m.start("m") for m in _MARKER.finditer(turn)]
-            bounds = sorted(set([0] + starts + [len(turn)]))
-            parts = [turn[a:b] for a, b in zip(bounds, bounds[1:])]
+            bounds = sorted({0, *starts, len(turn)})
+            parts = [turn[a:b] for a, b in pairwise(bounds)]
         else:
             parts = _SENTENCE.split(turn)
-        for p in parts:
-            p = p.strip(" \n\t-•*")
-            if re.search(r"[A-Za-z0-9]", p):
-                pieces.append((ti, p))
+        for part in parts:
+            piece = part.strip(" \n\t-•*")
+            if _HAS_ALNUM.search(piece):
+                pieces.append((ti, piece))
     segments = [Segment(i, ti, txt, normalize(txt)) for i, (ti, txt) in enumerate(pieces)]
     return segments, ("markers" if has_markers else "sentences")
 
@@ -286,9 +303,12 @@ class Keyword:
         return None
 
 
+_DIGIT = re.compile(r"\d")
+
+
 def _infer_kind(term: str) -> str:
     n = normalize(term)
-    if re.search(r"\d", n):
+    if _DIGIT.search(n):
         return "value"
     if any(n in g for g in POSITION_GROUPS):
         return "position"
@@ -297,6 +317,7 @@ def _infer_kind(term: str) -> str:
 
 _NUM_UNIT = re.compile(r"(\d+(?:\.\d+)?(?:/\d+)?(?: to \d+(?:\.\d+)?)?) (" + "|".join(
     re.escape(u) for u in sorted(UNIT_TOKENS, key=len, reverse=True)) + r")\b")
+_KB_RANGE = re.compile(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)")
 
 
 def numbers_with_units(norm_text: str) -> list[tuple[str, str]]:
@@ -416,8 +437,8 @@ def _windows(keywords: list[Keyword], segments: list[Segment]) -> list[tuple[int
     first; a window of two only when no single segment does (a step spoken over
     two sentences)."""
     for size in (1, 2):
-        wins = [(i, size) for i in range(len(segments) - size + 1)
-                if all(k.found_in(_window_text(segments, i, size)) for k in keywords)]
+        texts = ((i, _window_text(segments, i, size)) for i in range(len(segments) - size + 1))
+        wins = [(i, size) for i, text in texts if all(k.found_in(text) for k in keywords)]
         if wins:
             return wins
     return []
@@ -477,7 +498,7 @@ def _judge_values(keywords: list[Keyword], text_norm: str) -> tuple[str, str, li
 def _within_range(value: str, allowed: str) -> bool:
     """A single number the agent said that sits inside a KB range ('50' in '40 to 60')
     is not a contradiction."""
-    m = re.fullmatch(r"(\d+(?:\.\d+)?) to (\d+(?:\.\d+)?)", allowed)
+    m = _KB_RANGE.fullmatch(allowed)
     try:
         v = float(value)
     except ValueError:
@@ -487,6 +508,11 @@ def _within_range(value: str, allowed: str) -> bool:
 
 def _said(segments: list[Segment], win: tuple[int, int]) -> str:
     return " ".join(s.text for s in segments[win[0]:win[0] + win[1]])
+
+
+def _near(windows: list[tuple[int, int]], lo: int, hi: int) -> list[tuple[int, int]]:
+    """The windows that lie wholly within segments lo..hi."""
+    return [w for w in windows if lo <= w[0] and w[0] + w[1] - 1 <= hi]
 
 
 def validate(entry: dict[str, Any], answer_turns: list[str]) -> Validation:
@@ -599,10 +625,9 @@ def validate(entry: dict[str, Any], answer_turns: list[str]) -> Validation:
             sw = step_windows.get(int(anchor))
             if sw is not None:
                 lo, hi = sw[0] - 1, sw[0] + sw[1]  # inside the step, or the part right before/after
-                def near(ws: list[tuple[int, int]]) -> list[tuple[int, int]]:
-                    return [w for w in ws if lo <= w[0] and w[0] + w[1] - 1 <= hi]
-                if near(full) or near(anchored):
-                    chosen = (near(full) or near(anchored))[0]
+                close = _near(full, lo, hi) or _near(anchored, lo, hi)
+                if close:
+                    chosen = close[0]
                 else:
                     result = "misplaced_caution"
                     reason = f"given, but not with step {anchor}"
