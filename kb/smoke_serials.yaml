@@ -1,0 +1,25 @@
+# The four smoke-test serials, one per model. Each is classified directly from
+# its parent description in kb/hopper_classification.xlsx (not inferred from
+# child parts). lkqa.routing.verify_smoke_serials() checks on every run that each
+# one still routes to the model listed here, and fails the run if not.
+#
+# K7170's BOM briefly listed an RC36 computer (2017-05-15 to 2017-06-07); its
+# current computer is RC28. Routing reads the classified sheets only, never the
+# raw BOM sheets, so it routes to VHRS28.
+serials:
+  - model: VHRS28
+    serial: K7170
+    sheet: RC28 Classified
+    parent_description: 4 WD V CHIPSPREADER
+  - model: FHRC28
+    serial: K7174
+    sheet: RC28 Classified
+    parent_description: 2 WD S CHIPSPREADER
+  - model: VHRS36
+    serial: K6757
+    sheet: RC36 Classified
+    parent_description: "10/20' VARIABLE HOPPER,CUMMINS QSB 280 TIER III"
+  - model: FHRC36
+    serial: K6758
+    sheet: RC36 Classified
+    parent_description: "13' FIXED HOPPER,CUMMINS QSB 260 TIER III"

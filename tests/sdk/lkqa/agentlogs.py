@@ -1,0 +1,407 @@
+"""
+The deployed agent worker's own logs for one call, read with the LiveKit CLI.
+
+The agent runs on LiveKit Cloud. `lk agent logs` replays recent history and then
+keeps streaming, one JSON object per line, each carrying the LiveKit room name
+in "room". There is no room filter and no end of stream, so: read the stream,
+keep the lines for our room, and stop once the call's closing line has shown up
+or the stream has gone quiet.
+
+Needs the `lk` CLI on PATH (brew install livekit-cli) and the same LIVEKIT_URL /
+LIVEKIT_API_KEY / LIVEKIT_API_SECRET the test already uses. AGENT_ID pins the
+agent; otherwise it is looked up by AGENT_NAME.
+"""
+
+from __future__ import annotations
+
+import ast
+import asyncio
+import json
+import os
+import re
+import shutil
+from functools import lru_cache
+from typing import Any
+
+# The agent's last words about a call: its record was sent, or could not be. (voice_session_closed
+# comes seconds BEFORE the record is analysed and sent, so it is not the end.)
+CALL_DONE = ("call_log_delivered", "call_log_failed", "call_log_validation_failed")
+
+
+def available() -> str | None:
+    """None when logs can be read, otherwise why not."""
+    if not shutil.which("lk"):
+        return "the `lk` CLI is not installed (brew install livekit-cli)"
+    return None
+
+
+async def _run(*args: str, timeout: float = 30) -> str:
+    proc = await asyncio.create_subprocess_exec(
+        "lk", *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+    try:
+        out, _ = await asyncio.wait_for(proc.communicate(), timeout)
+    except TimeoutError:
+        proc.kill()
+        await proc.wait()  # reap it, so no zombie process is left behind
+        raise
+    return out.decode("utf-8", "replace")
+
+
+async def agent_id() -> str:
+    if os.getenv("AGENT_ID"):
+        return os.environ["AGENT_ID"]
+    name = os.environ["AGENT_NAME"]
+    out = await _run("agent", "list", "--json")
+    for agent in json.loads(out[out.index("{"):]).get("agents", []):
+        if agent.get("agentName") == name:
+            return agent["agentId"]
+    raise LookupError(f"no LiveKit Cloud agent named {name!r}")
+
+
+def parse(line: str) -> dict[str, Any] | None:
+    line = line.strip()
+    if not line.startswith("{"):
+        return None
+    try:
+        obj = json.loads(line)
+    except ValueError:
+        return None
+    return obj if isinstance(obj, dict) else None
+
+
+class LogTail:
+    """`lk agent logs` running for the whole call, keeping only the lines for our room.
+
+    Started before the call so the trigger of a text is already there when the call
+    reaches it, with no waiting on a fresh replay of the history mid-call. The stream
+    replays recent history first, then follows live."""
+
+    def __init__(self, room: str) -> None:
+        self.room = room
+        self.lines: list[dict[str, Any]] = []
+        self.done_seen = False
+        self._proc: asyncio.subprocess.Process | None = None
+        self._task: asyncio.Task | None = None
+
+    async def start(self) -> None:
+        aid = await agent_id()
+        self._proc = await asyncio.create_subprocess_exec(
+            "lk", "agent", "logs", "--id", aid, limit=1 << 22,  # tracebacks make long lines
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+        self._task = asyncio.create_task(self._pump())
+
+    async def _pump(self) -> None:
+        assert self._proc is not None and self._proc.stdout is not None
+        while raw := await self._proc.stdout.readline():
+            obj = parse(raw.decode("utf-8", "replace"))
+            if obj and obj.get("room") == self.room:
+                self.lines.append(obj)
+                if any(k in str(obj.get("message", "")) for k in CALL_DONE):
+                    self.done_seen = True
+
+    async def wait_until(self, predicate: Any, timeout_s: float) -> bool:
+        """True once predicate(lines so far) holds, False at the timeout."""
+        loop = asyncio.get_running_loop()
+        end = loop.time() + timeout_s
+        while loop.time() < end:
+            if predicate(self.lines):
+                return True
+            await asyncio.sleep(0.5)
+        return predicate(self.lines)
+
+    async def finish(self, timeout_s: float) -> list[dict[str, Any]]:
+        """Wait for the call's closing lines (the agent writes them after the room is gone), then stop."""
+        await self.wait_until(lambda _: self.done_seen, timeout_s)
+        await self.stop()
+        return self.lines
+
+    async def stop(self) -> None:
+        if self._proc is not None and self._proc.returncode is None:
+            self._proc.kill()
+        if self._task is not None:
+            self._task.cancel()
+        if self._proc is not None:
+            await self._proc.wait()
+
+
+def render(lines: list[dict[str, Any]]) -> list[str]:
+    """One readable line each: '2026-10-08T03:00:24 INFO call: message'."""
+    out = []
+    for o in lines:
+        ts = str(o.get("timestamp", ""))[:23]
+        out.append(f"{ts} {o.get('level', ''):<7} {o.get('name', '')}: {o.get('message', '')}")
+    return out
+
+
+_SENDING_TEXT = re.compile(r"sending_text to=(\S+) from=\S+ message=(.*)\Z", re.S)
+
+
+def sent_texts(lines: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """The texts the agent tried to send: {"to", "message", "timestamp"}, oldest first.
+
+    The agent logs `sending_text to=+1... from=+1... message='<body>'` (logger
+    tool.external-actions) just before it hands the body to its SMS provider."""
+    out = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if not msg.startswith("sending_text"):
+            continue
+        m = _SENDING_TEXT.match(msg)
+        if not m:
+            continue
+        body = m.group(2).strip()
+        try:
+            body = ast.literal_eval(body)  # the agent logs the body as a Python string literal
+        except (ValueError, SyntaxError):
+            pass
+        out.append({"to": m.group(1), "message": str(body), "timestamp": str(o.get("timestamp", ""))})
+    return out
+
+
+_FAILURE_REASON = re.compile(r"reason=(.*?)(?: error=|\Z)", re.S)
+
+
+def text_failures(lines: list[dict[str, Any]]) -> list[str]:
+    """Why the SMS provider refused a text, one entry per failure the agent logged."""
+    out = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith(("text_failed", "sms_send_rejected")):
+            m = _FAILURE_REASON.search(msg)
+            out.append((m.group(1) if m else msg[:200]).strip())
+    return out
+
+
+_CALLBACK_ARGS = re.compile(r"args=(\{.*\})\s*\Z", re.S)
+_STATUS = re.compile(r"status=(\d+)")
+
+
+def callback_tasks(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The callback tasks the agent tried to create, oldest first.
+
+    The agent's `request_callback` tool logs `api_call_requested tool=request_callback
+    args={'phone_number': ..., 'reason': ...}` (tool.http-request), POSTs to
+    `.../locations/<id>/tasks` (http-request: calling_api), and logs the reply as
+    `api_responded <url> status=201`. Each entry: {"phone", "reason", "status", "timestamp"};
+    status is the HTTP status of the tasks call that followed, or None when no reply was logged."""
+    out: list[dict[str, Any]] = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("api_call_requested") and "tool=request_callback" in msg:
+            m = _CALLBACK_ARGS.search(msg)
+            try:
+                args = ast.literal_eval(m.group(1)) if m else {}
+            except (ValueError, SyntaxError):
+                args = {}
+            out.append({"phone": str(args.get("phone_number", "")), "reason": str(args.get("reason", "")),
+                        "status": None, "timestamp": str(o.get("timestamp", ""))})
+        elif out and out[-1]["status"] is None and msg.startswith("api_responded") and "/tasks " in msg + " ":
+            m = _STATUS.search(msg)
+            if m:
+                out[-1]["status"] = int(m.group(1))
+    return out
+
+
+def callback_created(lines: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The latest callback task the task service accepted (HTTP 2xx), or None."""
+    done = [t for t in callback_tasks(lines) if t["status"] is not None and 200 <= t["status"] < 300]
+    return done[-1] if done else None
+
+
+_SEARCH_QUERY = re.compile(r"query=('(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\")\s*\Z")
+_PUSHING_IMAGES = re.compile(r"pushing_images to=(\S+) images=(\d+)")
+
+
+def image_pushes(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The images the agent pushed to the caller's screen, oldest first.
+
+    Per turn the agent decides an image query (`image_query_decided`), searches its image store
+    (`searching_images ... query='auger'`), has an LLM pick the relevant ones, then
+    `pushing_images to=<caller> images=1 ...` and either `images_delivered ack=...` or
+    `image_push_failed ... error=RpcError`. Each entry: {"query", "images", "to", "delivered", "timestamp"};
+    delivered is True/False, or None when neither was logged."""
+    out: list[dict[str, Any]] = []
+    query = ""
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("searching_images"):
+            m = _SEARCH_QUERY.search(msg)
+            try:
+                query = str(ast.literal_eval(m.group(1))) if m else ""
+            except (ValueError, SyntaxError):
+                query = m.group(1) if m else ""
+        elif msg.startswith("pushing_images"):
+            m = _PUSHING_IMAGES.match(msg)
+            if m:
+                out.append({"query": query, "images": int(m.group(2)), "to": m.group(1),
+                            "delivered": None, "timestamp": str(o.get("timestamp", ""))})
+        elif out and out[-1]["delivered"] is None and msg.startswith("images_delivered"):
+            out[-1]["delivered"] = True
+        elif out and out[-1]["delivered"] is None and msg.startswith("image_push_failed"):
+            out[-1]["delivered"] = False
+    return out
+
+
+_IMAGE_REQUESTED = re.compile(r"image_requested query=(.*?) query_context=")
+_DESCRIPTION = re.compile(r" description=(.*)\Z")
+_SETTLED = re.compile(r"image_request_settled status=(\S+)")
+
+
+def image_requests(lines: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The agent's image tool calls (`share_images`, run when the caller asks for a picture), oldest first.
+
+    `image_requested query=… query_context=…` opens one. Its search logs
+    `image_outcome_noted status=… query=… description=<what was picked>`, and
+    `image_request_settled status=shared|discarded|not_found|failed|unavailable query=…` closes it
+    (`discarded`: the same picture was shared just before). A tool call turned away early logs
+    `image_request_declined` or `no_screen_for_images` instead. Each entry:
+    {"query", "status", "descriptions", "timestamp"}; status is None while it has not settled."""
+    out: list[dict[str, Any]] = []
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("image_requested "):
+            m = _IMAGE_REQUESTED.match(msg)
+            out.append({"query": m.group(1) if m else "", "status": None, "descriptions": [],
+                        "timestamp": str(o.get("timestamp", ""))})
+        elif not out or out[-1]["status"] is not None:
+            continue
+        elif msg.startswith("image_outcome_noted"):
+            m = _DESCRIPTION.search(msg)
+            if m and m.group(1).strip() not in ("", "-"):
+                out[-1]["descriptions"].append(m.group(1).strip())
+        elif msg.startswith("image_request_settled"):
+            m = _SETTLED.match(msg)
+            out[-1]["status"] = m.group(1) if m else "-"
+        elif msg.startswith("image_request_declined"):
+            out[-1]["status"] = "declined"
+        elif msg.startswith("no_screen_for_images"):
+            out[-1]["status"] = "no_screen"
+    return out
+
+
+_CANDIDATES = re.compile(r"candidates=(\d+)")
+_STATUS_WORD = re.compile(r"status=(\w+)")
+_REASON_WORD = re.compile(r"reason=(\w+)")
+
+
+def image_outcomes(lines: list[dict[str, Any]]) -> dict[str, int]:
+    """How the agent's image searches ended, counted: {"failed": 2, "not_found": 1, "searches": 4, ...}.
+
+    Used to say why no image was shown (`image_outcome_noted status=...`, `image_check_skipped reason=...`)."""
+    out: dict[str, int] = {}
+    for o in lines:
+        msg = str(o.get("message", ""))
+        key = None
+        if msg.startswith("searching_images"):
+            key = "searches"
+        elif msg.startswith("image_search candidates="):
+            m = _CANDIDATES.search(msg)
+            key = "searches_with_candidates" if m and int(m.group(1)) > 0 else None
+        elif msg.startswith("image_outcome_noted"):
+            m = _STATUS_WORD.search(msg)
+            key = m.group(1) if m else None
+        elif msg.startswith("image_check_skipped"):
+            m = _REASON_WORD.search(msg)
+            key = f"skipped:{m.group(1)}" if m else None
+        if key:
+            out[key] = out.get(key, 0) + 1
+    return out
+
+
+def text_tool_trace(lines: list[dict[str, Any]]) -> list[str]:
+    """The steps of the agent's send-text tool, in the order the logs show them (phone numbers left out):
+    text_requested -> phone_number_confirmed -> sending_text -> sms_accepted -> text_sent."""
+    steps = ("text_requested", "phone_number_confirmed", "sending_text", "sms_accepted", "text_sent",
+             "text_failed", "sms_send_rejected")
+    out: list[str] = []
+    for o in lines:
+        word = str(o.get("message", "")).split(" ", 1)[0]
+        if word in steps and (not out or out[-1] != word):
+            out.append(word)
+    return out
+
+
+_TURNS = re.compile(r"turns=(\d+)")
+_FIELDS = re.compile(r"fields=(\[.*?\])")
+_RAW = re.compile(r"raw=(.*)\Z", re.S)
+
+
+def call_record(lines: list[dict[str, Any]]) -> dict[str, Any]:
+    """What the agent logged about writing and sending the call's record (logger `call` / `call-log`).
+
+    Keys: turns (transcript turns analysed, None if never logged), fields (the structured fields
+    the call analysis extracted), summary_source, analysis (the one-line preview of the extraction the agent logs -
+    cut at 160 characters), delivered (HTTP status of the webhook POST, None if not delivered),
+    failure (what went wrong, "" if nothing did)."""
+    rec: dict[str, Any] = {"turns": None, "fields": [], "summary_source": "", "analysis": "",
+                           "delivered": None, "failure": ""}
+    for o in lines:
+        msg = str(o.get("message", ""))
+        if msg.startswith("transcript_analyzed"):
+            m = _TURNS.search(msg)
+            if m:
+                rec["turns"] = int(m.group(1))
+        elif msg.startswith("call_summary source="):
+            rec["summary_source"] = msg.split("source=", 1)[1].split()[0]
+        elif msg.startswith("structured_output name=call_analysis"):
+            # `... name=call_analysis by=openai:gpt-4o-mini fields=['call_summary', ...] in 2805ms raw={...}`
+            m = _FIELDS.search(msg)
+            try:
+                rec["fields"] = list(ast.literal_eval(m.group(1))) if m else []
+            except (ValueError, SyntaxError):
+                rec["fields"] = []
+            m = _RAW.search(msg)
+            rec["analysis"] = m.group(1) if m else ""
+        elif msg.startswith("call_log_delivered"):
+            m = _STATUS.search(msg)
+            rec["delivered"] = int(m.group(1)) if m else 0
+        elif msg.startswith(("call_log_failed", "call_log_validation_failed")):
+            rec["failure"] = msg[:200]
+    return rec
+
+
+_NON_DIGIT = re.compile(r"\D")
+
+
+def last10(phone: str) -> str:
+    """The ten digits that identify a US number, however it is written (+1 480-555-0142, 4805550142)."""
+    return _NON_DIGIT.sub("", phone)[-10:]
+
+
+def mask(phone: str) -> str:
+    """For reports that are published: the last four digits only."""
+    digits = last10(phone)
+    return f"number ending {digits[-4:]}" if digits else "no number"
+
+
+def sms_number_problem(sms_phone: str, caller_phone: str) -> str | None:
+    """Why SMS_TEST_PHONE cannot be used, or None. Checked before the call is made."""
+    if not sms_phone.strip():
+        return ("SMS_TEST_PHONE is not set: put the number that should receive the test text in the environment's "
+                "section of .env (SIT_SMS_TEST_PHONE for sit). It must differ from TEST_CALLER_PHONE.")
+    if len(_NON_DIGIT.sub("", sms_phone)) not in (10, 11):
+        return "SMS_TEST_PHONE must be a 10-digit number (an optional leading 1 is fine)."
+    if last10(sms_phone) == last10(caller_phone):
+        return "SMS_TEST_PHONE is the same as the caller's number (TEST_CALLER_PHONE); the text must go to a different one."
+    return None
+
+
+def texts_to(texts: list[dict[str, str]], phone: str) -> list[dict[str, str]]:
+    """The sent texts whose destination is `phone`."""
+    return [t for t in texts if last10(t["to"]) == last10(phone)]
+
+
+@lru_cache(maxsize=16)
+def _written_number(digits: str) -> re.Pattern[str]:
+    """The ten digits however they are written: spaced, dashed, dotted, bracketed, with or without +1."""
+    return re.compile(r"(?:\+?1[\s.\-]*)?" + r"[\s.\-—–()]*".join(digits))
+
+
+def redact(text: str, *phones: str) -> str:
+    """Replace a number written in any common way (4 8 0 5 5 5..., 480-555-..., +1 (480) ...)
+    with its masked form. Used on everything that goes into the published report."""
+    for phone in phones:
+        digits = last10(phone)
+        if len(digits) == 10:
+            text = _written_number(digits).sub(f"[{mask(phone)}]", text)
+    return text

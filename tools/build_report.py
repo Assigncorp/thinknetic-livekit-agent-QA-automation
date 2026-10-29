@@ -1,0 +1,620 @@
+"""
+Build report/index.html - the smoke run's report, for people who were not there.
+
+    uv run --project tests/sdk python tools/build_report.py
+
+Reads whatever the run left in report/data/ and never fails because a part is
+missing (a call that did not run is shown as "Did not run" and fails the
+banner). Self-contained: inline CSS and JS, no network, readable on a phone.
+
+Two outputs:
+    report/index.html            for management: the live phone-call check only
+    report-internal/index.html   for engineers debugging: the offline unit checks.
+                                 Kept outside report/, which CI publishes.
+
+Inputs
+    report-internal/junit-unit.xml  routing + validator + question bank tests (pytest)
+    report/data/kb-smoke.json       the live KB-steps call (tests/sdk/tests/test_kb_call.py)
+"""
+
+from __future__ import annotations
+
+import html
+import json
+import os
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+ROOT = Path(__file__).resolve().parents[1]
+REPORT = ROOT / "report"
+DATA = REPORT / "data"
+INTERNAL = ROOT / "report-internal"
+IST = ZoneInfo("Asia/Kolkata")
+
+e = html.escape
+
+
+# ---------------------------------------------------------------------------
+# Inputs
+# ---------------------------------------------------------------------------
+
+
+def _git(*args: str) -> str:
+    try:
+        return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=10,
+                              check=False).stdout.strip()
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def run_meta() -> dict:
+    # A PR run's GITHUB_REF_NAME is "<n>/merge"; GITHUB_HEAD_REF is the branch it comes from.
+    branch = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF_NAME") or _git("rev-parse", "--abbrev-ref", "HEAD")
+    commit = os.getenv("GITHUB_SHA") or _git("rev-parse", "HEAD")
+    server, repo, run_id = (os.getenv(k, "") for k in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID"))
+    return {
+        "branch": branch or "unknown",
+        "commit": commit[:7] if commit else "unknown",
+        "commitUrl": f"{server}/{repo}/commit/{commit}" if server and repo and commit else "",
+        "runUrl": f"{server}/{repo}/actions/runs/{run_id}" if server and repo and run_id else "",
+        "startedAt": os.getenv("SMOKE_STARTED_AT", ""),
+        "environment": os.getenv("QA_ENV") or "sit",
+    }
+
+
+def unit_results() -> dict | None:
+    path = INTERNAL / "junit-unit.xml"
+    if not path.exists():
+        return None
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
+    tests = failures = skipped = 0
+    failed: list[str] = []
+    cases: list[dict] = []
+    for s_ in suites:
+        for case in s_.iter("testcase"):
+            tests += 1
+            name = f"{case.get('classname', '').split('.')[-1]}::{case.get('name')}"
+            bad = case.find("failure")
+            if bad is None:
+                bad = case.find("error")
+            if case.find("skipped") is not None:
+                skipped += 1
+                status, detail = "skipped", ""
+            elif bad is not None:
+                failures += 1
+                failed.append(name)
+                status, detail = "failed", (bad.get("message") or "") + "\n" + (bad.text or "")
+            else:
+                status, detail = "passed", ""
+            cases.append({"name": name, "status": status, "seconds": float(case.get("time") or 0), "detail": detail.strip()})
+    return {"tests": tests, "failures": failures, "skipped": skipped, "failed": failed, "cases": cases,
+            "passed": tests > 0 and failures == 0}
+
+
+def kb_results() -> dict | None:
+    path = DATA / "kb-smoke.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+# ---------------------------------------------------------------------------
+# Rendering
+# ---------------------------------------------------------------------------
+
+CSS = """
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--muted:#5b6675;--line:#e3e7ec;--pass:#137a3e;--pass-bg:#e6f4ea;
+--fail:#b42318;--fail-bg:#fdecea;--warn:#8a5a00;--warn-bg:#fff4dc;--accent:#2457c5;--agent:#eef2f7;--caller:#e7effd}
+@media (prefers-color-scheme:dark){:root{--bg:#11151a;--card:#1a2028;--ink:#e6e9ee;--muted:#9aa5b4;--line:#2b333d;
+--pass:#5fd08a;--pass-bg:#15301f;--fail:#ff8a7a;--fail-bg:#3a1c19;--warn:#f0c060;--warn-bg:#352a12;--accent:#8fb0ff;
+--agent:#222a34;--caller:#1d2a44}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1400px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.2rem;margin:0 0 12px}h3{font-size:1rem;margin:16px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:0 0 16px}
+.banner{border-radius:12px;padding:20px;margin:0 0 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.banner.pass{background:var(--pass-bg);color:var(--pass)}.banner.fail{background:var(--fail-bg);color:var(--fail)}
+.banner .big{font-size:2.6rem;font-weight:800;letter-spacing:.04em}.banner p{margin:4px 0 0;color:var(--ink)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 16px;margin:0}
+.meta div{min-width:0}.meta dt{color:var(--muted);font-size:.8rem}.meta dd{margin:0;overflow-wrap:anywhere}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.pill.pass{background:var(--pass-bg);color:var(--pass)}.pill.fail{background:var(--fail-bg);color:var(--fail)}
+.pill.skip{background:var(--warn-bg);color:var(--warn)}
+ol.checks{list-style:none;padding:0;margin:0}ol.checks li{display:flex;gap:12px;align-items:flex-start;
+padding:10px 0;border-top:1px solid var(--line)}ol.checks li:first-child{border-top:0}
+.num{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.num.skip{background:var(--warn-bg);color:var(--warn)}.num.pass{background:var(--pass-bg);color:var(--pass)}.num.fail{background:var(--fail-bg);color:var(--fail)}
+.grow{flex:1;min-width:0}.muted{color:var(--muted);font-size:.9rem}.time{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:8px;border-top:1px solid var(--line)}th{color:var(--muted);font-weight:600}
+td.kb{min-width:220px}td.said{min-width:200px}.kw{font-size:.82rem}.kw .ok{color:var(--pass)}.kw .no{color:var(--fail)}
+.reason{color:var(--fail);font-size:.88rem;margin-top:4px}
+.chat{display:flex;flex-direction:column;gap:8px}.bubble{max-width:85%;padding:8px 12px;border-radius:14px;overflow-wrap:anywhere}
+.bubble.agent{background:var(--agent);align-self:flex-start;border-bottom-left-radius:4px}
+.bubble.caller{background:var(--caller);align-self:flex-end;border-bottom-right-radius:4px}
+.bubble .who{font-size:.75rem;color:var(--muted);display:block;margin-bottom:2px}
+.tag{font-size:.72rem;border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-left:6px;color:var(--muted)}
+.rating{font-size:1.4rem;font-weight:800}
+.ref{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0}
+.ref dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px;margin:0}
+.ref dt{color:var(--muted);font-size:.78rem}.ref dd{margin:0;overflow-wrap:anywhere;font-family:ui-monospace,Menlo,monospace;font-size:.9rem}
+.qa .q{background:var(--caller);border-radius:10px;padding:10px 12px;margin:6px 0 12px}
+.qa ol{margin:6px 0;padding-left:22px}.qa li{margin:0 0 6px}
+.banner .refs{margin:8px 0 0;padding-left:18px;color:var(--ink);font-size:.92rem}
+.banner .refs code{background:rgba(255,255,255,.55)}
+details{margin-top:8px}summary{cursor:pointer;color:var(--accent)}a{color:var(--accent)}
+code{font-size:.85em;background:var(--bg);padding:1px 5px;border-radius:5px}
+ul.plain{margin:6px 0;padding-left:20px}
+pre.log{margin:8px 0 0;max-height:640px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;
+padding:10px 12px;font:12px/1.45 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+pre.log .err{color:var(--fail)}pre.log .wrn{color:var(--warn)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tile{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tile .ico{font-size:1.6rem;line-height:1}.tl{color:var(--muted);font-size:.78rem}.tv{font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+.flow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}.flow .arrow{align-self:center;color:var(--accent);font-size:1.3rem}
+.node{flex:1 1 180px;min-width:0;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:10px 12px}
+.node .nv{font-weight:700;overflow-wrap:anywhere}
+@media (max-width:700px){.flow .arrow{transform:rotate(90deg);width:100%;text-align:center}}
+details.sec{margin-top:0}details.sec>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;color:var(--ink)}
+details.sec>summary::-webkit-details-marker{display:none}details.sec>summary h2{margin:0}
+details.sec>summary .more{color:var(--accent);font-size:.85rem;white-space:nowrap}
+details.sec[open]>summary{margin-bottom:12px}details.sec[open]>summary .more{display:none}
+@media (max-width:700px){.steps thead{display:none}.steps tr{display:block;border-top:1px solid var(--line);padding:8px 0}
+.steps td{display:block;border:0;padding:4px 0;min-width:0}.steps td::before{content:attr(data-label);display:block;
+color:var(--muted);font-size:.75rem;font-weight:600}.banner .big{font-size:2rem}}
+"""
+
+
+def pill(passed: bool | None, yes: str = "Pass", no: str = "Fail", none: str = "Did not run") -> str:
+    if passed is None:
+        return f'<span class="pill skip">{e(none)}</span>'
+    return f'<span class="pill {"pass" if passed else "fail"}">{e(yes if passed else no)}</span>'
+
+
+def secs(ms: int | None) -> str:
+    if ms is None:
+        return "-"
+    return f"{ms / 1000:.1f} s" if ms < 120_000 else f"{ms / 60000:.1f} min"
+
+
+def _parse_iso(iso: str) -> datetime | None:
+    """An ISO timestamp (a trailing Z too), or None if it is not one."""
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def ist_exact(iso: str) -> str:
+    """A timestamp to the second, in IST: 28 Oct 2026, 10:01:07 IST."""
+    if not iso:
+        return "-"
+    dt = _parse_iso(iso)
+    return iso if dt is None else dt.astimezone(IST).strftime("%d %b %Y, %H:%M:%S IST")
+
+
+def call_length(att: dict) -> str:
+    """How long the call itself took, in the same form as the run duration: 2.7 min."""
+    return secs(att["callMs"]) if att.get("callMs") else "-"
+
+
+def call_span(att: dict) -> str:
+    """When the call started and ended, to the second: 12:12:44 IST → 12:15:24 IST."""
+    start, end = att.get("callStartedAt"), att.get("callEndedAt")
+    if not (start and end):
+        return "-"
+    return f"{ist_exact(start).split(', ')[-1]} → {ist_exact(end).split(', ')[-1]}"
+
+
+def ist(iso: str) -> str:
+    if not iso:
+        return "-"
+    dt = _parse_iso(iso)
+    return iso if dt is None else dt.astimezone(IST).strftime("%d %b %Y, %I:%M %p IST")
+
+
+def render_steps_table(validation: dict) -> str:
+    rows = []
+    for item in validation.get("items", []):
+        found = "".join(f'<span class="ok">✓ {e(k)}</span><br>' for k in item["keywordsFound"])
+        missing = "".join(f'<span class="no">✗ {e(k)}</span><br>' for k in item["keywordsMissing"])
+        reason = f'<div class="reason">{e(item["reason"])}</div>' if item["reason"] and item["result"] != "pass" else ""
+        said = e(item["said"]) if item["said"] else '<span class="muted">nothing matching</span>'
+        rows.append(
+            f"<tr><td class=kb data-label='KB step / caution'><strong>{e(item['ref'])}</strong><br>"
+            f"<span class=muted>{e(item['kbText'])}</span></td>"
+            f"<td class=said data-label='What the agent said'>{said}</td>"
+            f"<td class=kw data-label='Keywords found / missing'>{found}{missing}</td>"
+            f"<td data-label='Result'>{pill(item['result'] == 'pass', 'Pass', item['resultLabel'])}{reason}</td></tr>")
+    return ('<div class="table-wrap"><table class="steps"><thead><tr><th>KB step / caution</th><th>What the agent said</th>'
+            '<th>Keywords found / missing</th><th>Result</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table></div>")
+
+
+def render_chat(events: list[dict], rating: int | None) -> str:
+    out = ['<div class="chat">']
+    for ev in events:
+        who = "Agent" if ev["role"] == "agent" else "Test caller"
+        tag = f'<span class="tag">{e(ev["tag"])}</span>' if ev.get("tag") else ""
+        text = e(ev["text"])
+        if ev.get("tag") == "rating":
+            text = f'<span class="rating">{text}</span>'
+        out.append(f'<div class="bubble {ev["role"]}"><span class="who">{who} · {secs(ev.get("atMs"))}{tag}</span>{text}</div>')
+    out.append("</div>")
+    if rating is not None:
+        out.append(f'<p class="muted">Random rating given by the test caller: <strong>{rating}</strong> (1–10).</p>')
+    return "".join(out)
+
+
+def room_ref(att: dict) -> str:
+    """One line naming the call's LiveKit room - what to search for in LiveKit Cloud and the agent logs."""
+    sid = f" · room ID {att['roomSid']}" if att.get("roomSid") else ""
+    return f"room {att.get('room') or '-'}{sid}"
+
+
+def render_reference(att: dict) -> str:
+    return ('<div class="ref"><dl>'
+            f'<div><dt>LiveKit room ID</dt><dd>{e(att.get("roomSid") or "not assigned")}</dd></div>'
+            f'<div><dt>Room name</dt><dd>{e(att.get("room") or "-")}</dd></div>'
+            f'<div><dt>Call started</dt><dd>{e(ist(att.get("startedAt", "")))}</dd></div>'
+            f'<div><dt>Call duration</dt><dd>{e(call_length(att))}<br><span class="muted">{e(call_span(att))}</span></dd></div>'
+            f'<div><dt>Agent participant</dt><dd>{e(att.get("agentIdentity") or "never joined")}</dd></div>'
+            '</dl></div>')
+
+
+def render_qa(att: dict, fallback_question: str) -> str:
+    asked = [ev["text"] for ev in att["events"] if ev.get("tag") == "question"]
+    answer = att.get("answer") or [ev["text"] for ev in att["events"] if ev.get("tag") == "answer"]
+    question = asked[-1] if asked else fallback_question
+    q_note = "" if asked else ' <span class="muted">(not asked - the call ended before the question)</span>'
+    a_html = ("<ol>" + "".join(f"<li>{e(t)}</li>" for t in answer) + "</ol>" if answer
+              else '<p class="reason">No answer was received.</p>')
+    return (f'<div class="qa"><h3>Question asked</h3><div class="q">“{e(question)}”{q_note}</div>'
+            f'<h3>Answer received</h3><p class="muted">The agent\'s answer turns, in order '
+            f'({len(answer)} turn{"" if len(answer) == 1 else "s"}).</p>{a_html}</div>')
+
+
+def render_images(att: dict, question: str = "") -> str:
+    """The image pushes the agent made while the caller was walked through the steps (read from its logs),
+    with the question that prompted them and the image response the test caller received."""
+    imgs = att.get("images") or {}
+    pushes, got = imgs.get("pushes") or [], imgs.get("received") or []
+    asked = [ev["text"] for ev in att["events"] if ev.get("tag") == "question"]
+    q = asked[-1] if asked else question
+    head = (f'<div class="qa"><h3>Question asked</h3><div class="q">“{e(q or "-")}”</div></div>')
+    if not pushes and not got:
+        return (head + '<h3>Image response</h3><p class="muted">The agent pushed no image to the caller in this attempt.</p>')
+    rows = "".join(
+        f'<tr><td data-label="When">{e(p["timestamp"][11:23])}</td><td data-label="Image search">{e(p["query"] or "-")}</td>'
+        f'<td data-label="Images">{p["images"]}</td><td data-label="Sent to">{e(p.get("to") or "-")}</td>'
+        f'<td data-label="Reached the caller">{pill(p["delivered"], "Delivered", "Not delivered", "Not logged")}</td></tr>'
+        for p in pushes)
+    cards = "".join(
+        '<li style="margin-bottom:12px">'
+        f'<strong>{e(i.get("description") or "-")}</strong>'
+        + "".join(f'<div><a href="{e(u)}" target="_blank" rel="noopener">{e(u)}</a></div>'
+                  f'<img src="{e(u)}" alt="{e(i.get("description") or "image")}" loading="lazy" '
+                  'style="max-width:320px;max-height:240px;display:block;margin:6px 0;border:1px solid #ddd;border-radius:6px">'
+                  for u in (i.get("urls") or [])) + '</li>' for i in got)
+    return (head + '<h3>Image response received</h3><p class="muted">The agent\'s image tool searches its image store for the '
+            'step being explained, picks the relevant pictures and pushes them to the caller\'s screen. The test caller acts '
+            f'as the screen and records what arrives ({len(got)} received, {sum(p["images"] for p in pushes)} pushed).</p>'
+            + (f'<ul class="plain">{cards}</ul>' if got else '<p class="reason">Nothing reached the test caller.</p>')
+            + ('<h3>Push details</h3><div class="table-wrap"><table class="steps"><thead><tr><th>When (UTC)</th>'
+               '<th>Image search</th><th>Images</th><th>Sent to</th><th>Reached the caller</th></tr></thead>'
+               f'<tbody>{rows}</tbody></table></div>' if pushes else ""))
+
+
+def render_tool_calls(att: dict) -> str:
+    """One table of the agent's tool calls the smoke call verifies, each with the evidence from its logs."""
+    cps = {c["name"]: c for c in att["checkpoints"]}
+    pushes = (att.get("images") or {}).get("pushes") or []
+    rows = [
+        ("Image sharing", "Searches its image store and pushes pictures to the caller's screen while explaining the steps",
+         cps.get("image_triggered"), f'{len(pushes)} push(es)' if pushes else "none"),
+        ("Requested image", "Image tool (share_images) shares the knowledge-base image the caller asks for by name",
+         cps.get("image_requested"),
+         f'asked for “{request["description"]}” · share_images query “{tool["query"]}”, status {tool["status"] or "-"}, '
+         f'shared: ' + (", ".join(f'“{d}”' for d in tool["picked"]) or "nothing")
+         if (request := (att.get("images") or {}).get("request")) and (tool := request.get("tool")) else
+         (f'asked for “{request["description"]}” · image tool not called' if request else "")),
+        ("Troubleshooting steps by text", "Sends the steps to the phone number the caller gives",
+         cps.get("text_triggered"), " → ".join(att.get("textToolTrace") or []) or "no text tool activity"),
+        ("Callback request", "Creates a callback task for the caller's number",
+         cps.get("callback_task_created"), ""),
+    ]
+    body = "".join(
+        f'<tr><td data-label="Tool"><strong>{e(n)}</strong><br><span class="muted">{e(d)}</span></td>'
+        f'<td data-label="Result">{pill(cp["passed"] if cp else None)}</td>'
+        f'<td data-label="Evidence" class="muted">{e(cp["detail"] if cp else "not reached")}'
+        + (f'<br><code>{e(trace)}</code>' if trace else "") + "</td></tr>"
+        for n, d, cp, trace in rows)
+    return ('<div class="table-wrap"><table class="steps"><thead><tr><th>Tool call</th><th>Result</th><th>Evidence from the agent\'s logs</th>'
+            f'</tr></thead><tbody>{body}</tbody></table></div>')
+
+
+def render_logs(attempts: list[dict]) -> str:
+    """The complete logs of every attempt: the agent worker's own (lk agent logs, this room only) and what
+    the room delivered to the test caller. Closed by default; phone numbers are masked."""
+    def block(lines: list[str]) -> str:
+        out = []
+        for ln in lines:
+            cls = ' class="err"' if " ERROR " in ln[:40] else (' class="wrn"' if " WARNING " in ln[:40] else "")
+            out.append(f"<span{cls}>{e(ln)}</span>")
+        return '<pre class="log">' + "\n".join(out) + "</pre>"
+
+    parts = []
+    for a in attempts:
+        w, c = a.get("workerLog") or [], a.get("callLog") or []
+        note = f'<p class="reason">{e(a["workerLogNote"])}</p>' if a.get("workerLogNote") else ""
+        parts.append(
+            f'<h3>Attempt {a["number"]} · <code>{e(room_ref(a))}</code></h3>{note}'
+            f'<details><summary>Agent worker log, LiveKit Cloud ({len(w)} lines)</summary>'
+            + (block(w) if w else '<p class="muted">No lines.</p>') + '</details>'
+            f'<details><summary>Room log, as the test caller saw it ({len(c)} lines)</summary>'
+            + (block(c) if c else '<p class="muted">No lines.</p>') + '</details>')
+    return section("Complete log", '<p class="muted">Everything LiveKit logged for this call, in order. '
+                   'Phone numbers are masked.</p>' + "".join(parts))
+
+
+def render_checks(att: dict) -> str:
+    items = []
+    for i, cp in enumerate(att["checkpoints"], start=1):
+        unasked = cp.get("optional") and cp["passed"] is None
+        cls = "pass" if cp["passed"] else ("skip" if unasked else "fail")
+        detail = f'<div class="muted">{e(cp["detail"])}</div>' if cp["detail"] else ""
+        timing = f'at {secs(cp["atMs"])} · took {secs(cp["tookMs"])}' if cp["atMs"] is not None else "not reached"
+        items.append(f'<li><span class="num {cls}">{i}</span><div class="grow"><strong>{e(cp["label"])}</strong>'
+                     f' {pill(cp["passed"], none="Not asked") if cp.get("optional") else pill(cp["passed"])}{detail}</div><span class="time">{timing}</span></li>')
+    err = f'<p class="reason">Error: {e(att["error"])}</p>' if att.get("error") else ""
+    return f'<ol class="checks">{"".join(items)}</ol>{err}'
+
+
+def render_attempt(att: dict, entry: dict, show_checks: bool = True) -> str:
+    v = att.get("validation")
+    steps = render_steps_table(v) if v else '<p class="muted">No answer was validated in this attempt.</p>'
+    if v:
+        matched = sum(1 for i in v["items"] if i["result"] == "pass")
+        steps = (f'<p class="muted">{matched} of {len(v["items"])} KB steps and cautions matched '
+                 f'({v["score"]:.0%}). The call passes at {v["threshold"]:.0%} or more, and never with a wrong value.</p>'
+                 + steps)
+    split = ""
+    if v:
+        segs = "".join(f"<li><code>[{s['index']}]</code> {e(s['text'])}</li>" for s in v["segments"])
+        split = (f"<details><summary>How the answer was split into steps ({e(v['splitMethod'])}, "
+                 f"{len(v['segments'])} parts)</summary><ol class=plain start=0>{segs}</ol></details>")
+    text = att.get("text") or {}
+    text_html = ""
+    if text.get("message"):
+        tv = text.get("validation")
+        text_html = ('<h3>The steps sent by text</h3><p class="muted">What the agent texted, as recorded in its own logs, '
+                     'checked against the knowledge base the same way as the spoken answer.</p>'
+                     + (f'<p><strong>Sent to:</strong> the {e(text["to"])}</p>' if text.get("to") else "")
+                     + f'<div class="q" style="white-space:pre-wrap">{e(text["message"])}</div>'
+                     + (render_steps_table(tv) if tv else ""))
+    checks = f'<h3>The checks</h3>{render_checks(att)}' if show_checks else ""
+    chat = (f'<h3>The call, as it happened</h3>{render_chat(att["events"], att.get("rating"))}'
+            if not att["passed"] else "")
+    body = (f'<h3>Call reference</h3>{render_reference(att)}'
+            f'<p class="muted"><strong>Call duration</strong> (the call itself): {e(call_length(att))} · {e(call_span(att))}<br>'
+            f'<strong>Run duration</strong> (this attempt\'s test run, post-call checks included): {secs(att["durationMs"])}</p>'
+            f'{checks}'
+            f'{render_qa(att, entry.get("question", ""))}'
+            f'<h3>The answer, step by step</h3>{steps}{split}{text_html}'
+            f'{chat}')
+    title = (f'Attempt {att["number"]} {pill(att["passed"])} '
+             f'<span class="time">{e(att.get("roomSid") or att.get("room") or "")}</span>')
+    # Closed by default, like the other sections.
+    return (f'<details class="card sec"><summary><h2>{title}</h2><span class="more">Click to see more</span></summary>'
+            f'{body}</details>')
+
+
+def section(title: str, inner: str) -> str:
+    """A collapsed card: the title and a 'Click to see more' hint until opened."""
+    return (f'<details class="card sec"><summary><h2>{title}</h2><span class="more">Click to see more</span></summary>'
+            f'{inner}</details>')
+
+
+def build() -> str:
+    meta = run_meta()
+    kb = kb_results()
+    overall = bool(kb and kb["passed"])
+
+    sel = (kb or {}).get("selection", {})
+    entry = (kb or {}).get("entry", {})
+    attempts = (kb or {}).get("attempts", [])
+    last = attempts[-1] if attempts else None  # the verdict attempt
+    started = meta["startedAt"] or (kb or {}).get("startedAt", "")
+    environment = (kb or {}).get("environment") or meta["environment"]  # what the call ran against
+    finished = (kb or {}).get("finishedAt", "")
+    duration = "-"
+    if started and finished:
+        try:
+            d = datetime.fromisoformat(finished) - datetime.fromisoformat(started.replace("Z", "+00:00"))
+            duration = secs(int(d.total_seconds() * 1000))
+        except ValueError:
+            pass
+
+    summary = ("Everything checked out: the support agent answered a real question "
+               "correctly from its manual, step by step, and closed the call properly." if overall else
+               ("The phone-call check failed. Details below." if kb else "The phone-call check did not run."))
+    commit = (f'<a href="{e(meta["commitUrl"])}">{e(meta["commit"])}</a>' if meta["commitUrl"] else e(meta["commit"]))
+    run_link = f' · <a href="{e(meta["runUrl"])}">CI run</a>' if meta["runUrl"] else ""
+
+    refs = [f'Phone-call check, attempt {att["number"]}: <code>{e(room_ref(att))}</code>'
+            for att in attempts if not att.get("passed")]
+    refs_html = ('<p><strong>Reference for what failed</strong></p><ul class="refs">'
+                 + "".join(f"<li>{r}</li>" for r in refs) + "</ul>") if refs else ""
+    banner = (f'<section class="banner {"pass" if overall else "fail"}"><div class="big">{"PASS" if overall else "FAIL"}</div>'
+              f'<div class="grow"><h1>LiveKit smoke test · {e(environment.upper())}</h1><p>{e(summary)}</p>{refs_html}</div></section>')
+    def tile(icon: str, label: str, value: str) -> str:
+        return (f'<div class="tile"><span class="ico">{icon}</span><div><div class="tl">{label}</div>'
+                f'<div class="tv">{value}</div></div></div>')
+
+    def node(label: str, value: str, sub: str = "") -> str:
+        return (f'<div class="node"><div class="tl">{label}</div><div class="nv">{value}</div>'
+                + (f'<div class="muted">{sub}</div>' if sub else "") + '</div>')
+
+    meta_html = (
+        '<section class="card"><h2>Run details</h2><div class="tiles">'
+        + tile("&#128339;", "Run time", e(ist(started)))
+        + tile("&#9201;", "Run duration", e(duration))
+        + "".join(tile("&#128222;", "Call duration" + (f' (attempt {a["number"]})' if len(attempts) > 1 else ""),
+                       e(call_length(a)) + f'<div class="tl">{e(call_span(a))}</div>')
+                  for a in attempts)
+        + tile("&#127760;", "Environment", e(environment.upper()))
+        + tile("&#127807;", "Branch", e(meta["branch"]))
+        + tile("&#128204;", "Commit", commit + run_link)
+        + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len(attempts) > 1 else ""),
+                       f'<code>{e(a.get("roomSid") or "-")}</code><div class="muted">{e(a.get("room") or "")}</div>')
+                  for a in attempts)
+        + '</div><h3>How the test machine was chosen</h3><div class="flow">'
+        + node("Serial number used", e(sel.get("serial", "-")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Classified as", e(sel.get("sheet", "-")), e(sel.get("hopperType", "")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Machine model tested", e(sel.get("model", "-")))
+        + '<span class="arrow">&#10140;</span>'
+        + node("Knowledge base file", e(sel.get("kbFile", "-")))
+        + f'</div><p class="muted">{e(sel.get("classificationBasis", ""))}</p></section>')
+
+    overview = section("What was checked", ('<ol class="checks">'
+                f'<li><span class="num {"pass" if overall else "fail"}">1</span><div class="grow"><strong>Phone-call check</strong> '
+                f'{pill(kb["passed"] if kb else None)}<div class="muted">A test caller asked the agent a real question '
+                f'and checked the answer against the manual'
+                + (" · retried once" if kb and kb.get("retried") else "")
+                + "".join(f' · <code>{e(room_ref(a))}</code>' for a in attempts)
+                + '</div></div></li></ol>'))
+
+    # Scenarios where the agent never asked for the rating: noted, never a failure.
+    unasked, no_image, long_calls = [], [], []
+    for att in attempts:
+        cp = next((c for c in att["checkpoints"] if c["name"] == "feedback_asked"), None)
+        icp = next((c for c in att["checkpoints"] if c["name"] == "image_triggered"), None)
+        if icp and icp["passed"] is None and icp.get("optional"):
+            no_image.append(f'<li>Attempt {att["number"]}: question <code>{e(sel.get("questionId", ""))}</code> · '
+                            f'<code>{e(room_ref(att))}</code><div class="muted">{e(icp["detail"])}</div></li>')
+        if att.get("callMs", 0) > att.get("callTargetMs", 10**9):
+            took, target = att["callMs"] // 1000, att["callTargetMs"] // 1000
+            long_calls.append(f'<li>Attempt {att["number"]}: the call took <strong>{took // 60}:{took % 60:02d}</strong>, '
+                              f'over the {target // 60}:{target % 60:02d} target · <code>{e(room_ref(att))}</code></li>')
+        if cp and cp["passed"] is None:
+            unasked.append(f'<li>Attempt {att["number"]}: model <strong>{e(sel.get("model", "-"))}</strong>, serial '
+                           f'<code>{e(sel.get("serial", "-"))}</code>, question <code>{e(sel.get("questionId", ""))}</code> '
+                           f'(“{e(sel.get("question", ""))}”), seed <code>{e(str(sel.get("seed", "")))}</code> · '
+                           f'<code>{e(room_ref(att))}</code><div class="muted">{e(cp["detail"])}</div></li>')
+    notes_top = ""
+    if unasked:
+        notes_top += ('<section class="card"><h2>Notes: rating question not asked</h2><p class="muted">The agent did not ask the '
+                      'caller to rate the call in these scenarios. This is noted, not failed; every other check still ran.</p>'
+                      f'<ul class="plain">{"".join(unasked)}</ul></section>')
+    if long_calls:
+        notes_top += ('<section class="card"><h2>Notes: call longer than target</h2><p class="muted">The call itself (join to '
+                      'hang-up, not the checks after it) should take under 5 minutes. Noted, not failed.</p>'
+                      f'<ul class="plain">{"".join(long_calls)}</ul></section>')
+    if no_image:
+        notes_top += ('<section class="card"><h2>Notes: no image available</h2><p class="muted">The image tool ran, but the image '
+                      'store has nothing for the topic asked about. Noted, not failed.</p>'
+                      f'<ul class="plain">{"".join(no_image)}</ul></section>')
+
+    checks_top = ""
+    if attempts:
+        checks_top = f'<section class="card"><h2>The checks</h2>{render_checks(last)}</section>'
+
+    # The steps, up front: every KB step and caution against what the agent said, for the verdict attempt.
+    steps_top = ""
+    if last and last.get("validation"):
+        v = last["validation"]
+        matched = sum(1 for i in v["items"] if i["result"] == "pass")
+        which = (f' (attempt {last["number"]} of {len(attempts)}, the last one)' if len(attempts) > 1 else "")
+        steps_top = section("The steps: knowledge base vs what the agent said", (
+                     f'<p class="muted">Question: “{e(sel.get("question", ""))}” · knowledge base section “{e(sel.get("kbSection", ""))}”{e(which)}. '
+                     f'{matched} of {len(v["items"])} steps and cautions matched ({v["score"]:.0%}); '
+                     f'the call passes at {v["threshold"]:.0%} or more, and never with a wrong value.</p>'
+                     + render_steps_table(v)))
+
+    images_top = ""
+    if attempts:
+        images_top = section("Images shown", render_images(last, sel.get("question", "")))
+
+    tools_top = ""
+    if attempts:
+        tools_top = section("Tool calls verified", render_tool_calls(last))
+
+    if kb:
+        retry_note = ('<p class="muted">The first call failed, so it was tried once more in a fresh room. '
+                      'The verdict is the last attempt; every attempt is shown.</p>' if kb.get("retried") else "")
+        call = (section("The phone-call check", (
+                f'<p><strong>Question asked:</strong> “{e(sel.get("question", ""))}”</p>'
+                f'<p class="muted">From the knowledge base section “{e(sel.get("kbSection", ""))}” '
+                f'({len(entry.get("steps", []))} steps, {len(entry.get("cautions", []))} cautions) · '
+                f'question <code>{e(sel.get("questionId", ""))}</code> · seed <code>{e(str(sel.get("seed", "")))}</code></p>'
+                f'{retry_note}'))
+                + "".join(render_attempt(a, entry, show_checks=i != len(attempts) - 1) for i, a in enumerate(attempts)))
+    else:
+        call = section("The phone-call check", "<p>Did not run.</p>")
+
+    tech = section("Technical details", ('<ul class=plain>'
+            '<li><a href="data/kb-smoke.json">Raw call data (JSON)</a></li>'
+            + (f'<li>Re-run this exact call: <code>QA_ENV={e(environment)} KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>'
+               if sel else "")
+            + "</ul>"))
+
+    logs = render_logs(attempts) if attempts else ""
+
+    return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
+            "<meta name=viewport content='width=device-width,initial-scale=1'>"
+            f"<title>LiveKit Smoke Test</title><style>{CSS}</style></head><body><main>"
+            f"{banner}{meta_html}{notes_top}{checks_top}{overview}{steps_top}{images_top}{tools_top}{call}{tech}{logs}"
+            f"<p class=muted>Generated {e(datetime.now(timezone.utc).astimezone(IST).strftime('%d %b %Y, %I:%M %p IST'))}</p>"
+            "</main></body></html>")
+
+
+def build_internal() -> str:
+    """Engineer-facing page: the offline unit checks. Not for the management report."""
+    meta, unit = run_meta(), unit_results()
+    if unit:
+        rows = "".join(
+            f'<tr><td><code>{e(c["name"])}</code>'
+            + (f'<pre class="reason">{e(c["detail"][:1500])}</pre>' if c["detail"] else "")
+            + f'</td><td>{pill(c["status"] == "passed", "Pass", "Skipped" if c["status"] == "skipped" else "Fail")}</td>'
+            f'<td class="time">{c["seconds"]:.2f} s</td></tr>'
+            for c in sorted(unit["cases"], key=lambda c: c["status"] == "passed"))
+        body = (f'<section class="card"><h2>Unit checks {pill(unit["passed"])}</h2>'
+                f'<p class="muted">{unit["tests"]} run, {unit["failures"]} failed, {unit["skipped"]} skipped. '
+                'Offline: serial routing, the answer validator and the question bank. Failures are listed first.</p>'
+                f'<div class="table-wrap"><table><thead><tr><th>Test</th><th>Result</th><th>Time</th></tr></thead>'
+                f'<tbody>{rows}</tbody></table></div></section>')
+    else:
+        body = '<section class="card"><h2>Unit checks</h2><p>Did not run.</p></section>'
+    logs = sorted(INTERNAL.glob("*-log-attempt-*.txt"))
+    if logs:
+        body += ('<section class="card"><h2>Call and worker logs</h2><p class="muted">Per attempt: what the room delivered to '
+                 'the test caller, and the agent worker\'s own logs for that room (<code>lk agent logs</code>).</p><ul class=plain>'
+                 + "".join(f'<li><a href="{e(f.name)}">{e(f.name)}</a></li>' for f in logs) + "</ul></section>")
+    return ("<!doctype html><html lang=en><head><meta charset=utf-8>"
+            "<meta name=viewport content='width=device-width,initial-scale=1'>"
+            f"<title>LiveKit Smoke Test - internal</title><style>{CSS}pre{{white-space:pre-wrap;margin:6px 0 0}}</style></head><body><main>"
+            f'<section class="banner {"pass" if unit and unit["passed"] else "fail"}"><div class="big">'
+            f'{"PASS" if unit and unit["passed"] else "FAIL"}</div><div class="grow"><h1>Internal: unit checks</h1>'
+            f'<p>{e(meta["environment"].upper())} · branch {e(meta["branch"])} · commit {e(meta["commit"])}. Not part of the management report.</p></div></section>'
+            f"{body}</main></body></html>")
+
+
+def main() -> int:
+    REPORT.mkdir(parents=True, exist_ok=True)
+    INTERNAL.mkdir(parents=True, exist_ok=True)
+    out = REPORT / "index.html"
+    out.write_text(build(), encoding="utf-8")
+    print(f"report -> {out.relative_to(ROOT)}")
+    internal = INTERNAL / "index.html"
+    internal.write_text(build_internal(), encoding="utf-8")
+    print(f"internal report -> {internal.relative_to(ROOT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

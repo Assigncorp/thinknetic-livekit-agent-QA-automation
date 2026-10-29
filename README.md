@@ -1,7 +1,220 @@
-# thinknetic-livekit-agent-QA-automation
+# Thinknetic LiveKit agent: smoke test
 
-`develop` is empty for now. The first branch to merge into it is `develop-phase1_basic`
-(the LiveKit agent smoke test), after code review.
+This is the standard smoke test for the deployed Etnyre ChipSpreader support agent. It runs against one environment at a time: SIT by default, or UAT, prod or any other (see [Environments](#environments)). Every run executes two stages in order:
 
-Everything `develop` held before - the 411-test suite and its workflows - is kept on the
-`archive/develop-before-phase1` branch.
+1. **Unit checks** (offline):
+   - serial-to-model routing
+   - the step-by-step answer validator
+   - the question bank, checked against the knowledge bases
+2. **LiveKit KB-steps call** ([test_kb_call.py](tests/sdk/tests/test_kb_call.py)). One live call to the deployed agent over the LiveKit SDK asks a real question from the machine's knowledge base. The answer is checked step by step and caution by caution against the KB text. The caller then asks for the same steps to be texted to a different number (`SMS_TEST_PHONE`), and the text the agent sent is read from the agent's own logs and checked the same way.
+
+A failure in stage 1 stops the run before the live call. The HTML report is built every time, pass or fail.
+
+The product-page UI test (Playwright) is no longer here. It now lives in its own repo.
+
+## Run it
+
+> [!IMPORTANT]
+> **After every `git pull`, run the smoke test with a clean uv cache:**
+>
+> ```bash
+> git pull
+> uv cache clean && make smoke
+> ```
+>
+> `uv cache clean` drops any stale cached packages so `make smoke` installs exactly what the pulled code expects.
+
+First-time setup:
+
+```bash
+brew install livekit-cli    # the `lk` CLI, to read the agent's logs (CI installs it too)
+cp .env.example .env        # fill in the SIT section: SIT_LIVEKIT_URL, SIT_LIVEKIT_API_KEY,
+                            # SIT_LIVEKIT_API_SECRET, SIT_SMS_TEST_PHONE
+make smoke                  # clean, install, check-env, unit, kb, report - the same steps as CI
+open report/index.html
+```
+
+| Command | What it does |
+|---|---|
+| `QA_ENV=uat make smoke` | The same run against UAT. Works with every command below. |
+| `make check-env` | Shows the environment's settings and where each one comes from (secrets are shown as "set"). Fails if one the live call needs is missing. |
+| `make test` | The same sequence without the clean and install steps. |
+| `make unit` | Unit checks only. Results go to the internal report, `report-internal/index.html`. |
+| `make kb` | Live call only. |
+| `make report` | Builds `report/index.html` from whatever has run. |
+| `KB_SEED=123456789 make kb` | Repeats a run's exact model, question and image. The seed is printed and shown in the report. |
+| `KB_MODEL=FHRC28 make kb` | Pins the model. Any of the four models works here, but a variable-hopper model has no image list, so its image check fails. |
+| `KB_QUESTION_ID=<id> make kb` | Pins one question. |
+| `KB_IMAGE="Air oiler" make kb` | Pins the image the caller asks for, by its description (or id) in [kb/images.yaml](kb/images.yaml). |
+
+The live test skips if the LiveKit credentials are missing, and fails with a clear message if another setting is missing or `SMS_TEST_PHONE` is the caller's own number.
+
+## Environments
+
+Every run targets one environment: SIT (the default), UAT, PROD, or any other you add. All of them live in the one `.env` file, a section each, and every setting in a section starts with the environment's name:
+
+```bash
+SIT_LIVEKIT_URL=wss://…       # LIVEKIT_URL when QA_ENV=sit
+UAT_LIVEKIT_URL=wss://…       # LIVEKIT_URL when QA_ENV=uat
+PROD_LIVEKIT_URL=wss://…      # LIVEKIT_URL when QA_ENV=prod
+```
+
+Each section has the LiveKit URL and keys, the agent name, `SMS_TEST_PHONE`, and the product IDs sent to the agent. [.env.example](.env.example) has the full layout, with SIT's agent name and IDs filled in.
+
+- **Pick the environment:** `QA_ENV=uat make smoke` locally. In CI, use the **environment** list under Actions → **qa** → **Run workflow**.
+- **Change a URL:** change its line in `.env`, and in the `ENV_FILE` secret for CI. No code change and no commit.
+- **Add an environment:** copy a section with the new name as the prefix (for example `STAGING_…`), and add the name to the `environment` options in [smoke.yml](.github/workflows/smoke.yml).
+- **Override for one run:** set the unprefixed name, for example `LIVEKIT_URL=wss://… make kb`.
+
+A section's settings are only ever read with its prefix, so a blank `UAT_LIVEKIT_URL` stays missing. It never falls back to SIT's value. Settings without a prefix (`KB_SEED`, `TEST_CALLER_*`) apply to every environment.
+
+> [!WARNING]
+> A live call is real in every environment. On PROD it texts `PROD_SMS_TEST_PHONE`, creates a callback task, and writes a call log in prod's systems.
+
+## The live call
+
+Each run picks one of the two fixed-hopper models, FHRC28 or FHRC36, at random. It uses that model's smoke serial and asks one question from that model's own KB; a question from another model's KB is never asked. It also picks one image from the product's knowledge base images ([kb/images.yaml](kb/images.yaml), shared by FHRC28 and FHRC36) for the caller to ask to see. Every call follows the same seventeen steps, and each one is a timed checkpoint in the report:
+
+| # | Checkpoint | What happens |
+|---|---|---|
+| 1 | `call_started` | The test joins a fresh room and the agent is dispatched into it. The agent must join within 15 s. |
+| 2 | `greeted` | The agent greets the caller. Serial look-up, read-back and the agent's "last time…" recap are all handled. |
+| 3 | `question_asked` | The test caller asks the KB question. |
+| 4 | `answer_received` | The agent answers. It gives one step per turn, so the caller declines the offer to text the steps, declines the offer to put them on screen, asks for the complete procedure including cautions, and says "done, what's next?" after each step. Collecting stops when every KB step and caution has been said, or at the turn limit. "Let me check" holding turns are ignored. |
+| 5 | `answer_valid` | The combined answer is validated (rules below). |
+| 6 | `image_triggered` | Optional. Checked from the agent's logs: did its image tool push a picture to the caller's screen while it explained the steps? When the image store has nothing for that topic, this is noted, not failed. |
+| 7 | `image_requested` | The caller asks for the picked image by its description, e.g. *Can you share a picture of the "Air oiler"?*, and says yes if the agent asks to confirm. Judged only from the agent's logs, by its image tool call: within 60 s the `share_images` tool must run (`image_requested query=…`) and settle as shared (`image_request_settled status=shared`, or `discarded` when that picture was just shared), with the requested image as the one it shared (`image_outcome_noted … description=…`, matched on the description). Another image, `not_found`, `failed`, or no tool call fails, with the reason from the logs. |
+| 8 | `text_asked` | The caller asks for the same steps by text. The agent offers the caller's own number; the caller refuses it, gives `SMS_TEST_PHONE` (a different number) and confirms the read-back. The agent must answer the request. |
+| 9 | `text_triggered` | Checked from the agent's own logs (`lk agent logs`, followed for the whole call) **before the call moves on to thanks and the rating**. They must show the agent sent a text (`sending_text to=… message='…'`) to the `SMS_TEST_PHONE` number, not to the caller's. A refused delivery (for example a landline) never fails this. |
+| 10 | `callback_asked` | The caller asks for a call back. The caller gives their own number (not the text number) as the callback number, and confirms it if asked. The agent must answer the request. |
+| 11 | `callback_task_created` | Checked from the agent's own logs **before the call moves on to thanks and the rating**. They must show the `request_callback` tool call (`api_call_requested tool=request_callback args={'phone_number': …, 'reason': …}`) for the caller's own number, and an accepted (2xx) reply from the task service (`api_responded …/tasks status=201`). What the agent says is not enough; a refused or missing task fails this. |
+| 12 | `thanks_sent` | The caller says thank you. This happens even if validation failed, so the report has the whole call. |
+| 13 | `feedback_asked` | The agent must ask for a rating. |
+| 14 | `feedback_answered` | The caller answers with a random integer from 1 to 10, which is logged. |
+| 15 | `call_closed` | The agent must end the call within 30 s. The test always hangs up at the end, so no room is left open. |
+| 16 | `text_valid` | After the call, the text the agent sent is checked against the KB steps of the question that was asked, like the spoken answer. |
+| 17 | `call_log_complete` | After the call, checked from the agent's logs: the call record was written (transcript analysed, summary and notes extracted) and accepted (2xx) by the webhook. |
+
+**Call length.** The call itself, from joining the room to hang-up, should take under **4:59**; the checks that run after it (text, call log) can take longer. `call_closed` shows how long each call took, and a call over 4:59 gets a note in the report. It is never cut short and never fails for this. Only a call that is genuinely stuck is stopped, after 8 minutes.
+
+A failed call is retried once in a fresh room. The report shows that a retry happened and includes both transcripts.
+
+**How the answer is validated.** The check is deterministic keyword matching, with no LLM judge ([validator.py](tests/sdk/lkqa/validator.py)).
+- **What passes.** A step passes when all its keywords (or a listed synonym) appear in the agent's text for that step. Rewording is fine.
+- **The pass mark.** The call passes when at least 95% of the KB's steps and cautions match (`KB_PASS_THRESHOLD`), and none of the misses is a wrong value. This applies to the spoken answer and to the texted steps. With 4 to 17 items per question, 95% still means every item for all 26 current questions; one miss only becomes possible at 20 or more items, or by lowering the threshold.
+- **Normalisation.** Both sides are normalised first: case, punctuation, curly quotes, spoken numbers ("forty to sixty" = "40–60"), units ("P S I" = PSI, "feet per minute" = FPM) and plurals.
+- **Splitting.** The answer is split into steps using the agent's own markers ("step two", "next", "finally", "1.") and its turns. With no markers, it is split by sentences.
+- **What fails.** A wrong value always fails the call. Any of these fails it when the share of matched items falls below the pass mark:
+  - a missing step
+  - steps out of order
+  - two steps merged into one
+  - a missing caution
+  - a caution not given with its step
+  - a wrong value (a number or position that contradicts the KB, such as "60 seconds" for 30, or IDLE for RUN)
+
+**Which KB a serial uses.** `kb/hopper_classification.xlsx` decides this. Only the two classified sheets are used, never the raw BOM sheets:
+
+| Sheet | Hopper type | KB |
+|---|---|---|
+| RC28 Classified | VARIABLE | VHRS28 |
+| RC28 Classified | FIXED | FHRC28 |
+| RC36 Classified | VARIABLE | VHRS36 |
+| RC36 Classified | FIXED | FHRC36 |
+
+The four smoke serials are listed in `kb/smoke_serials.yaml`: K7170, K7174, K6757 and K6758. Every run first checks that each one still routes to its listed model, classified directly from its parent description, and fails the run if not.
+
+## Add a KB question
+
+1. **Find the procedure in the model's KB.** It qualifies only if it has **at least 3 ordered steps and at least 1 caution or warning** (`> **WARNING:**`, `**Caution:**`, a nested `> **CAUTION:**`, or "Do NOT …" inside a step).
+2. **Generate the draft.** Run `make bank-draft`. It prints every qualifying procedure, with the reason each other one was dropped, and writes `kb/question_bank.draft.yaml`. The step and caution text in the draft is verbatim from the KB.
+3. **Copy the entry into `kb/question_bank.yaml`.** Then:
+   - Write `question` the way an operator would ask it on a call. Don't give away any step or value.
+   - Give every step 1–4 `keywords`: the distinctive component plus the action, position or value. Each keyword's `term` must appear in that step's KB text. Add realistic spoken `synonyms`. Mark numbers with units as `kind: value`, and PARK/RUN/ON/OPEN-style settings as `kind: position`.
+   - Anchor each caution to its step number, or to `procedure` if it covers the whole procedure, and give it 1–3 keywords.
+4. **Check the bank.** Run `make check-bank`. It fails if:
+   - any text is not verbatim from the KB
+   - a keyword is missing from its own step
+   - two steps' keywords overlap so much that a correct answer would read as "merged"
+   - the KB's own text would not pass the validator
+5. **Try it live.** Run `KB_QUESTION_ID=<your id> make kb`.
+
+## Read the report
+
+`report/index.html` opens in any browser and works on a phone.
+
+- **Banner.** PASS or FAIL for the whole run, with:
+  - run time (IST), duration, branch and commit
+  - the machine model, serial and KB file used, and why that serial is that model
+  - on failure, **Reference for what failed**: the LiveKit room ID (`RM_…`) and room name of every failed call. Search for these in LiveKit Cloud or the agent logs.
+- **What was checked.** The phone-call check. The unit checks are not in this report.
+- **The phone-call check.**
+  - The question and the KB section it came from.
+  - For each attempt: **Call reference** (LiveKit room ID, room name, start time, agent participant), then **Question asked** (exactly as said on the call) and **Answer received** (the agent's answer turns, in order).
+  - The seventeen checkpoints in plain English, each with its result and timing.
+  - **The answer, step by step.** For every KB step and caution: what the agent said, the keywords found and missing, and the result (Pass, Missing, Out of order, Merged, Misplaced caution or Wrong value). Every failure has a one-line reason, and "How the answer was split into steps" shows the split so you can check it by eye.
+  - **The call, as it happened.** The full transcript as chat bubbles with timestamps, including the random rating.
+- **Technical details.** A link to the raw call data and the exact command to re-run the same call.
+
+## Branches
+
+```
+feature branch (e.g. develop-phase1_basic) --PR--> develop --PR--> master
+```
+
+- **Feature branches.** Work happens on a feature branch, and every feature branch merges into `develop` by pull request. The PR runs the smoke test, so a branch is tested before it merges.
+- **`develop`** is the branch every test runs on. Each push to it, a merged PR included, runs the smoke test, and so does the daily schedule. It is the only branch whose report is published to GitHub Pages.
+- **`master`** only receives `develop`, by pull request, when a release is ready.
+
+To test a feature branch without opening a PR, run the workflow by hand and pick the branch under **Use workflow from**.
+
+## CI
+
+[.github/workflows/smoke.yml](.github/workflows/smoke.yml) (the **qa** workflow in the Actions tab) runs one suite per run:
+
+| Trigger | Environment | Suite |
+|---|---|---|
+| Every pull request into `develop` | SIT | `smoke`, always |
+| Every push to `develop` (a merged PR included) | SIT | `smoke`, always |
+| Monday to Friday at 06:00 IST (scheduled), on `develop` | SIT | `smoke`, always |
+| Manual: Actions → **qa** → **Run workflow**, on the branch you pick | the one you pick from the **environment** list (SIT, UAT, PROD) | the one you pick from the **suite** list |
+
+| Suite | What it runs |
+|---|---|
+| `smoke` | Unit checks, then the live call. A unit failure stops it before the call. |
+| `unit` | Unit checks only (offline). |
+| `live` | The live call only. |
+
+A manual run can also set the seed, model, question or pass mark. GitHub only runs scheduled workflows from the default branch, so the daily run needs `develop` to be the default branch. Before the live call, `make check-env` fails the run if a setting the call needs is missing. Runs on the same environment wait for each other; different environments can run at the same time.
+
+- It starts from a clean slate: no restored caches and old reports removed.
+- Every stage in the chosen suite must pass. Stages outside it show as "not in suite".
+- Every run that makes a live call (`smoke`, `live`) builds the report, pass or fail:
+  - **GitHub Pages** holds the latest call run on `develop`, from whichever environment ran last; the report names it. The link is in the run summary. Runs on a PR or another branch, and `unit` runs, never replace it.
+  - **The `<environment>-<suite>-report-<n>` artifact** keeps every run.
+- The unit checks are not in that report. They go to `report-internal/index.html`, kept as the separate `<environment>-internal-unit-checks-<n>` artifact and never published to Pages.
+- One-time setup:
+  - Repository secret `ENV_FILE`: the whole `.env`, every environment's section in it (Settings → Secrets and variables → Actions). CI writes it to `.env` at the start of each run and never uploads it. Every run of the workflow can read it, including PROD's keys. The old `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `SMS_TEST_PHONE` repository secrets are no longer used.
+  - Settings → Pages → Source = **GitHub Actions**.
+  - Settings → General → Default branch = `develop`, for the daily run.
+  - Settings → Environments → `github-pages` → Deployment branches: add `develop`, so its runs can publish.
+
+## Layout
+
+```
+kb/                                 the four model KBs (unchanged), hopper_classification.xlsx,
+                                    smoke_serials.yaml, question_bank.yaml (reviewed),
+                                    images.yaml (the KB images the image check asks for)
+tests/sdk/lkqa/env.py               QA_ENV and loading that environment's section of .env
+tests/sdk/lkqa/routing.py           serial -> model -> KB
+tests/sdk/lkqa/bank.py              picks model, serial and question (seeded)
+tests/sdk/lkqa/kbcall.py            the seventeen-checkpoint live call
+tests/sdk/lkqa/validator.py         deterministic step/caution validator
+tests/sdk/lkqa/expect.py            LiveKit-style expect() assertions over the recorded call
+tests/sdk/lkqa/call.py              LiveKit room, agent dispatch token, turn reading
+tests/sdk/tests/                    test_kb_call.py (live), test_routing / test_validator /
+                                    test_question_bank (offline), fixtures/validator/
+tools/build_question_bank.py        KB -> question bank draft
+tools/check_question_bank.py        question bank checker
+tools/build_report.py               report/index.html
+tools/check_env.py                  make check-env
+```

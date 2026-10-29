@@ -1,0 +1,74 @@
+# Validator fixture entry: VHRS28 "After Hydrostatic System Work - Special Startup
+# Procedure", step and caution text verbatim from the KB. Keywords are the
+# fixture's own (kb/question_bank.yaml is reviewed separately) so these tests pin
+# the validator's rules, not the bank's wording.
+id: VHRS28-FIXTURE-HYDROSTATIC-WORK-STARTUP
+model: VHRS28
+kb_file: 2026-08-07-vhrs28-voice-agent-knowledge-base.md
+kb_section: After Hydrostatic System Work — Special Startup Procedure
+question: I just had work done on the hydrostatic drive. How do I start the machine back up?
+steps:
+  - n: 1
+    text: Jack the machine up and support securely on stands with all four wheels off the ground.
+    keywords:
+      - {term: jack, kind: term}
+      - {term: stands, kind: term, synonyms: [jack stands]}
+  - n: 2
+    text: Disconnect the 50-pin connector at the engine so engine can only be cranked, not started.
+    keywords:
+      - {term: disconnect, kind: term, synonyms: [unplug]}
+      - {term: 50-pin connector, kind: term, synonyms: [50 pin plug]}
+  - n: 3
+    text: Disconnect pump stroker at the pump.
+    keywords:
+      - {term: pump stroker, kind: term, synonyms: [stroker]}
+  - n: 4
+    text: Install 600 PSI gauge in port "G" on the drive pump.
+    keywords:
+      - {term: gauge, kind: term}
+      - {term: 600 PSI, kind: value}
+  - n: 5
+    text: Verify gate valve in suction tube is fully OPEN (counterclockwise). Do NOT attempt to start with gate valve closed — this causes cavitation damage.
+    keywords:
+      - {term: gate valve, kind: term}
+      - {term: OPEN, kind: position}
+  - n: 6
+    text: Crank engine with starter until 40–60 PSI charge pressure is seen on gauge. Do NOT crank for more than 30 seconds. Wait at least 2 minutes before cranking again.
+    keywords:
+      - {term: crank, kind: term}
+      - {term: charge pressure, kind: term}
+      - {term: 40–60 PSI, kind: value}
+  - n: 7
+    text: Reconnect the 50-pin connector.
+    keywords:
+      - {term: reconnect, kind: term, synonyms: [plug back in]}
+      - {term: 50-pin connector, kind: term, synonyms: [50 pin plug]}
+  - n: 8
+    text: Start engine normally; allow to idle for 10 minutes. Charge pressure may surge 50–500 PSI as system fills; this is normal. Pressure should settle to a steady reading.
+    keywords:
+      - {term: idle, kind: position}
+      - {term: 10 minutes, kind: value}
+  - n: 9
+    text: Shut down engine; remove gauges; replace all plugs and caps. Recheck fluid levels after 15 minutes.
+    keywords:
+      - {term: fluid levels, kind: term}
+      - {term: 15 minutes, kind: value}
+cautions:
+  - id: C1
+    text: "CAUTION: Do not crank engine with gate valve closed. Doing so will cause damage to the hydraulic pumps."
+    step: procedure
+    keywords:
+      - {term: gate valve, kind: term}
+      - {term: closed, kind: position}
+      - {term: hydraulic pumps, kind: term, synonyms: [pumps]}
+  - id: C2
+    text: Do NOT attempt to start with gate valve closed — this causes cavitation damage.
+    step: 5
+    keywords:
+      - {term: cavitation, kind: term}
+  - id: C3
+    text: Do NOT crank for more than 30 seconds.
+    step: 6
+    keywords:
+      - {term: crank, kind: term}
+      - {term: 30 seconds, kind: value}

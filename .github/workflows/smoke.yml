@@ -1,0 +1,252 @@
+# The agent QA workflow: unit checks and the live LiveKit KB-steps call,
+# with a published HTML report on every run that makes a call, pass or fail. The published
+# report (report/) is the phone-call check only; the unit checks go to report-internal/,
+# which is kept as a separate artifact and never published to Pages.
+#
+# Environments: every run targets one - SIT, UAT, PROD or any other. All of them live in one
+# .env file, a section each (SIT_LIVEKIT_URL, UAT_LIVEKIT_URL, ...; see .env.example). CI writes
+# that file from the ENV_FILE repository secret, whose value is the whole .env, so changing a URL
+# is changing ENV_FILE - no commit. Secrets are never printed.
+# Adding an environment: its section in ENV_FILE, and its name in the environment list below.
+# GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
+#
+# Branches: every branch merges into develop by pull request, and develop into master. develop is
+# the branch the tests run on, and the only one whose report is published to Pages.
+#
+# Triggers and suites:
+#   pull_request - every PR into develop, always the smoke suite on SIT: the branch is tested
+#                  before it merges. Report kept as an artifact, not published.
+#   push      - every push to develop (a merged PR included), always the smoke suite on SIT.
+#   schedule  - Monday to Friday at 06:00 IST, always the smoke suite on SIT. GitHub only runs
+#               scheduled workflows from the repository's default branch, so develop must be
+#               the default branch (Settings > General) for this to run.
+#   manual    - Actions tab > qa > Run workflow, pick the branch, the environment and the suite:
+#                 smoke     unit checks + live call (the same as the scheduled run)
+#                 unit      unit checks only (offline)
+#                 live      live call only
+#
+# Every stage in the suite must pass; a failed stage shows red and fails the run.
+name: qa
+run-name: ${{ inputs.suite || 'smoke' }} on ${{ inputs.environment || 'SIT' }} (${{ github.event_name }}) - ${{ github.head_ref || github.ref_name }}
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  # Scheduled smoke: Monday to Friday, 06:00 IST = 00:30 UTC (five fields, UTC: minute hour
+  # day-of-month month day-of-week). IST is UTC+5:30, so the weekday is the same in both.
+  schedule:
+    - cron: "30 0 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to run against (its section of .env, from the ENV_FILE secret)"
+        type: choice
+        default: SIT
+        options:
+          - SIT
+          - UAT
+          - PROD
+      suite:
+        description: "Test type to run"
+        type: choice
+        default: smoke
+        options:
+          - smoke
+          - unit
+          - live
+      kb_seed:
+        description: "KB_SEED - reproduce a run's model and question (blank = random)"
+        required: false
+      kb_model:
+        description: "KB_MODEL - pin the model: VHRS28, FHRC28, VHRS36 or FHRC36 (blank = FHRC28 or FHRC36 at random)"
+        required: false
+      kb_image:
+        description: "KB_IMAGE - pin the image asked for, by its description in kb/images.yaml (blank = random)"
+        required: false
+      kb_question_id:
+        description: "KB_QUESTION_ID - pin one question bank entry (blank = random)"
+        required: false
+      kb_pass_threshold:
+        description: "KB_PASS_THRESHOLD - share of KB steps and cautions that must match, 0 to 1 (blank = 0.95)"
+        required: false
+
+# One run at a time per environment: the live call uses that environment's shared agent.
+concurrency:
+  group: qa-${{ inputs.environment || 'SIT' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      suite: ${{ steps.plan.outputs.suite }}
+      # Only develop's runs publish; a PR or another branch keeps its report as an artifact.
+      publish: ${{ steps.plan.outputs.kb == 'true' && github.ref == 'refs/heads/develop' }}
+      environment: ${{ inputs.environment || 'SIT' }}
+    env:
+      # Which section of .env the run uses (tests/sdk/lkqa/env.py).
+      QA_ENV: ${{ inputs.environment || 'SIT' }}
+      KB_SEED: ${{ inputs.kb_seed }}
+      KB_MODEL: ${{ inputs.kb_model }}
+      KB_QUESTION_ID: ${{ inputs.kb_question_id }}
+      KB_IMAGE: ${{ inputs.kb_image }}
+      KB_PASS_THRESHOLD: ${{ inputs.kb_pass_threshold }}
+      TRANSFER_TEST_NUMBERS: ${{ vars.TRANSFER_TEST_NUMBERS }}
+      KB_RETRIES: "1"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      # Which stages this suite runs. Push and schedule have no inputs, so they get smoke.
+      - name: Plan the suite
+        id: plan
+        run: |
+          suite="${{ inputs.suite || 'smoke' }}"
+          case "$suite" in
+            smoke) unit=true;  kb=true ;;
+            unit)  unit=true;  kb=false ;;
+            live)  unit=false; kb=true ;;
+            *) echo "::error::unknown suite '$suite'"; exit 1 ;;
+          esac
+          { echo "suite=$suite"; echo "unit=$unit"; echo "kb=$kb"; } >> "$GITHUB_OUTPUT"
+          echo "suite=$suite unit=$unit kb=$kb"
+
+      - name: Start the clock
+        run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+
+      - name: Clean slate (no caches, no old report)
+        run: |
+          uv cache clean || true
+          rm -rf report report-internal
+          mkdir -p report/data report-internal
+
+      # The same .env as on a laptop, every environment's section in it. Never uploaded:
+      # the artifacts are report/ and report-internal/ only.
+      - name: Write .env from the ENV_FILE secret
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          printf '%s\n' "$ENV_FILE" > .env
+          chmod 600 .env
+
+      - name: Install fresh (uv sync)
+        id: install
+        run: make install
+
+      # Without these the live test skips instead of failing, which would look like a pass.
+      - name: Check the environment's settings
+        id: envcheck
+        if: steps.plan.outputs.kb == 'true'
+        run: make check-env
+
+      # The agent runs on LiveKit Cloud; the live call reads its worker logs with `lk agent logs`.
+      - name: Install the LiveKit CLI
+        id: lkcli
+        if: steps.plan.outputs.kb == 'true'
+        run: |
+          curl -sSL https://get.livekit.io/cli | bash
+          lk --version
+
+      # Each stage fails red on its own, and the job with it. `!cancelled()` lets the report
+      # steps after them still run, so every result is reported.
+      - name: Unit checks (routing, validator, question bank)
+        id: unit
+        if: steps.plan.outputs.unit == 'true'
+        run: make unit
+
+      - name: LiveKit KB-steps call
+        id: kb
+        if: >-
+          ${{ !cancelled() && steps.install.outcome == 'success' && steps.lkcli.outcome == 'success'
+              && steps.envcheck.outcome == 'success' && steps.plan.outputs.kb == 'true'
+              && (steps.plan.outputs.unit != 'true' || steps.unit.outcome == 'success') }}
+        run: make kb
+
+      - name: Build the HTML report
+        if: always()
+        run: make report
+
+      - name: Keep this run's report as an artifact
+        if: always() && steps.plan.outputs.kb == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.QA_ENV }}-${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}
+          path: report/
+          if-no-files-found: warn
+
+      - name: Keep the internal unit-check report (not published)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.QA_ENV }}-internal-unit-checks-${{ github.run_number }}
+          path: report-internal/
+          if-no-files-found: warn
+
+      # Only develop's runs with a live call publish, so a unit-only run never replaces
+      # the latest call report on Pages with an empty one.
+      - name: Stage the report for GitHub Pages
+        if: always() && steps.plan.outputs.kb == 'true' && github.ref == 'refs/heads/develop'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: report/
+
+      # A stage outside the suite is skipped and not counted; every stage in it must pass.
+      - name: Verdict
+        if: always()
+        run: |
+          echo "suite=${{ steps.plan.outputs.suite }} unit=${{ steps.unit.outcome }} kb=${{ steps.kb.outcome }}"
+          {
+            echo "## QA run: ${{ steps.plan.outputs.suite }} on $QA_ENV"
+            echo "| Stage | Result |"
+            echo "|---|---|"
+            echo "| Environment settings | ${{ steps.envcheck.outcome || 'not in suite' }} |"
+            echo "| Unit checks | ${{ steps.unit.outcome || 'not in suite' }} |"
+            echo "| LiveKit KB-steps call | ${{ steps.kb.outcome || 'not in suite' }} |"
+            echo ""
+            if [ "${{ steps.plan.outputs.kb }}" = true ]; then
+              echo "Report: download the \`$QA_ENV-${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}\` artifact. A run on develop also publishes it: the link is in the **publish** job below."
+            else
+              echo "Results: download the \`$QA_ENV-internal-unit-checks-${{ github.run_number }}\` artifact."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Every planned stage must pass; each failed one is named as an error annotation on the run.
+          status=0
+          if [ "${{ steps.envcheck.outcome }}" = failure ]; then
+            echo "::error title=$QA_ENV settings missing::see the 'Check the environment's settings' step log"; status=1; fi
+          if [ "${{ steps.plan.outputs.unit }}" = true ] && [ "${{ steps.unit.outcome }}" != success ]; then
+            echo "::error title=Unit checks failed::see the 'Unit checks' step log"; status=1; fi
+          if [ "${{ steps.plan.outputs.kb }}" = true ] && [ "${{ steps.kb.outcome }}" != success ]; then
+            echo "::error title=LiveKit KB-steps call failed::see the report and the 'LiveKit KB-steps call' step log"; status=1; fi
+          exit $status
+
+  publish:
+    needs: qa
+    if: always() && needs.qa.result != 'cancelled' && needs.qa.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the report (develop's latest call run only)
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Link the report in the job summary
+        run: |
+          {
+            echo "## ${{ needs.qa.outputs.suite }} report (${{ needs.qa.outputs.environment }})"
+            echo ""
+            echo "**[Open the report](${{ steps.deployment.outputs.page_url }})** - ${{ needs.qa.outputs.suite }} run on ${{ needs.qa.outputs.environment }} ${{ needs.qa.result == 'success' && 'PASSED' || 'FAILED' }}"
+          } >> "$GITHUB_STEP_SUMMARY"

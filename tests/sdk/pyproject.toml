@@ -1,0 +1,28 @@
+[project]
+name = "thinknetic-livekit-qa-sdk"
+version = "0.1.0"
+description = "Basic black-box tests of the deployed agent over the LiveKit SDK"
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "python-dotenv>=1.0",
+    "livekit>=1.0",
+    "livekit-api>=1.0",
+    # python.org's macOS build ships no CA bundle.
+    "certifi>=2024.1",
+    # kb/hopper_classification.xlsx (serial routing) and kb/*.yaml.
+    "openpyxl>=3.1",
+    "pyyaml>=6.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider -s"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "live: joins a real agent session on the QA_ENV environment's deployment (sit by default)",
+    "offline: no network - routing, question bank and validator checks",
+]

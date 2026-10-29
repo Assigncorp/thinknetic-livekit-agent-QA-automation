@@ -1,0 +1,23 @@
+# python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# secrets & local config
+.env
+.env.local
+
+# test output - never committed; CI keeps each run's report as an artifact and on Pages
+report/
+report-internal/
+
+# os
+.DS_Store
+
+# question bank intermediates (tools/build_question_bank.py, hand-review); the
+# reviewed kb/question_bank.yaml is what is committed
+kb/question_bank.draft.yaml
+kb/review/
