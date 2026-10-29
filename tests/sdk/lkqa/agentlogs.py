@@ -377,8 +377,8 @@ def mask(phone: str) -> str:
 def sms_number_problem(sms_phone: str, caller_phone: str) -> str | None:
     """Why SMS_TEST_PHONE cannot be used, or None. Checked before the call is made."""
     if not sms_phone.strip():
-        return ("SMS_TEST_PHONE is not set: put the number that should receive the test text in .env "
-                "(and as the SMS_TEST_PHONE repository secret in CI). It must differ from TEST_CALLER_PHONE.")
+        return ("SMS_TEST_PHONE is not set: put the number that should receive the test text in the environment's "
+                "section of .env (SIT_SMS_TEST_PHONE for sit). It must differ from TEST_CALLER_PHONE.")
     if len(_NON_DIGIT.sub("", sms_phone)) not in (10, 11):
         return "SMS_TEST_PHONE must be a 10-digit number (an optional leading 1 is fine)."
     if last10(sms_phone) == last10(caller_phone):

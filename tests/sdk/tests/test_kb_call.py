@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 import pytest
 
+from lkqa import env
 from lkqa.bank import choose
 from lkqa.agentlogs import sms_number_problem
 from lkqa.call import missing_credentials
@@ -34,7 +35,10 @@ RETRIES = int(os.getenv("KB_RETRIES", "1"))
 
 async def test_kb_steps_call(product, caller):
     if missing := missing_credentials():
-        pytest.skip(f"{', '.join(missing)} not set in .env")
+        pytest.skip(f"{', '.join(env.prefix() + k for k in missing)} not set in .env (QA_ENV={env.name()})")
+    if missing := env.missing():
+        pytest.fail(f"{', '.join(env.prefix() + k for k in missing)} not set in .env (QA_ENV={env.name()})",
+                    pytrace=False)
 
     sms_phone = os.getenv("SMS_TEST_PHONE", "")
     if problem := sms_number_problem(sms_phone, caller["phone"]):
@@ -42,7 +46,8 @@ async def test_kb_steps_call(product, caller):
 
     started = datetime.now(timezone.utc)
     selection = choose()
-    print(f"\n[kb] seed={selection.seed} (KB_SEED={selection.seed} reproduces this run) "
+    print(f"\n[kb] env={env.name()} agent={os.environ['AGENT_NAME']} "
+          f"seed={selection.seed} (KB_SEED={selection.seed} reproduces this run) "
           f"model={selection.model} serial={selection.serial} question={selection.entry['id']} "
           f"image={selection.image['description'] if selection.image else '-'!r}")
     rng = random.Random(selection.seed)
@@ -60,6 +65,7 @@ async def test_kb_steps_call(product, caller):
 
     RESULT.parent.mkdir(parents=True, exist_ok=True)
     RESULT.write_text(json.dumps({
+        "environment": env.name(),
         "startedAt": started.isoformat(),
         "finishedAt": datetime.now(timezone.utc).isoformat(),
         "passed": final.passed,

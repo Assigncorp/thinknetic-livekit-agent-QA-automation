@@ -10,9 +10,8 @@ __pycache__/
 .env
 .env.local
 
-# test output
-report/**
-!report/.gitkeep
+# test output - never committed; CI keeps each run's report as an artifact and on Pages
+report/
 report-internal/
 
 # os

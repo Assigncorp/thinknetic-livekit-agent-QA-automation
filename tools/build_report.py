@@ -52,7 +52,8 @@ def _git(*args: str) -> str:
 
 
 def run_meta() -> dict:
-    branch = os.getenv("GITHUB_REF_NAME") or _git("rev-parse", "--abbrev-ref", "HEAD")
+    # A PR run's GITHUB_REF_NAME is "<n>/merge"; GITHUB_HEAD_REF is the branch it comes from.
+    branch = os.getenv("GITHUB_HEAD_REF") or os.getenv("GITHUB_REF_NAME") or _git("rev-parse", "--abbrev-ref", "HEAD")
     commit = os.getenv("GITHUB_SHA") or _git("rev-parse", "HEAD")
     server, repo, run_id = (os.getenv(k, "") for k in ("GITHUB_SERVER_URL", "GITHUB_REPOSITORY", "GITHUB_RUN_ID"))
     return {
@@ -61,6 +62,7 @@ def run_meta() -> dict:
         "commitUrl": f"{server}/{repo}/commit/{commit}" if server and repo and commit else "",
         "runUrl": f"{server}/{repo}/actions/runs/{run_id}" if server and repo and run_id else "",
         "startedAt": os.getenv("SMOKE_STARTED_AT", ""),
+        "environment": os.getenv("QA_ENV") or "sit",
     }
 
 
@@ -426,6 +428,7 @@ def build() -> str:
     attempts = (kb or {}).get("attempts", [])
     last = attempts[-1] if attempts else None  # the verdict attempt
     started = meta["startedAt"] or (kb or {}).get("startedAt", "")
+    environment = (kb or {}).get("environment") or meta["environment"]  # what the call ran against
     finished = (kb or {}).get("finishedAt", "")
     duration = "-"
     if started and finished:
@@ -446,7 +449,7 @@ def build() -> str:
     refs_html = ('<p><strong>Reference for what failed</strong></p><ul class="refs">'
                  + "".join(f"<li>{r}</li>" for r in refs) + "</ul>") if refs else ""
     banner = (f'<section class="banner {"pass" if overall else "fail"}"><div class="big">{"PASS" if overall else "FAIL"}</div>'
-              f'<div class="grow"><h1>LiveKit smoke test</h1><p>{e(summary)}</p>{refs_html}</div></section>')
+              f'<div class="grow"><h1>LiveKit smoke test · {e(environment.upper())}</h1><p>{e(summary)}</p>{refs_html}</div></section>')
     def tile(icon: str, label: str, value: str) -> str:
         return (f'<div class="tile"><span class="ico">{icon}</span><div><div class="tl">{label}</div>'
                 f'<div class="tv">{value}</div></div></div>')
@@ -462,6 +465,7 @@ def build() -> str:
         + "".join(tile("&#128222;", "Call duration" + (f' (attempt {a["number"]})' if len(attempts) > 1 else ""),
                        e(call_length(a)) + f'<div class="tl">{e(call_span(a))}</div>')
                   for a in attempts)
+        + tile("&#127760;", "Environment", e(environment.upper()))
         + tile("&#127807;", "Branch", e(meta["branch"]))
         + tile("&#128204;", "Commit", commit + run_link)
         + "".join(tile("&#128222;", "Room ID" + (f" (attempt {a['number']})" if len(attempts) > 1 else ""),
@@ -555,7 +559,8 @@ def build() -> str:
 
     tech = section("Technical details", ('<ul class=plain>'
             '<li><a href="data/kb-smoke.json">Raw call data (JSON)</a></li>'
-            + (f'<li>Re-run this exact call: <code>KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>' if sel else "")
+            + (f'<li>Re-run this exact call: <code>QA_ENV={e(environment)} KB_SEED={e(str(sel.get("seed", "")))} make smoke</code></li>'
+               if sel else "")
             + "</ul>"))
 
     logs = render_logs(attempts) if attempts else ""
@@ -595,7 +600,7 @@ def build_internal() -> str:
             f"<title>LiveKit Smoke Test - internal</title><style>{CSS}pre{{white-space:pre-wrap;margin:6px 0 0}}</style></head><body><main>"
             f'<section class="banner {"pass" if unit and unit["passed"] else "fail"}"><div class="big">'
             f'{"PASS" if unit and unit["passed"] else "FAIL"}</div><div class="grow"><h1>Internal: unit checks</h1>'
-            f'<p>Branch {e(meta["branch"])} · commit {e(meta["commit"])}. Not part of the management report.</p></div></section>'
+            f'<p>{e(meta["environment"].upper())} · branch {e(meta["branch"])} · commit {e(meta["commit"])}. Not part of the management report.</p></div></section>'
             f"{body}</main></body></html>")
 
 
