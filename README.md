@@ -165,7 +165,7 @@ feature branch (e.g. develop-phase1_basic) --PR--> develop --PR--> master
 ```
 
 - **Feature branches.** Work happens on a feature branch, and every feature branch merges into `develop` by pull request. The PR runs the smoke test, so a branch is tested before it merges.
-- **`develop`** is the branch every test runs on. Each push to it, a merged PR included, runs the smoke test, and so does the daily schedule. It is the only branch whose report is published to GitHub Pages.
+- **`develop`** is the branch every test runs on. Each push to it, a merged PR included, runs the smoke test, and so does the daily schedule. Its call runs publish their report to GitHub Pages, and so do those on `develop-phase1_basic`.
 - **`master`** only receives `develop`, by pull request, when a release is ready.
 
 To test a feature branch without opening a PR, run the workflow by hand and pick the branch under **Use workflow from**.
@@ -192,14 +192,14 @@ A manual run can also set the seed or the model. GitHub only runs scheduled work
 - It starts from a clean slate: no restored caches and old reports removed.
 - Every stage in the chosen suite must pass. Stages outside it show as "not in suite".
 - Every run that makes a live call (`smoke`, `live`) builds the report, pass or fail:
-  - **GitHub Pages** holds the latest call run on `develop`, from whichever environment ran last; the report names it. The link is in the run summary. Runs on a PR or another branch, and `unit` runs, never replace it.
+  - **GitHub Pages** holds the latest call run on `develop` or `develop-phase1_basic`, from whichever environment and branch ran last; the report names the environment. The link is in the run summary. Runs on a PR or another branch, and `unit` runs, never replace it. The publishing branches are listed in the workflow's "Plan the suite" step.
   - **The `<environment>-<suite>-report-<n>` artifact** keeps every run.
 - The unit checks are not in that report. They go to `report-internal/index.html`, kept as the separate `<environment>-internal-unit-checks-<n>` artifact and never published to Pages.
 - One-time setup:
   - The settings, as repository secrets and variables: see [Settings in CI](#settings-in-ci).
   - Settings → Pages → Source = **GitHub Actions**.
   - Settings → General → Default branch = `develop`, for the daily run.
-  - Settings → Environments → `github-pages` → Deployment branches: add `develop`, so its runs can publish.
+  - Settings → Environments → `github-pages` → Deployment branches: every publishing branch must be listed. `develop-phase1_basic` is; add `develop` (needs a repo admin), or its runs fail at the publish job.
 
 ### Settings in CI
 

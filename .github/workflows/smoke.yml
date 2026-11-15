@@ -15,7 +15,9 @@
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
 # Branches: every branch merges into develop by pull request, and develop into master. develop is
-# the branch the tests run on, and the only one whose report is published to Pages.
+# the branch the tests run on. Its runs publish their report to Pages, and so do the runs on
+# develop-phase1_basic (the "Plan the suite" step has the list); a PR's never do. Each one must
+# also be allowed in Settings > Environments > github-pages > Deployment branches.
 #
 # Triggers and suites:
 #   pull_request - every PR into develop, always the smoke suite on NONPROD: the branch is tested
@@ -82,8 +84,9 @@ jobs:
     timeout-minutes: 60
     outputs:
       suite: ${{ steps.plan.outputs.suite }}
-      # Only develop's runs publish; a PR or another branch keeps its report as an artifact.
-      publish: ${{ steps.plan.outputs.kb == 'true' && github.ref == 'refs/heads/develop' }}
+      # Only a publishing branch's call runs publish (the plan step); a PR or another branch keeps
+      # its report as an artifact.
+      publish: ${{ steps.plan.outputs.publish }}
       environment: ${{ inputs.environment || 'NONPROD' }}
     env:
       # The environment the run uses (tests/sdk/lkqa/env.py), and the prefix of its secret and
@@ -108,8 +111,14 @@ jobs:
             live)  unit=false; kb=true ;;
             *) echo "::error::unknown suite '$suite'"; exit 1 ;;
           esac
-          { echo "suite=$suite"; echo "unit=$unit"; echo "kb=$kb"; } >> "$GITHUB_OUTPUT"
-          echo "suite=$suite unit=$unit kb=$kb"
+          # The branches whose call runs publish to Pages. A PR's ref is refs/pull/..., so a PR
+          # never publishes. Each branch must also be allowed by the github-pages environment.
+          case "$GITHUB_REF" in
+            refs/heads/develop|refs/heads/develop-phase1_basic) publish=$kb ;;
+            *) publish=false ;;
+          esac
+          { echo "suite=$suite"; echo "unit=$unit"; echo "kb=$kb"; echo "publish=$publish"; } >> "$GITHUB_OUTPUT"
+          echo "suite=$suite unit=$unit kb=$kb publish=$publish"
 
       - name: Start the clock
         run: echo "SMOKE_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
@@ -206,10 +215,10 @@ jobs:
           path: report-internal/
           if-no-files-found: warn
 
-      # Only develop's runs with a live call publish, so a unit-only run never replaces
-      # the latest call report on Pages with an empty one.
+      # Only a publishing branch's runs with a live call publish, so a unit-only run never
+      # replaces the latest call report on Pages with an empty one.
       - name: Stage the report for GitHub Pages
-        if: always() && steps.plan.outputs.kb == 'true' && github.ref == 'refs/heads/develop'
+        if: always() && steps.plan.outputs.publish == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: report/
@@ -228,7 +237,7 @@ jobs:
             echo "| LiveKit KB-steps call | ${{ steps.kb.outcome || 'not in suite' }} |"
             echo ""
             if [ "${{ steps.plan.outputs.kb }}" = true ]; then
-              echo "Report: download the \`$QA_ENV-${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}\` artifact. A run on develop also publishes it: the link is in the **publish** job below."
+              echo "Report: download the \`$QA_ENV-${{ steps.plan.outputs.suite }}-report-${{ github.run_number }}\` artifact. A run on develop or develop-phase1_basic also publishes it: the link is in the **publish** job below."
             else
               echo "Results: download the \`$QA_ENV-internal-unit-checks-${{ github.run_number }}\` artifact."
             fi
