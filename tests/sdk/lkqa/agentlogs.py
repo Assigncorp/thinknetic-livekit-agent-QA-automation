@@ -23,6 +23,8 @@ import shutil
 from functools import lru_cache
 from typing import Any
 
+from . import env
+
 # The agent's last words about a call: its record was sent, or could not be. (voice_session_closed
 # comes seconds BEFORE the record is analysed and sent, so it is not the end.)
 CALL_DONE = ("call_log_delivered", "call_log_failed", "call_log_validation_failed")
@@ -80,24 +82,50 @@ class LogTail:
         self.room = room
         self.lines: list[dict[str, Any]] = []
         self.done_seen = False
+        self.agent = ""
+        self.streamed = 0  # log lines lk printed, for every room
+        self.stderr: list[str] = []  # the last lines lk printed on stderr
+        self.ended_by_itself = False  # lk stopped before we stopped it
+        self._stopping = False
         self._proc: asyncio.subprocess.Process | None = None
-        self._task: asyncio.Task | None = None
+        self._tasks: list[asyncio.Task] = []
 
     async def start(self) -> None:
-        aid = await agent_id()
+        self.agent = await agent_id()
         self._proc = await asyncio.create_subprocess_exec(
-            "lk", "agent", "logs", "--id", aid, limit=1 << 22,  # tracebacks make long lines
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-        self._task = asyncio.create_task(self._pump())
+            "lk", "agent", "logs", "--id", self.agent, limit=1 << 22,  # tracebacks make long lines
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        self._tasks = [asyncio.create_task(self._pump()), asyncio.create_task(self._pump_stderr())]
 
     async def _pump(self) -> None:
         assert self._proc is not None and self._proc.stdout is not None
         while raw := await self._proc.stdout.readline():
             obj = parse(raw.decode("utf-8", "replace"))
-            if obj and obj.get("room") == self.room:
+            if obj is None:
+                continue
+            self.streamed += 1
+            if obj.get("room") == self.room:
                 self.lines.append(obj)
                 if any(k in str(obj.get("message", "")) for k in CALL_DONE):
                     self.done_seen = True
+        self.ended_by_itself = not self._stopping
+
+    async def _pump_stderr(self) -> None:
+        assert self._proc is not None and self._proc.stderr is not None
+        while raw := await self._proc.stderr.readline():
+            if line := raw.decode("utf-8", "replace").strip():
+                self.stderr = [*self.stderr[-19:], line[:300]]
+
+    def diagnosis(self) -> str:
+        """What the log stream did, for when it had nothing for our room: which agent it read,
+        how much it streamed, and whether lk stopped on its own and why."""
+        parts = [f"lk agent logs --id {self.agent or '-'} streamed {self.streamed} line(s) for any room"]
+        if self.ended_by_itself:
+            code = self._proc.returncode if self._proc is not None else None
+            parts.append(f"lk stopped by itself (exit code {code})")
+        if self.stderr:
+            parts.append("lk said: " + " | ".join(self.stderr[-3:]))
+        return "; ".join(parts)
 
     async def wait_until(self, predicate: Any, timeout_s: float) -> bool:
         """True once predicate(lines so far) holds, False at the timeout."""
@@ -116,10 +144,11 @@ class LogTail:
         return self.lines
 
     async def stop(self) -> None:
+        self._stopping = True
         if self._proc is not None and self._proc.returncode is None:
             self._proc.kill()
-        if self._task is not None:
-            self._task.cancel()
+        for task in self._tasks:
+            task.cancel()
         if self._proc is not None:
             await self._proc.wait()
 
@@ -377,8 +406,8 @@ def mask(phone: str) -> str:
 def sms_number_problem(sms_phone: str, caller_phone: str) -> str | None:
     """Why SMS_TEST_PHONE cannot be used, or None. Checked before the call is made."""
     if not sms_phone.strip():
-        return ("SMS_TEST_PHONE is not set: put the number that should receive the test text in the environment's "
-                "section of .env (SIT_SMS_TEST_PHONE for sit). It must differ from TEST_CALLER_PHONE.")
+        return (f"SMS_TEST_PHONE is not set: {env.how_to_set(['SMS_TEST_PHONE'])}, to the number that should "
+                "receive the test text. It must differ from TEST_CALLER_PHONE.")
     if len(_NON_DIGIT.sub("", sms_phone)) not in (10, 11):
         return "SMS_TEST_PHONE must be a 10-digit number (an optional leading 1 is fine)."
     if last10(sms_phone) == last10(caller_phone):

@@ -719,7 +719,7 @@ async def _worker_logs(flow: _Flow, keywords: tuple[Keyword, ...], sms_phone: st
         attempt.images = agentlogs.image_pushes(lines)  # the whole call, not just up to the check
         attempt.images_received = list(flow.call.images)
         if not lines:
-            attempt.worker_log_note = "the agent's logs had no lines for this room"
+            attempt.worker_log_note = f"the agent's logs had no lines for this room ({tail.diagnosis()})"
     print(f"[kb] worker logs for {attempt.room}: {len(lines)} line(s)" +
           (f" - {attempt.worker_log_note}" if attempt.worker_log_note else ""))
     for line in attempt.worker_log:

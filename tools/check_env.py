@@ -1,11 +1,11 @@
 """
 Show which environment a run targets and where each of its settings comes from.
 
-    QA_ENV=uat uv run --project tests/sdk python tools/check_env.py
+    QA_ENV=prod uv run --project tests/sdk python tools/check_env.py
 
-Exits non-zero when a setting the live call needs is missing from the environment's
-section of .env, so CI fails before the call instead of skipping it. Secrets are shown
-as "set", never printed.
+Exits non-zero when a setting the live call needs is missing - from the environment's
+section of .env on a laptop, from its repository secrets and variables in CI - so CI fails
+before the call instead of skipping it. Secrets are shown as "set", never printed.
 """
 
 from __future__ import annotations
@@ -23,17 +23,21 @@ from lkqa import env  # noqa: E402
 def main() -> int:
     origin = env.load()
     name, pre = env.name(), env.prefix()
-    print(f"== env: {name} (the {pre} section of .env)")
+    ci = env.in_ci()
+    where_from = "repository secrets and variables" if ci else ".env"
+    print(f"== env: {name} (from {where_from}: " + (f"names starting {pre})" if pre else "names without a prefix)"))
     for key in env.PER_ENV:
         value = os.getenv(key, "")
         shown = "set" if value and key in env.SECRETS else (value or "-")
-        where = origin.get(key) or ("process environment" if value else "MISSING" if key in env.REQUIRED else "")
+        source = origin.get(key) or "process environment"
+        if ci and source == "process environment":
+            source = f"secret or variable {env.setting_name(key)}"
+        where = source if value else ("MISSING" if key in env.REQUIRED else "")
         print(f"   {key:<20} {shown:<45} {where}")
     if missing := env.missing():
-        print(f"== env: {len(missing)} setting(s) missing for {name}: set {', '.join(pre + k for k in missing)} "
-              f"in .env (in CI: in the ENV_FILE secret)")
-        if name not in (found := env.sections()):
-            print(f"   .env has no {pre} section; sections found: {', '.join(found) or 'none'}")
+        print(f"== env: {len(missing)} setting(s) missing for {name}: {env.how_to_set(missing)}")
+        if not ci and name not in (found := env.sections()):
+            print(f"   .env has no {env.setting_name('LIVEKIT_URL')} line; environments found: {', '.join(found) or 'none'}")
         return 1
     return 0
 

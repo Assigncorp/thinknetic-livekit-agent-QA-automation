@@ -3,21 +3,25 @@
 # report (report/) is the phone-call check only; the unit checks go to report-internal/,
 # which is kept as a separate artifact and never published to Pages.
 #
-# Environments: every run targets one - SIT, UAT, PROD or any other. All of them live in one
-# .env file, a section each (SIT_LIVEKIT_URL, UAT_LIVEKIT_URL, ...; see .env.example). CI writes
-# that file from the ENV_FILE repository secret, whose value is the whole .env, so changing a URL
-# is changing ENV_FILE - no commit. Secrets are never printed.
-# Adding an environment: its section in ENV_FILE, and its name in the environment list below.
+# Environments: every run targets one - NONPROD (the default) or PROD. CI reads the environment's
+# settings from repository secrets and variables (Settings > Secrets and variables > Actions), one
+# per setting, and writes no .env file. NONPROD's names have no prefix (LIVEKIT_URL, AGENT_NAME,
+# ...); PROD's start with PROD_ (PROD_LIVEKIT_URL, PROD_AGENT_NAME, ...). They are the same names
+# as in a laptop's .env. Each setting can be a secret or a variable; the LiveKit keys and the SMS
+# number belong in secrets. NONPROD needs only its four secrets (LIVEKIT_URL, LIVEKIT_API_KEY,
+# LIVEKIT_API_SECRET, SMS_TEST_PHONE): its agent and product are built in (tests/sdk/lkqa/env.py)
+# unless a variable overrides them. Changing a value is changing its secret or variable - no
+# commit. Secrets are never printed.
 # GitHub Pages must be enabled with Source = "GitHub Actions" (Settings > Pages).
 #
 # Branches: every branch merges into develop by pull request, and develop into master. develop is
 # the branch the tests run on, and the only one whose report is published to Pages.
 #
 # Triggers and suites:
-#   pull_request - every PR into develop, always the smoke suite on SIT: the branch is tested
+#   pull_request - every PR into develop, always the smoke suite on NONPROD: the branch is tested
 #                  before it merges. Report kept as an artifact, not published.
-#   push      - every push to develop (a merged PR included), always the smoke suite on SIT.
-#   schedule  - Monday to Friday at 06:00 IST, always the smoke suite on SIT. GitHub only runs
+#   push      - every push to develop (a merged PR included), always the smoke suite on NONPROD.
+#   schedule  - Monday to Friday at 06:00 IST, always the smoke suite on NONPROD. GitHub only runs
 #               scheduled workflows from the repository's default branch, so develop must be
 #               the default branch (Settings > General) for this to run.
 #   manual    - Actions tab > qa > Run workflow, pick the branch, the environment and the suite:
@@ -27,7 +31,7 @@
 #
 # Every stage in the suite must pass; a failed stage shows red and fails the run.
 name: qa
-run-name: ${{ inputs.suite || 'smoke' }} on ${{ inputs.environment || 'SIT' }} (${{ github.event_name }}) - ${{ github.head_ref || github.ref_name }}
+run-name: ${{ inputs.suite || 'smoke' }} on ${{ inputs.environment || 'NONPROD' }} (${{ github.event_name }}) - ${{ github.head_ref || github.ref_name }}
 
 on:
   pull_request:
@@ -41,12 +45,11 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Environment to run against (its section of .env, from the ENV_FILE secret)"
+        description: "Environment to run against (its repository secrets and variables)"
         type: choice
-        default: SIT
+        default: NONPROD
         options:
-          - SIT
-          - UAT
+          - NONPROD
           - PROD
       suite:
         description: "Test type to run"
@@ -65,7 +68,7 @@ on:
 
 # One run at a time per environment: the live call uses that environment's shared agent.
 concurrency:
-  group: qa-${{ inputs.environment || 'SIT' }}
+  group: qa-${{ inputs.environment || 'NONPROD' }}
   cancel-in-progress: false
 
 permissions:
@@ -81,10 +84,12 @@ jobs:
       suite: ${{ steps.plan.outputs.suite }}
       # Only develop's runs publish; a PR or another branch keeps its report as an artifact.
       publish: ${{ steps.plan.outputs.kb == 'true' && github.ref == 'refs/heads/develop' }}
-      environment: ${{ inputs.environment || 'SIT' }}
+      environment: ${{ inputs.environment || 'NONPROD' }}
     env:
-      # Which section of .env the run uses (tests/sdk/lkqa/env.py).
-      QA_ENV: ${{ inputs.environment || 'SIT' }}
+      # The environment the run uses (tests/sdk/lkqa/env.py), and the prefix of its secret and
+      # variable names: none for NONPROD, PROD_ for PROD (env.setting_name).
+      QA_ENV: ${{ inputs.environment || 'NONPROD' }}
+      QA_PREFIX: ${{ inputs.environment == 'PROD' && 'PROD_' || '' }}
       KB_SEED: ${{ inputs.kb_seed }}
       KB_MODEL: ${{ inputs.kb_model }}
       KB_RETRIES: "1"
@@ -119,14 +124,33 @@ jobs:
           rm -rf report report-internal
           mkdir -p report/data report-internal
 
-      # The same .env as on a laptop, every environment's section in it. Never uploaded:
-      # the artifacts are report/ and report-internal/ only.
-      - name: Write .env from the ENV_FILE secret
+      # Each setting from the secret, or else the variable, named QA_PREFIX + the setting (for NONPROD,
+      # the existing LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET and SMS_TEST_PHONE secrets).
+      # No .env file: the values go to the later steps of this job only, and secrets stay masked.
+      # A blank one is left unset, so the settings check below names it.
+      - name: Read the environment's settings (secrets and variables)
+        if: steps.plan.outputs.kb == 'true'
         env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
+          LIVEKIT_URL:        ${{ secrets[format('{0}LIVEKIT_URL', env.QA_PREFIX)] || vars[format('{0}LIVEKIT_URL', env.QA_PREFIX)] }}
+          LIVEKIT_API_KEY:    ${{ secrets[format('{0}LIVEKIT_API_KEY', env.QA_PREFIX)] || vars[format('{0}LIVEKIT_API_KEY', env.QA_PREFIX)] }}
+          LIVEKIT_API_SECRET: ${{ secrets[format('{0}LIVEKIT_API_SECRET', env.QA_PREFIX)] || vars[format('{0}LIVEKIT_API_SECRET', env.QA_PREFIX)] }}
+          SMS_TEST_PHONE:     ${{ secrets[format('{0}SMS_TEST_PHONE', env.QA_PREFIX)] || vars[format('{0}SMS_TEST_PHONE', env.QA_PREFIX)] }}
+          AGENT_NAME:         ${{ secrets[format('{0}AGENT_NAME', env.QA_PREFIX)] || vars[format('{0}AGENT_NAME', env.QA_PREFIX)] }}
+          AGENT_ID:           ${{ secrets[format('{0}AGENT_ID', env.QA_PREFIX)] || vars[format('{0}AGENT_ID', env.QA_PREFIX)] }}
+          PRODUCT_NAME:       ${{ secrets[format('{0}PRODUCT_NAME', env.QA_PREFIX)] || vars[format('{0}PRODUCT_NAME', env.QA_PREFIX)] }}
+          PRODUCT_BRAND:      ${{ secrets[format('{0}PRODUCT_BRAND', env.QA_PREFIX)] || vars[format('{0}PRODUCT_BRAND', env.QA_PREFIX)] }}
+          ORGANIZATION_ID:    ${{ secrets[format('{0}ORGANIZATION_ID', env.QA_PREFIX)] || vars[format('{0}ORGANIZATION_ID', env.QA_PREFIX)] }}
+          ORG_SLUG:           ${{ secrets[format('{0}ORG_SLUG', env.QA_PREFIX)] || vars[format('{0}ORG_SLUG', env.QA_PREFIX)] }}
+          KNOWLEDGE_BASE_ID:  ${{ secrets[format('{0}KNOWLEDGE_BASE_ID', env.QA_PREFIX)] || vars[format('{0}KNOWLEDGE_BASE_ID', env.QA_PREFIX)] }}
+          ASSISTANT:          ${{ secrets[format('{0}ASSISTANT', env.QA_PREFIX)] || vars[format('{0}ASSISTANT', env.QA_PREFIX)] }}
         run: |
-          printf '%s\n' "$ENV_FILE" > .env
-          chmod 600 .env
+          for name in LIVEKIT_URL LIVEKIT_API_KEY LIVEKIT_API_SECRET SMS_TEST_PHONE AGENT_NAME AGENT_ID \
+                      PRODUCT_NAME PRODUCT_BRAND ORGANIZATION_ID ORG_SLUG KNOWLEDGE_BASE_ID ASSISTANT; do
+            value="${!name}"
+            [ -n "$value" ] || continue
+            case "$value" in *$'\n'*) echo "::error::${QA_PREFIX}${name} has a line break"; exit 1 ;; esac
+            echo "${name}=${value}" >> "$GITHUB_ENV"
+          done
 
       - name: Install fresh (uv sync)
         id: install

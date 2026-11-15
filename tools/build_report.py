@@ -62,7 +62,7 @@ def run_meta() -> dict:
         "commitUrl": f"{server}/{repo}/commit/{commit}" if server and repo and commit else "",
         "runUrl": f"{server}/{repo}/actions/runs/{run_id}" if server and repo and run_id else "",
         "startedAt": os.getenv("SMOKE_STARTED_AT", ""),
-        "environment": os.getenv("QA_ENV") or "sit",
+        "environment": os.getenv("QA_ENV") or "nonprod",
     }
 
 

@@ -35,10 +35,9 @@ RETRIES = int(os.getenv("KB_RETRIES", "1"))
 
 async def test_kb_steps_call(product, caller):
     if missing := missing_credentials():
-        pytest.skip(f"{', '.join(env.prefix() + k for k in missing)} not set in .env (QA_ENV={env.name()})")
+        pytest.skip(f"LiveKit credentials missing: {env.how_to_set(missing)} (QA_ENV={env.name()})")
     if missing := env.missing():
-        pytest.fail(f"{', '.join(env.prefix() + k for k in missing)} not set in .env (QA_ENV={env.name()})",
-                    pytrace=False)
+        pytest.fail(f"settings missing: {env.how_to_set(missing)} (QA_ENV={env.name()})", pytrace=False)
 
     sms_phone = os.getenv("SMS_TEST_PHONE", "")
     if problem := sms_number_problem(sms_phone, caller["phone"]):

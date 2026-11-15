@@ -4,8 +4,8 @@ export PYTHONDONTWRITEBYTECODE := 1
 SDK := tests/sdk
 PY := uv run --project $(SDK) python
 
-# The environment the live call targets: its section of .env (SIT_..., UAT_..., PROD_...).
-export QA_ENV ?= sit
+# The environment the live call targets: nonprod (settings without a prefix in .env) or prod (PROD_...).
+export QA_ENV ?= nonprod
 
 .PHONY: help smoke test install clean check-env unit kb report
 
@@ -17,7 +17,7 @@ help:
 	@echo "make kb          - the live LiveKit KB-steps call (KB_SEED / KB_MODEL to pin)"
 	@echo "make report      - build report/index.html (management) and report-internal/index.html (unit checks)"
 	@echo ""
-	@echo "QA_ENV picks the environment (default sit): QA_ENV=uat make smoke. Each has its own section in .env."
+	@echo "QA_ENV picks the environment (default nonprod): QA_ENV=prod make smoke. Prod's settings start with PROD_."
 
 # The sequence. A missing setting or a unit failure stops the run before the live call;
 # the report is always built, pass or fail, and the exit code is the run's verdict.

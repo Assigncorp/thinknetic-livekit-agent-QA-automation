@@ -114,6 +114,25 @@ async def test_the_tail_keeps_only_this_rooms_lines_and_knows_when_the_call_is_d
         await tail.stop()
     assert {o["room"] for o in lines} == {"qa-kb-mine"}
     assert tail.done_seen and len(lines) == 2
+    assert "streamed 4 line(s)" in tail.diagnosis() and "stopped by itself" not in tail.diagnosis()
+
+
+async def test_when_lk_fails_the_tail_says_why(tmp_path, monkeypatch):
+    """A stand-in `lk` that refuses, the way a CI run with no access to the agent's logs might."""
+    import stat
+
+    fake = tmp_path / "lk"
+    fake.write_text("#!/bin/sh\necho 'Error: unauthorized: no access to agent logs' >&2\nexit 1\n")
+    fake.chmod(fake.stat().st_mode | stat.S_IEXEC)
+    monkeypatch.setenv("PATH", f"{tmp_path}:/usr/bin:/bin")
+    monkeypatch.setenv("AGENT_ID", "CA_x")
+
+    tail = agentlogs.LogTail("qa-kb-mine")
+    await tail.start()
+    lines = await tail.finish(1)
+    why = tail.diagnosis()
+    assert lines == []
+    assert "--id CA_x streamed 0 line(s)" in why and "exit code 1" in why and "unauthorized" in why
 
 
 # What the deployed agent logged for a real callback request (shortened).

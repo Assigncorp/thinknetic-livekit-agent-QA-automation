@@ -1,6 +1,6 @@
 # Thinknetic LiveKit agent: smoke test
 
-This is the standard smoke test for the deployed Etnyre ChipSpreader support agent. It runs against one environment at a time: SIT by default, or UAT, prod or any other (see [Environments](#environments)). Every run executes two stages in order:
+This is the standard smoke test for the deployed Etnyre ChipSpreader support agent. It runs against one environment at a time: nonprod by default, or prod (see [Environments](#environments)). Every run executes two stages in order:
 
 1. **Unit checks** (offline):
    - [kb/smoke.yaml](kb/smoke.yaml), the call's fixed inputs, is valid
@@ -28,15 +28,15 @@ First-time setup:
 
 ```bash
 brew install livekit-cli    # the `lk` CLI, to read the agent's logs (CI installs it too)
-cp .env.example .env        # fill in the SIT section: SIT_LIVEKIT_URL, SIT_LIVEKIT_API_KEY,
-                            # SIT_LIVEKIT_API_SECRET, SIT_SMS_TEST_PHONE
+cp .env.example .env        # fill in the nonprod section: LIVEKIT_URL, LIVEKIT_API_KEY,
+                            # LIVEKIT_API_SECRET, SMS_TEST_PHONE
 make smoke                  # clean, install, check-env, unit, kb, report - the same steps as CI
 open report/index.html
 ```
 
 | Command | What it does |
 |---|---|
-| `QA_ENV=uat make smoke` | The same run against UAT. Works with every command below. |
+| `QA_ENV=prod make smoke` | The same run against prod. Works with every command below. |
 | `make check-env` | Shows the environment's settings and where each one comes from (secrets are shown as "set"). Fails if one the live call needs is missing. |
 | `make test` | The same sequence without the clean and install steps. |
 | `make unit` | Unit checks only. Results go to the internal report, `report-internal/index.html`. |
@@ -49,25 +49,24 @@ The live test skips if the LiveKit credentials are missing, and fails with a cle
 
 ## Environments
 
-Every run targets one environment: SIT (the default), UAT, PROD, or any other you add. All of them live in the one `.env` file, a section each, and every setting in a section starts with the environment's name:
+There are two: **nonprod** (the default) and **prod**. A setting has one name per environment, and the names are the same in a laptop's `.env` and in GitHub's secrets and variables. Nonprod's have no prefix; prod's start with `PROD_`:
 
 ```bash
-SIT_LIVEKIT_URL=wss://…       # LIVEKIT_URL when QA_ENV=sit
-UAT_LIVEKIT_URL=wss://…       # LIVEKIT_URL when QA_ENV=uat
-PROD_LIVEKIT_URL=wss://…      # LIVEKIT_URL when QA_ENV=prod
+LIVEKIT_URL=wss://…           # nonprod
+PROD_LIVEKIT_URL=wss://…      # prod
 ```
 
-Each section has the LiveKit URL and keys, the agent name, `SMS_TEST_PHONE`, and the product IDs sent to the agent. [.env.example](.env.example) has the full layout, with SIT's agent name and IDs filled in.
+Each environment has the LiveKit URL and keys, the agent name, `SMS_TEST_PHONE`, and the product IDs sent to the agent. [.env.example](.env.example) has the full layout, with nonprod's agent name and IDs filled in.
 
-- **Pick the environment:** `QA_ENV=uat make smoke` locally. In CI, use the **environment** list under Actions → **qa** → **Run workflow**.
-- **Change a URL:** change its line in `.env`, and in the `ENV_FILE` secret for CI. No code change and no commit.
-- **Add an environment:** copy a section with the new name as the prefix (for example `STAGING_…`), and add the name to the `environment` options in [smoke.yml](.github/workflows/smoke.yml).
+- **Pick the environment:** `QA_ENV=prod make smoke` locally. In CI, use the **environment** list under Actions → **qa** → **Run workflow**.
+- **Where the settings come from:** on a laptop, `.env`. In CI, the repository secrets and variables of the same names (see [Settings in CI](#settings-in-ci)); CI never reads or writes a `.env`.
+- **Change a value:** change its line in `.env`, and its secret or variable for CI. No code change and no commit.
 - **Override for one run:** set the unprefixed name, for example `LIVEKIT_URL=wss://… make kb`.
 
-A section's settings are only ever read with its prefix, so a blank `UAT_LIVEKIT_URL` stays missing. It never falls back to SIT's value. Settings without a prefix (`KB_SEED`, `TEST_CALLER_*`) apply to every environment.
+A prod run only ever reads `PROD_` settings, so a blank `PROD_LIVEKIT_URL` stays missing. It never falls back to nonprod's value. `KB_SEED`, `KB_MODEL` and `TEST_CALLER_*` apply to both.
 
 > [!WARNING]
-> A live call is real in every environment. On PROD it texts `PROD_SMS_TEST_PHONE`, creates a callback task, and writes a call log in prod's systems.
+> A live call is real in both environments. On prod it texts `PROD_SMS_TEST_PHONE`, creates a callback task, and writes a call log in prod's systems.
 
 ## The live call
 
@@ -177,10 +176,10 @@ To test a feature branch without opening a PR, run the workflow by hand and pick
 
 | Trigger | Environment | Suite |
 |---|---|---|
-| Every pull request into `develop` | SIT | `smoke`, always |
-| Every push to `develop` (a merged PR included) | SIT | `smoke`, always |
-| Monday to Friday at 06:00 IST (scheduled), on `develop` | SIT | `smoke`, always |
-| Manual: Actions → **qa** → **Run workflow**, on the branch you pick | the one you pick from the **environment** list (SIT, UAT, PROD) | the one you pick from the **suite** list |
+| Every pull request into `develop` | nonprod | `smoke`, always |
+| Every push to `develop` (a merged PR included) | nonprod | `smoke`, always |
+| Monday to Friday at 06:00 IST (scheduled), on `develop` | nonprod | `smoke`, always |
+| Manual: Actions → **qa** → **Run workflow**, on the branch you pick | the one you pick from the **environment** list (NONPROD, PROD) | the one you pick from the **suite** list |
 
 | Suite | What it runs |
 |---|---|
@@ -197,16 +196,28 @@ A manual run can also set the seed or the model. GitHub only runs scheduled work
   - **The `<environment>-<suite>-report-<n>` artifact** keeps every run.
 - The unit checks are not in that report. They go to `report-internal/index.html`, kept as the separate `<environment>-internal-unit-checks-<n>` artifact and never published to Pages.
 - One-time setup:
-  - Repository secret `ENV_FILE`: the whole `.env`, every environment's section in it (Settings → Secrets and variables → Actions). CI writes it to `.env` at the start of each run and never uploads it. Every run of the workflow can read it, including PROD's keys. The old `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` and `SMS_TEST_PHONE` repository secrets are no longer used.
+  - The settings, as repository secrets and variables: see [Settings in CI](#settings-in-ci).
   - Settings → Pages → Source = **GitHub Actions**.
   - Settings → General → Default branch = `develop`, for the daily run.
   - Settings → Environments → `github-pages` → Deployment branches: add `develop`, so its runs can publish.
+
+### Settings in CI
+
+CI reads each setting from the repository secret, or else the repository variable, with the same name as in `.env` (Settings → Secrets and variables → Actions). It writes no `.env` and never prints a secret. If one is missing, `make check-env` fails the run before the call and names it.
+
+| Setting | Nonprod | Prod | Keep it as |
+|---|---|---|---|
+| LiveKit project | `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | `PROD_LIVEKIT_URL`, `PROD_LIVEKIT_API_KEY`, `PROD_LIVEKIT_API_SECRET` | secrets |
+| Number that receives the test text | `SMS_TEST_PHONE` | `PROD_SMS_TEST_PHONE` | secret |
+| Agent and product | built in ([env.py](tests/sdk/lkqa/env.py) `NONPROD_DEFAULTS`); a variable `AGENT_NAME`, `PRODUCT_NAME`, `PRODUCT_BRAND`, `ORGANIZATION_ID`, `ORG_SLUG`, `KNOWLEDGE_BASE_ID`, `ASSISTANT` or `AGENT_ID` overrides one | `PROD_AGENT_NAME`, `PROD_PRODUCT_NAME`, … all required; optionally `PROD_AGENT_ID` | variables |
+
+So nonprod needs only its four secrets, which the repository already has. Keep the agent and product settings as variables, not secrets: they are not secret, and GitHub hides every occurrence of a secret's value in the logs (as a secret, `ORG_SLUG` = `e` would hide every letter "e").
 
 ## Layout
 
 ```
 kb/smoke.yaml                       the four serials, the question, its keywords and the image
-tests/sdk/lkqa/env.py               QA_ENV and loading that environment's section of .env
+tests/sdk/lkqa/env.py               QA_ENV, and each setting's name and source (.env, or CI's secrets)
 tests/sdk/lkqa/smoke.py             loads kb/smoke.yaml; picks the model and so the serial (seeded)
 tests/sdk/lkqa/kbcall.py            the seventeen-checkpoint live call
 tests/sdk/lkqa/validator.py         deterministic keyword check
@@ -214,7 +225,7 @@ tests/sdk/lkqa/expect.py            LiveKit-style expect() assertions over the r
 tests/sdk/lkqa/call.py              LiveKit room, agent dispatch token, turn reading
 tests/sdk/lkqa/agentlogs.py         the agent's own logs (lk agent logs): text, callback task, images, call log
 tests/sdk/tests/                    test_kb_call.py (live), test_smoke / test_validator /
-                                    test_images / test_agentlogs (offline)
+                                    test_images / test_agentlogs / test_env (offline)
 tools/build_report.py               report/index.html
 tools/check_env.py                  make check-env
 ```

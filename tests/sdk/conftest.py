@@ -4,7 +4,7 @@ Fixtures for the basic LiveKit SDK suite.
 One event loop for the whole session (pyproject: asyncio_default_*_loop_scope),
 because the LiveKit SDK binds its handles to the loop they were created on.
 
-Settings come from the section of .env that QA_ENV picks (lkqa/env.py).
+Settings come from the environment QA_ENV picks (lkqa/env.py).
 """
 
 from __future__ import annotations
