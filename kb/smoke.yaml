@@ -1,0 +1,43 @@
+# The live call's fixed inputs: the four test serials, the one question every call asks, the
+# keywords its answer must contain, and the one image every call asks to see. This is the file to
+# edit; no code change is needed.
+# Every run checks this file before the call and fails, naming each problem, if it is malformed.
+
+# One serial per classification (machine model). The serial is sent to the agent when the call
+# starts, and the agent pulls the machine up from it. Each run uses FHRC28 or FHRC36 at random
+# (the fixed-hopper models); KB_MODEL=VHRS28 pins any of the four. Model names are fixed: FHRC28,
+# FHRC36, VHRS28, VHRS36. Each needs a serial. Each model resolves to its own product and its own
+# knowledge base, with its own images (see image, below).
+serials:
+  FHRC28: K7174   # RC28, fixed hopper: 2 WD S CHIPSPREADER
+  FHRC36: K6758   # RC36, fixed hopper: 13' FIXED HOPPER, CUMMINS QSB 260 TIER III
+  VHRS28: K7170   # RC28, variable hopper: 4 WD V CHIPSPREADER
+  VHRS36: K6757   # RC36, variable hopper: 10/20' VARIABLE HOPPER, CUMMINS QSB 280 TIER III
+
+# Asked on every call, whichever serial is used. It is about the same picture the caller asks for
+# later (image, below): the start-up switches are on the operator control panel, so while the agent
+# explains the steps its image tool should find and show that picture. The start-up order is in all
+# four models' manuals: Park/Drive switch in PARK, joystick in neutral, Throttle Run/Idle in IDLE.
+question: I've finished my walk-around checks. Can you take me through starting the engine from the operator control panel, in the right order?
+
+# The answer passes when every keyword below is said somewhere in it, in any order and with any
+# wording around it. Case, punctuation and plurals are ignored, and a keyword matches whole words
+# only ("park" is not found in "parking"). The texted steps are checked against the same keywords.
+#
+# A keyword can list synonyms; any one of them counts:
+#   - term: neutral
+#     synonyms: [center position]
+# Quote a keyword YAML would read as true/false: 'on', 'off', 'yes', 'no'.
+keywords:
+  - park      # the Park/Drive switch in PARK
+  - term: neutral   # the joystick in neutral
+    synonyms: [centered, center position]
+  - idle      # the Throttle Run/Idle switch in IDLE
+
+# After the steps, every call asks to see this one picture by name. It passes when the agent's
+# image tool shares the image with this description and the caller's screen receives it; case,
+# punctuation and spacing are ignored. If the agent already showed it during the steps, that counts.
+# Copy it exactly as written on the image in the knowledge base (admin: Products > Edit >
+# Knowledge base > Images). This one is confirmed in FHRC28's and FHRC36's (both shared it on
+# 2026-11-13); VHRS28's and VHRS36's are not yet confirmed.
+image: Operator control panel or console
