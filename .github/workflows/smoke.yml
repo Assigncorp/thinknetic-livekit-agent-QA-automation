@@ -171,10 +171,11 @@ jobs:
           lk --version
 
       # Each stage fails red on its own, and the job with it. `!cancelled()` lets the report
-      # steps after them still run, so every result is reported.
+      # steps after them still run, so every result is reported. The unit checks are offline:
+      # they run even when a setting is missing, so the verdict never blames them for it.
       - name: Unit checks (kb/smoke.yaml, keyword check, log parsing)
         id: unit
-        if: steps.plan.outputs.unit == 'true'
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.plan.outputs.unit == 'true' }}
         run: make unit
 
       - name: LiveKit KB-steps call
